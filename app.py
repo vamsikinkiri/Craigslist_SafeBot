@@ -1,10 +1,16 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
+from flask import render_template, redirect, url_for, request, flash
+from datetime import datetime
+from db_helper import get_connection
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_login import LoginManager, UserMixin, login_user
 from wtforms.validators import DataRequired
 from email_handler import EmailHandler
-from auth_handler import LoginForm, User, load_user, authenticate_user
-from response_generator import generate_response
+from auth_handler import (LoginForm, User, load_user)
+# , authenticate_user)
+# from response_generator import generate_response
 from datetime import datetime, timedelta
 
 # Initialize the Flask application
@@ -44,7 +50,6 @@ def login():
 
     return render_template('login.html', form=form)
 
-
 @app.route('/logout', methods=['POST', 'GET'])
 @login_required
 def logout():
@@ -58,18 +63,18 @@ def generate_and_send_response(emails, message_id):
     """
     # Step 1: Fetch emails and find the specified email
     email = next((e for e in emails if e['message_id'] == message_id), None)
-    
+
     if not email:
         print("Email not found.")
         return
-    
+
     # Step 2: Clean the email body
     clean_content = email['content']
-    
+
     # Step 3: Generate response
     prompt = "You are a police detective and posted an ad saying you are looking to buy watches at a cheap price in hope of catching some criminals. You received an email as below:"
     response_text = generate_response(prompt, clean_content)
-    
+
     # Step 4: Send the response as a reply
     to_address = email['from']
     subject = email['subject']
@@ -83,8 +88,51 @@ def generate_and_send_response(emails, message_id):
     )
 
     print("Response sent successfully.")
-    return 
+    return
 
+
+def add_category():
+    conn = get_connection()  # Get the database connection
+    if not conn:
+        flash('Database connection failed.', 'error')
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        # Get values from the text inputs
+        category_type = request.form.get('category_input')
+        # crime_type = request.form.get('crime_input') # this is optional
+        keywords = request.form.get('keywords_input')  # This is now optional
+        date_added = request.form.get('date') or datetime.now().strftime('%Y-%m-%d ')  # Default to today's date if empty
+
+        # Generate a hash value for the CATEGORY_ID
+        # hash_input = f"{category_type}-{crime_type}-{date_added}".encode('utf-8')  # Concatenate values
+        # category_id = hashlib.sha256(hash_input).hexdigest()  # Generate a SHA256 hash
+
+        # Validate and process data
+        if not category_type :
+            flash('Please fill in the required fields.', 'error')
+        else:
+            try:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    INSERT INTO EMAIL_CATEGORIES (CATEGORY_NAME, KEYWORDS_LIST, LAST_UPDATED)
+                    VALUES (%s, %s, %s)
+                    """,
+                    (category_type, '{' + (keywords.replace(', ', ',') if keywords else '') + '}', date_added)
+                )
+                conn.commit()
+                flash('Category added successfully!', 'success')
+            except Exception as e:
+                flash(f'Error occurred while insertion: {e}', 'error')
+            finally:
+                cursor.close()
+                conn.close()  # Close the connection after using it
+            return redirect(url_for('index'))
+
+    return render_template('add_category.html')
+	
+	
 # Main route to display emails and conversations
 @app.route('/', methods=['GET'])
 @login_required

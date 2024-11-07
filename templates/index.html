@@ -199,6 +199,109 @@
             margin-top: 10px;
             transition: none; /* Ensure no transition on display change */
         }
+        /* Main container with sidebar and content layout */
+        .main-container {
+            display: flex;
+        }
+        /* Sidebar styling */
+        .sidebar {
+            width: 220px;
+            background-color: #1a3a7a;
+            color: #ffffff;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding-top: 80px; /* Adjust this value to control top spacing */
+            box-sizing: border-box;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar ul li {
+            padding: 10px 20px;
+        }
+
+        .sidebar ul li a {
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .sidebar ul li a:hover {
+            text-decoration: underline;
+        }
+
+
+        .sidebar ul li a {
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .sidebar ul li a:hover {
+            text-decoration: underline;
+        }
+
+        /*.sidebar ul {*/
+        /*    list-style-type: none;*/
+        /*    padding: 0;*/
+        /*    padding-top: 400px;*/
+        /*    margin-top: 300px; !* Adjust this value as needed *!*/
+        /*}*/
+
+        /* Sidebar styling */
+        .sidebar {
+            width: 220px;
+            background-color: #1e3a8a;
+            color: white;
+            padding-top: 120px;
+            height: 100vh; /* Full viewport height */
+            position: fixed; /* Fixes sidebar to the left */
+            top: 0;
+            left: 0;
+            overflow-y: auto; /* Adds scroll if sidebar content overflows */
+        }
+
+        .sidebar h2 {
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar ul li {
+            margin: 15px 0;
+            padding-left: 20px; /* Adds padding for better alignment */
+        }
+
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .sidebar ul li a:hover {
+            text-decoration: underline;
+        }
+
+        /* Content styling */
+        .content {
+            margin-left: 220px; /* Ensure it starts after the sidebar */
+            padding: 20px;
+            flex-grow: 1; /* Takes the remaining space */
+            background-color: #f4f4f4;
+            box-sizing: border-box;
+        }
+
+
         .email {
             padding: 10px;
             border-radius: 5px;
@@ -376,6 +479,22 @@
     </script>
 </head>
 <body>
+
+<!-- Sidebar -->
+
+<div class="sidebar">
+    <div class="spacer"></div>
+    <div class="sidebar">
+        <ul>
+            <li><a href="{{ url_for('index') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('add_category') }}">Add Category</a></li>
+        </ul>
+    </div>
+
+    </ul>
+</div>
+
+
 <header>
     <div class="header-title">Craigslist Safebot</div>
     <button class="logout-button" onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>

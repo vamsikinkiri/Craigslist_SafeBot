@@ -1,0 +1,87 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Category</title>
+    <style>
+        body {
+            background-color: #f4f4f4; /* Light background for contrast */
+            font-family: Arial, sans-serif;
+        }
+        /* Center the container */
+        .container {
+            max-width: 400px; /* Width of the container */
+            margin: 100px auto; /* Center horizontally and add top margin */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Enhanced shadow for depth */
+            background-color: #ffffff; /* White background for the form */
+        }
+        h2 {
+            text-align: center;
+            color: #023e8a; /* Dark blue for the title */
+            font-size: 28px; /* Increased font size for header */
+            margin-bottom: 20px; /* Add some space below the header */
+        }
+        .form-group {
+            margin-bottom: 15px; /* Spacing between fields */
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333; /* Dark grey for labels */
+        }
+        /* Adjust width and styles of input fields */
+        select, input[type="text"], input[type="date"] {
+            width: 100%; /* Full width of the container */
+            padding: 10px; /* Padding inside the inputs */
+            border-radius: 4px; /* Rounded corners */
+            border: 2px solid #023e8a; /* Dark blue border */
+            box-sizing: border-box; /* Ensure padding is included in width */
+        }
+        button {
+            width: 100%; /* Full width for the button */
+            padding: 10px;
+            background-color: #0096c7; /* Button color */
+            color: white; /* Text color for button */
+            border: none; /* Remove border */
+            border-radius: 4px; /* Rounded corners for button */
+            font-size: 16px; /* Font size for button */
+            cursor: pointer; /* Cursor changes on hover */
+        }
+        button:hover {
+            background-color: #0077b6; /* Darker blue on hover */
+        }
+        .toggle-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Add New Category</h2>
+    <form method="POST" action="{{ url_for('add_category') }}">
+        <div class="form-group">
+            <label for="category_type">Category Type:</label>
+            <input type="text" id="category_type" name="category_input" placeholder="Enter category" required>
+        </div>
+<!--?        <div class="form-group">-->
+<!--?            <label for="crime_type">Crime Type:</label>-->
+<!--?            <input type="text" id="crime_type" name="crime_input" placeholder="Enter crime type (optional)">-->
+<!--?        </div>-->
+        <div class="form-group">
+            <label for="keywords">Keywords of Interest:</label>
+            <input type="text" id="keywords" name="keywords_input" placeholder="Enter keywords (optional)">
+        </div>
+        <div class="form-group">
+            <label for="date">Date:</label>
+            <input type="date" id="date" name="date">
+        </div>
+        <button type="submit">Add Category</button>
+    </form>
+    </body>
+    </html>
+
