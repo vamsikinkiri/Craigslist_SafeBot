@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        header {
+            background-color: #023e8a;
+            color: white;
+            padding: 20px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 40px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .header-title {
+            flex: 1;
+            text-align: center;
+            font-size: 34px;
+        }
+        login-button {
+            background-color: #0096c7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .login-button:hover {
+            background-color: #0077b6;
+        }
+
+        .login-container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            text-align: center;
+            color: #023e8a;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        input {
+            padding: 15px;
+            border: 2px solid #023e8a;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #0077b6;
+        }
+
+        .flash-message {
+            background-color: #f8d7da; /* Red error background */
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+            text-align: center;
+        }
+
+        .btn-primary {
+            padding: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            box-sizing: border-box;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        /* Add responsiveness */
+        @media (max-width: 500px) {
+            .login-container {
+                padding: 30px;
+            }
+
+            input, button {
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            h2 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<header>
+    <div class="header-title">Craigslist Safebot</div>
+</header>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+
+        <!-- Only display flash messages if there are errors -->
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+          <div class="flash-message">
+              {% for message in messages %}
+                  <p>{{ message }}</p>
+              {% endfor %}
+          </div>
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('login') }}">
+            {{ form.hidden_tag() }}
+            <div>
+                {{ form.loginId.label }}
+                {{ form.loginId(size=32) }}
+            </div>
+            <div>
+                {{ form.password.label }}
+                {{ form.password(size=32) }}
+            </div>
+            <div>
+                {{ form.submit(class_="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</body>
+</html>
