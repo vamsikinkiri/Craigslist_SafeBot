@@ -1,0 +1,6 @@
+Flask
+flask-login
+WTForms
+psycopg2
+bcrypt
+flask-wtf
