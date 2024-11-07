@@ -16,6 +16,14 @@ username = 'postgres'
 pwd = 'MS_project2024!'
 port_id = 5432
 
+# hostname = 'localhost'
+# database = 'chatbot'  # Your database name
+# username = 'postgres'
+# pwd = 'MS_project2024!'
+# port_id = 5432
+
+
+
 # Admin credentials to insert
 login_id = '862466036'
 password = 'MS_project2024!'
