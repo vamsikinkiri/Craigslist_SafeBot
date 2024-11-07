@@ -90,7 +90,7 @@ def generate_and_send_response(emails, message_id):
     print("Response sent successfully.")
     return
 
-
+@app.route('/add_category', methods=['GET', 'POST'])
 def add_category():
     conn = get_connection()  # Get the database connection
     if not conn:
