@@ -16,9 +16,20 @@ username = 'postgres'
 pwd = 'MS_project2024'
 port_id = 5432
 
+# Vamsi DB details
+# hostname = 'localhost'
+# database = 'chatbot'
+# username = 'postgres'
+# pwd = 'MS_project2024!'
+# port_id = 5432
+
 # Admin credentials to insert
 login_id = '862467117'
 password = 'shilpha' ##Password
+
+# Another Admin credentials to insert
+# login_id = '862466036'
+# password = 'MS_project2024!'
 
 # Encrypt the password
 hashed_password = encrypt_password(password).decode('utf-8')  # Convert to string for insertion
@@ -35,18 +46,12 @@ try:
 
     # Create a cursor object
     cursor = conn.cursor()
-    #
-    # # Execute each table creation query
-    # for query in create_tables_queries:
-    #     cursor.execute(query)
-    # conn.commit()
-    # print("Tables created successfully!")
-    #
-    # # Insert the new admin entry if it does not exist
-    # insert_query = """
-    # INSERT INTO admin_accounts (login_id, password_hash) VALUES (%s, %s)
-    # ON CONFLICT (login_id) DO NOTHING;
-    # """
+    
+    # Insert the new admin entry if it does not exist
+    insert_query = """
+    INSERT INTO admin_accounts (login_id, password_hash) VALUES (%s, %s)
+    ON CONFLICT (login_id) DO NOTHING;
+    """
 
     # Execute the query with the login_id and hashed password
     cursor.execute(insert_query, (login_id, hashed_password))

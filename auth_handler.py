@@ -33,7 +33,7 @@ def get_db_connection():
         )
         return conn
     except Exception as error:
-        print("Error while connecting to PostgreSQL:", error)
+        flash("Error while connecting to PostgreSQL:", error)
         return None
 
 
