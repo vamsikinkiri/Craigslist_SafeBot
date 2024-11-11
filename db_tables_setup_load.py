@@ -106,3 +106,6 @@ def setup_database():
     finally:
         cursor.close()
         conn.close()
+
+
+setup_database()
