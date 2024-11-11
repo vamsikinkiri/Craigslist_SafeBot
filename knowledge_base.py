@@ -58,4 +58,25 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
+    
+    def get_password(self, loginId):
+        """
+        Extract the stored hashed password for the provided login_id.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT password_hash FROM admin_accounts WHERE login_id = %s", (loginId,))
+            result = cursor.fetchone()
+            return True, result
+
+        except Exception as error:
+            return False, f"Database error: {error}"
+
+        finally:
+            cursor.close()
+            conn.close()
 

@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user
 from wtforms.validators import DataRequired
 from email_handler import EmailHandler
-from auth_handler import get_db_connection, LoginForm, User, load_user, authenticate_user
+from auth_handler import LoginForm, User, load_user, authenticate_user
 from knowledge_base import KnowledgeBase
 from response_generator import generate_response
 from datetime import datetime, timedelta
@@ -82,33 +82,6 @@ def create_account():
     
     return render_template('create_account.html')
 
-    #     # Hash the password
-    #     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-
-    #     # Save admin data to the database
-    #     conn = get_db_connection()
-    #     if conn:
-    #         cursor = conn.cursor()
-    #         try:
-    #             cursor.execute(
-    #                 """
-    #                 INSERT INTO admin_accounts (login_id, password_hash, email_id, contact_number, affiliation, last_updated)
-    #                 VALUES (%s, %s, %s, %s, %s, NOW())
-    #                 """,
-    #                 (login_id, hashed_password, email_id, phone_number, affiliation)
-    #             )
-    #             conn.commit()
-    #             flash("Account created successfully!", "success")
-    #             return redirect(url_for('login'))
-    #         except Exception as e:
-    #             flash("Error creating account: " + str(e), "error")
-    #         finally:
-    #             cursor.close()
-    #             conn.close()
-    #     else:
-    #         flash("Database connection failed.", "error")
-
-    # return render_template('create_account.html')
 
 def generate_and_send_response(emails, message_id):
     """
@@ -145,10 +118,9 @@ def generate_and_send_response(emails, message_id):
 
 @app.route('/add_category', methods=['GET', 'POST'])
 def add_category():
-    conn = get_db_connection()  # Get the database connection
+    conn, conn_error = knowledge_base.get_db_connection()  # Get the database connection
     if not conn:
-        flash('Database connection failed.', 'error')
-        print('Database connection failed.', 'error')
+        flash(conn_error)
         return redirect(url_for('index'))
 
     if request.method == 'POST':
