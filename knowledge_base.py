@@ -46,7 +46,7 @@ class KnowledgeBase:
         try:
             cursor.execute(
                 """
-                INSERT INTO admin_accounts (login_id, password_hash, email_id, contact_number, affiliation, last_updated)
+                INSERT INTO admin_accounts (login_id, password, email_id, contact_number, affiliation, last_updated)
                 VALUES (%s, %s, %s, %s, %s, NOW())
                 """,
                 (login_id, hashed_password, email_id, phone_number, affiliation)
@@ -69,7 +69,7 @@ class KnowledgeBase:
 
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT password_hash FROM admin_accounts WHERE login_id = %s", (loginId,))
+            cursor.execute("SELECT password FROM admin_accounts WHERE login_id = %s", (loginId,))
             result = cursor.fetchone()
             return True, result
 
