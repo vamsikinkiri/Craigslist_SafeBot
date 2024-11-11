@@ -8,6 +8,7 @@ from flask_login import LoginManager, UserMixin, login_user
 from wtforms.validators import DataRequired
 from email_handler import EmailHandler
 from auth_handler import get_db_connection, LoginForm, User, load_user, authenticate_user
+from knowledge_base import KnowledgeBase
 from response_generator import generate_response
 from datetime import datetime, timedelta
 
@@ -23,6 +24,7 @@ login_manager.login_message = None
 
 # Initialize EmailHandler for managing email-related functionalities
 email_handler = EmailHandler()
+knowledge_base = KnowledgeBase()
 
 
 # User loader for login session management
@@ -54,6 +56,59 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+
+# Route for the Create Account page
+@app.route('/create_account', methods=['GET', 'POST'])
+def create_account():
+    if request.method == 'POST':
+        # Get form data
+        login_id = request.form.get('login_id')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        email_id = request.form.get('email_id')
+        phone_number = request.form.get('phone_number') or None
+        affiliation = request.form.get('affiliation') or None
+
+        # Validate form fields
+        if not login_id or not password or not confirm_password or not email_id:
+            flash("All mandatory fields must be filled", "error")
+            return redirect(url_for('create_account'))
+
+        success, message = knowledge_base.create_admin(login_id, password, email_id, phone_number, affiliation)
+        flash(message, "success" if success else "error")
+        
+        if success:
+            return redirect(url_for('login'))
+    
+    return render_template('create_account.html')
+
+    #     # Hash the password
+    #     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    #     # Save admin data to the database
+    #     conn = get_db_connection()
+    #     if conn:
+    #         cursor = conn.cursor()
+    #         try:
+    #             cursor.execute(
+    #                 """
+    #                 INSERT INTO admin_accounts (login_id, password_hash, email_id, contact_number, affiliation, last_updated)
+    #                 VALUES (%s, %s, %s, %s, %s, NOW())
+    #                 """,
+    #                 (login_id, hashed_password, email_id, phone_number, affiliation)
+    #             )
+    #             conn.commit()
+    #             flash("Account created successfully!", "success")
+    #             return redirect(url_for('login'))
+    #         except Exception as e:
+    #             flash("Error creating account: " + str(e), "error")
+    #         finally:
+    #             cursor.close()
+    #             conn.close()
+    #     else:
+    #         flash("Database connection failed.", "error")
+
+    # return render_template('create_account.html')
 
 def generate_and_send_response(emails, message_id):
     """
