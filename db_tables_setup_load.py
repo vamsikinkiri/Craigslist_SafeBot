@@ -59,30 +59,6 @@ def create_tables(cursor):
         cursor.execute(query)
 
 
-# Insert data into EMAIL_CATEGORIES table
-# def insert_into_email_categories(cursor):
-
-#     CATEGORY_ID = '9189813498137'
-#     CATEGORY_NAME = 'Burglary'
-#     CRIME_TYPE = 'Burglary'
-#     KEYWORDS_LIST = 'Theft, Watches, Premium sales'
-#     AI_PROMPT_TEXT = ''
-#     LAST_UPDATED = ''
-
-#     # Define insert query
-#     insert_query = """
-#         INSERT INTO EMAIL_CATEGORIES (
-#             CATEGORY_ID, CATEGORY_NAME, CRIME_TYPE, 
-#             KEYWORDS_LIST, AI_PROMPT_TEXT, LAST_UPDATED
-#         ) VALUES (%s, %s, %s, %s, %s, %s)
-#         ON CONFLICT (CATEGORY_ID) DO NOTHING;
-#     """
-
-#     cursor.execute(insert_query, (
-#         CATEGORY_ID, CATEGORY_NAME, CRIME_TYPE,
-#         KEYWORDS_LIST, AI_PROMPT_TEXT, LAST_UPDATED
-#     ))
-
 # Main function to set up tables and insert data
 def setup_database():
     try:

@@ -7,9 +7,9 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user
 from wtforms.validators import DataRequired
 from email_handler import EmailHandler
-from auth_handler import LoginForm, User, load_user, authenticate_user
+from auth_handler import LoginForm, User, AuthHandler
 from knowledge_base import KnowledgeBase
-from response_generator import generate_response
+from response_generator import ResponseGenerator
 from datetime import datetime, timedelta
 
 # Initialize the Flask application
@@ -25,6 +25,8 @@ login_manager.login_message = None
 # Initialize EmailHandler for managing email-related functionalities
 email_handler = EmailHandler()
 knowledge_base = KnowledgeBase()
+auth_handler = AuthHandler()
+response_generator = ResponseGenerator()
 
 
 # User loader for login session management
@@ -42,7 +44,7 @@ def login():
         password = form.password.data
 
         # Authenticate user and create session
-        if authenticate_user(loginId, password):
+        if auth_handler.authenticate_user(loginId, password):
             user = User(id=loginId)
             login_user(user)
             return redirect(url_for('index'))
@@ -99,7 +101,7 @@ def generate_and_send_response(emails, message_id):
 
     # Step 3: Generate response
     prompt = "You are a police detective and posted an ad saying you are looking to buy watches at a cheap price in hope of catching some criminals. You received an email as below:"
-    response_text = generate_response(prompt, clean_content)
+    response_text = response_generator.generate_response(prompt, clean_content)
 
     # Step 4: Send the response as a reply
     to_address = email['from']
@@ -128,7 +130,7 @@ def add_category():
         category_type = request.form.get('category_input')
         crime_type = request.form.get('crime_input') # this is optional
         keywords = request.form.get('keywords_input')  # This is now optional
-        date_added = request.form.get('date') or datetime.now().strftime('%Y-%m-%d ')  # Default to today's date if empty
+        date_added = request.form.get('date',) or datetime.now().strftime('%Y-%m-%d ')  # Default to today's date if empty
 
         # Generate a hash value for the CATEGORY_ID
         # hash_input = f"{category_type}-{crime_type}-{date_added}".encode('utf-8')  # Concatenate values

@@ -30,32 +30,25 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Login')
 
 
-# User loader function
-def load_user(user_id):
-    """
-    Load user from session using user ID.
-    """
-    return User(user_id)
+class AuthHandler:
+    # Authentication function
+    def authenticate_user(self, loginId, password):
+        """
+        Authenticate the user by verifying the login ID and password.
+        Uses bcrypt for password hashing and comparison.
+        """
+        success, result = knowledge_base.get_password(loginId)
+        if not success:
+            flash(result)
+            return False
 
-
-# Authentication function
-def authenticate_user(loginId, password):
-    """
-    Authenticate the user by verifying the login ID and password.
-    Uses bcrypt for password hashing and comparison.
-    """
-    success, result = knowledge_base.get_password(loginId)
-    if not success:
-        flash(result)
-        return False
-
-    if result:
-        stored_password = result[0]
-        # Verify the password with bcrypt
-        if bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')):
-            return True
+        if result:
+            stored_password = result[0]
+            # Verify the password with bcrypt
+            if bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')):
+                return True
+            else:
+                flash("Invalid password.")
         else:
-            flash("Invalid password.")
-    else:
-        flash("User not found.")
-    return False
+            flash("User not found.")
+        return False
