@@ -5,10 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2f7eabd8-dc48-4ce5-9a42-9c296528df67" name="Changes" comment="" />
-    <list default="true" id="2f7eabd8-dc48-4ce5-9a42-9c296528df67" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -88,6 +84,7 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
+      <option name="SDK_NAME" value="Python 3.12 (untitled)" />
       <option name="WORKING_DIRECTORY" value="" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -189,6 +186,7 @@
       <workItem from="1731744550060" duration="811000" />
       <workItem from="1731745608705" duration="563000" />
       <workItem from="1731746842795" duration="26000" />
+      <workItem from="1731747030306" duration="424000" />
     </task>
     <servers />
   </component>
