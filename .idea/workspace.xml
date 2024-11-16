@@ -4,11 +4,26 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2f7eabd8-dc48-4ce5-9a42-9c296528df67" name="Changes" comment="" />
+    <list default="true" id="2f7eabd8-dc48-4ce5-9a42-9c296528df67" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Projects_Creation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db_tables_setup_load.py" beforeDir="false" afterPath="$PROJECT_DIR$/db_tables_setup_load.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/Project_Account_Login.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/Project_Account_Login.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/Project_Creation.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/Project_Creation.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/index.html" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -53,27 +68,11 @@
       <recent name="C:\Users\shilp\.ssh\MSProject\templates" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.MSProject">
-    <configuration name="DB-Helper" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="MSProject" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/DB-Helper.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
+  <component name="RunManager" selected="Python.Projects_Creation">
+    <configuration name="Project_Account_Login.html" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/MSProject/templates/Project_Account_Login.html" useBuiltInWebServerPort="true">
+      <method v="2" />
+    </configuration>
+    <configuration name="Project_Creation.html" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/MSProject/templates/Project_Creation.html" useBuiltInWebServerPort="true">
       <method v="2" />
     </configuration>
     <configuration name="MSProject" type="PythonConfigurationType" factoryName="Python">
@@ -84,13 +83,35 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="SDK_NAME" value="Python 3.12 (untitled)" />
       <option name="WORKING_DIRECTORY" value="" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/app.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Projects_Creation" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="MSProject" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="SDK_NAME" value="Python 3.12 (untitled)" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Projects_Creation.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -161,15 +182,18 @@
     </configuration>
     <list>
       <item itemvalue="Flask server.Flask (app.py)" />
+      <item itemvalue="JavaScript Debug.Project_Account_Login.html" />
+      <item itemvalue="JavaScript Debug.Project_Creation.html" />
+      <item itemvalue="Python.Projects_Creation" />
       <item itemvalue="Python.MSProject" />
-      <item itemvalue="Python.DB-Helper" />
       <item itemvalue="Python.email_handler" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="JavaScript Debug.Project_Account_Login.html" />
+        <item itemvalue="JavaScript Debug.Project_Creation.html" />
         <item itemvalue="Flask server.Flask (app.py)" />
         <item itemvalue="Python.email_handler" />
-        <item itemvalue="Python.DB-Helper" />
       </list>
     </recent_temporary>
   </component>
@@ -187,6 +211,8 @@
       <workItem from="1731745608705" duration="563000" />
       <workItem from="1731746842795" duration="26000" />
       <workItem from="1731747030306" duration="546000" />
+      <workItem from="1731747616532" duration="134000" />
+      <workItem from="1731747761904" duration="786000" />
     </task>
     <servers />
   </component>

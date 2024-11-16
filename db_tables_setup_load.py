@@ -45,13 +45,13 @@ def create_tables(cursor):
         """,
         """
         CREATE TABLE IF NOT EXISTS PROJECTS (
-            CATEGORY_ID BIGINT PRIMARY KEY,
-            EMAIL_ID TEXT,
-            APP_PASSWORD TEXT,
-            PROJECT_NAME VARCHAR,
-            KEYWORDS_LIST VARCHAR[],
-            AI_PROMPT_TEXT VARCHAR,
-            LAST_UPDATED TIMESTAMP
+            email_id VARCHAR(255) NOT NULL,
+            project_name VARCHAR(255) NOT NULL,
+            app_password TEXT NOT NULL,
+            prompt_text TEXT,
+            response_frequency INTEGER,
+            keywords_data JSONB,
+            PRIMARY KEY (email_id, project_name)  -- Composite primary key
         );
         """
     ]
