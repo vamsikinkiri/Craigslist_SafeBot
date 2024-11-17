@@ -23,19 +23,14 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = None
 
-# Initialize EmailHandler for managing email-related functionalities
+# Initialize all instances for managing functionalities
 email_handler = EmailHandler()
 knowledge_base = KnowledgeBase()
 auth_handler = AuthHandler()
 response_generator = ResponseGenerator()
 
 
-# User loader for login session management
-@login_manager.user_loader
-def load_user(user_id):
-    return User(user_id)
-
-# Routes for login and logout
+# Routes for login, logout and load user for login session management
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -57,6 +52,10 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User(user_id)
+
 
 # Route for the Create Account page
 @app.route('/create_account', methods=['GET', 'POST'])
@@ -75,6 +74,10 @@ def create_account():
             flash("All mandatory fields must be filled", "error")
             return redirect(url_for('create_account'))
 
+        if not confirm_password == password:
+            flash("Passwords do not match. Try again!", "error")
+            return redirect(url_for('create_account'))
+
         success, message = knowledge_base.create_admin(login_id, password, email_id, phone_number, affiliation)
         flash(message, "success" if success else "error")
         
@@ -83,39 +86,6 @@ def create_account():
     
     return render_template('create_account.html')
 
-
-def generate_and_send_response(emails, message_id):
-    """
-    Fetch the email by message_id, generate a response using LLM, and send the reply.
-    """
-    # Step 1: Fetch emails and find the specified email
-    email = next((e for e in emails if e['message_id'] == message_id), None)
-
-    if not email:
-        print("Email not found.")
-        return
-
-    # Step 2: Clean the email body
-    clean_content = email['content']
-
-    # Step 3: Generate response
-    prompt = "You are a police detective and posted an ad saying you are looking to buy watches at a cheap price in hope of catching some criminals. You received an email as below:"
-    response_text = response_generator.generate_response(prompt, clean_content)
-
-    # Step 4: Send the response as a reply
-    to_address = email['from']
-    subject = email['subject']
-    references = email['references']
-    email_handler.send_email(
-        to_address=to_address,
-        content=response_text,
-        message_id=email['message_id'],
-        references=references,
-        subject=subject
-    )
-
-    print("Response sent successfully.")
-    return
 
 # Route for project account login
 @app.route('/project_account_login', methods=['GET', 'POST'])
@@ -179,6 +149,40 @@ def project_creation():
             flash(message, "error")
 
     return render_template('project_creation.html')
+
+
+def generate_and_send_response(emails, message_id):
+    """
+    Fetch the email by message_id, generate a response using LLM, and send the reply.
+    """
+    # Step 1: Fetch emails and find the specified email
+    email = next((e for e in emails if e['message_id'] == message_id), None)
+
+    if not email:
+        print("Email not found.")
+        return
+
+    # Step 2: Clean the email body
+    clean_content = email['content']
+
+    # Step 3: Generate response
+    prompt = "You are a police detective and posted an ad saying you are looking to buy watches at a cheap price in hope of catching some criminals. You received an email as below:"
+    response_text = response_generator.generate_response(prompt, clean_content)
+
+    # Step 4: Send the response as a reply
+    to_address = email['from']
+    subject = email['subject']
+    references = email['references']
+    email_handler.send_email(
+        to_address=to_address,
+        content=response_text,
+        message_id=email['message_id'],
+        references=references,
+        subject=subject
+    )
+
+    print("Response sent successfully.")
+    return
 
 # Main route to display emails and conversations
 @app.route('/', methods=['GET'])

@@ -199,6 +199,16 @@
             color: #6b7280;
             cursor: not-allowed;
         }
+        .flash-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+            text-align: center;
+        }
+
 
         .error-message {
             color: #e63946;
@@ -346,6 +356,16 @@
 <!-- Main Content -->
 <div class="container">
     <h1>PROJECT CREATION</h1>
+    <!-- Flash Message Box -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="flash-message">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
     <form action="{{ url_for('project_creation') }}" method="POST">
     <input type="text" name="email" placeholder="Email ID" id="email" required>
     <input type="text" name="project_name" placeholder="Project Name" id="project-name" required>

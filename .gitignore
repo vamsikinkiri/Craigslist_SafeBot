@@ -1,0 +1,17 @@
+# IntelliJ IDEA project files
+.idea/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+env/
+venv/
+
+# Log files
+*.log
+
+# OS-specific
+.DS_Store
+Thumbs.db

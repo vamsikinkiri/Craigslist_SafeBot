@@ -72,7 +72,15 @@
             margin-right: 8px;
             font-size: 20px;
         }
-
+        .flash-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+            text-align: center;
+        }
         /* Main container styling with subtle border and shadow */
         .container {
             background-color: #ffffff;
@@ -164,6 +172,17 @@
 </div>
 <div class="container">
     <h2>PROJECTS</h2>
+    <!-- Flash Message Box -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="flash-message">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
     <form action="{{ url_for('project_account_login') }}" method="POST">
     <input type="text" name="email" placeholder="Email ID" required>
         <input type="password" name="password" placeholder="App Password" required>
