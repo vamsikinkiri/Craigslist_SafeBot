@@ -49,7 +49,7 @@
         }
         .header .left,
         .header .right {
-           flex:1px;
+            flex:1px;
         }
 
         /* Add margins to position Home and Logout */
@@ -126,6 +126,9 @@
             transition: background-color 0.3s;
             resize: None;
         }
+        .info-icon {
+            cursor: pointer;
+        }
         /* Icon inside the input-wrapper */
         .info-icon {
             position: relative;
@@ -182,7 +185,6 @@
         .tooltip a:hover {
             color: #87ceeb;
         }
-
 
         input::placeholder, textarea::placeholder {
             color: #9ca3af;
@@ -344,9 +346,9 @@
 <!-- Main Content -->
 <div class="container">
     <h1>PROJECT CREATION</h1>
-    <form action="{{ url_for('Project_Creation') }}"" method="POST">
-        <input type="text" name="email" placeholder="Email ID" id="email" required>
-        <input type="text" name="project_name" placeholder="Project Name" id="project-name" required>
+    <form action="{{ url_for('project_creation') }}" method="POST">
+    <input type="text" name="email" placeholder="Email ID" id="email" required>
+    <input type="text" name="project_name" placeholder="Project Name" id="project-name" required>
 
     <div class="input-wrapper">
         <input type="password" name="password" placeholder="Password (App Password)" id="password" required>
@@ -360,51 +362,44 @@
     </span>
     </div>
 
+    <input type="password" placeholder="Re-Type Password" id="retype-password" required>
+    <div class="error-message" id="password-error">Passwords do not match.</div>
+    <textarea name="prompt_text" rows="3" placeholder="Prompt Text Message"></textarea>
+    <input type="text" id="keyword-input" placeholder="Enter Keyword">
+    <!-- Keyword input section -->
 
+    <div class="keywords">
+    <label for="frequency">Frequency:</label>
+    <input type="number" id="frequency" name="frequency" placeholder="Minimum occurrences" min="1">
 
-<!--?        -->
-<!--?        <input type="password" name="password" placeholder="Password" id="password" required>-->
-        <input type="password" placeholder="Re-Type Password" id="retype-password" required>
-        <div class="error-message" id="password-error">Passwords do not match.</div>
-        <textarea name="prompt_text" rows="3" placeholder="Prompt Text Message"></textarea>
+    <button type="button" class="add-keyword-btn" onclick="addKeyword()">Add Keyword</button>
+    </div>
+    <input type="hidden" name="keywords_data" id="keywords-input">
 
+    <div class="added-keywords" id="added-keywords">
+        <h5>Keywords List:</h5>
+    </div>
 
-        <input type="text" id="keyword-input" placeholder="Enter Keyword">
-        <input type="hidden" name="keywords_data" id="keywords-input">
-        <input type="hidden" name="response_frequency" id="response-frequency-input">
+    <div class="response-frequency">Click on Response Frequency (Minutes)</div>
+    <div class="frequency-buttons">
+        <button type="button" onclick="setFrequency(10)">10</button>
+        <button type="button" onclick="setFrequency(20)">20</button>
+        <button type="button" onclick="setFrequency(30)">30</button>
+        <button type="button" onclick="setFrequency(40)">40</button>
+        <button type="button" onclick="setFrequency(50)">50</button>
+    </div>
 
-        <div class="keywords">
-            <span class="label">Low</span>
-            <span class="star" onclick="setImportance(1)">&#9733;</span>
-            <span class="star" onclick="setImportance(2)">&#9733;</span>
-            <span class="star" onclick="setImportance(3)">&#9733;</span>
-            <span class="star" onclick="setImportance(4)">&#9733;</span>
-            <span class="star" onclick="setImportance(5)">&#9733;</span>
-            <span class="label">High</span>
-        </div>
-
-        <button type="button" class="add-keyword-btn" onclick="addKeyword()">Add Keyword</button>
-
-        <div class="added-keywords" id="added-keywords">
-            <h5>Keywords List:</h5>
-        </div>
-
-        <div class="response-frequency">Click on Response Frequency (Minutes)</div>
-        <div class="frequency-buttons">
-            <button type="button" onclick="setFrequency(10)">10</button>
-            <button type="button" onclick="setFrequency(20)">20</button>
-            <button type="button" onclick="setFrequency(30)">30</button>
-            <button type="button" onclick="setFrequency(40)">40</button>
-            <button type="button" onclick="setFrequency(50)">50</button>
-        </div>
-
-        <button type="submit">Save Project</button>
+{#    <button type="submit">Save Project</button>#}
+    <div class="button-container">
+        <a href="{{ url_for('project_account_login') }}">
+            <button type="submit">Save Project</button>
+        </a>
+    </div>
     </form>
 </div>
 
 <script>
-    let selectedImportance = 0;
-    let keywordsList = [];  // Array to store keywords and importance
+    const keywords = [];  // Array to store keywords and importance
 
     function toggleTooltip() {
         const tooltip = document.getElementById('tooltip');
@@ -412,40 +407,75 @@
     }
 
 
-    function setImportance(level) {
-        selectedImportance = level;
-        const stars = document.querySelectorAll('.star');
-        stars.forEach((star, index) => {
-            star.classList.toggle('selected', index < level);
-        });
-    }
-
     function addKeyword() {
-        const keywordInput = document.getElementById('keyword-input');
+        const keywordInput = document.getElementById("keyword-input");
+        const frequencyInput = document.getElementById("frequency");
+
         const keyword = keywordInput.value.trim();
-        if (keyword && selectedImportance > 0) {
-            keywordsList.push({ keyword: keyword, importance: selectedImportance });
+        const frequency = parseInt(frequencyInput.value);
 
-            const addedKeywords = document.getElementById('added-keywords');
-            const keywordEntry = document.createElement('div');
-            keywordEntry.classList.add('keyword-entry');
-            keywordEntry.innerHTML = `<span>${keyword}</span><span class="stars">${'&#9733;'.repeat(selectedImportance)}</span>`;
-            addedKeywords.appendChild(keywordEntry);
+        if (keyword && frequency > 0) {
+            keywords.push({ keyword, frequency });
+            document.getElementById("keywords-input").value = JSON.stringify(keywords);
 
-            keywordInput.value = '';
-            setImportance(0);
+            const addedKeywords = document.getElementById("added-keywords");
+            const entry = document.createElement("div");
+            entry.classList.add("keyword-entry");
+            entry.innerText = `Keyword: ${keyword}, Frequency: ${frequency}`;
+            addedKeywords.appendChild(entry);
+
+            document.getElementById("keyword-input").value = "";
+            document.getElementById("frequency").value = "";
         } else {
-            alert("Please enter a keyword and select an importance level.");
+            alert("Please enter a valid keyword and frequency.");
         }
     }
 
+    {#function addKeyword() {#}
+    {#    const keywordInput = document.getElementById('keyword-input');#}
+    {#    const keyword = keywordInput.value.trim();#}
+    {#    if (keyword && selectedImportance > 0) {#}
+    {#        keywordsList.push({ keyword: keyword, importance: selectedImportance });#}
+    {##}
+    {#        const addedKeywords = document.getElementById('added-keywords');#}
+    {#        const keywordEntry = document.createElement('div');#}
+    {#        keywordEntry.classList.add('keyword-entry');#}
+    {#        keywordEntry.innerHTML = `<span>${keyword}</span><span class="stars">${'&#9733;'.repeat(selectedImportance)}</span>`;#}
+    {#        addedKeywords.appendChild(keywordEntry);#}
+    {##}
+    {#        keywordInput.value = '';#}
+    {#        setImportance(0);#}
+    {#    } else {#}
+    {#        alert("Please enter a keyword and select an importance level.");#}
+    {#    }#}
+    {#function addKeyword() {#}
+    {#    const keywordInput = document.getElementById("keyword");#}
+    {#    const frequencyInput = document.getElementById("frequency");#}
+    {##}
+    {#    const keyword = keywordInput.value.trim();#}
+    {#    const frequency = parseInt(frequencyInput.value);#}
+    {##}
+    {#    if (keyword && frequency > 0) {#}
+    {#        keywords.push({ keyword, frequency });#}
+    {##}
+    {#        const keywordList = document.getElementById("keyword-list");#}
+    {#        const entry = document.createElement("div");#}
+    {#        entry.classList.add("keyword-entry");#}
+    {#        entry.innerText = `Keyword: ${keyword}, Frequency: ${frequency}`;#}
+    {#        keywordList.appendChild(entry);#}
+    {##}
+    {#        keywordInput.value = "";#}
+    {#        frequencyInput.value = "";#}
+    {#    } else {#}
+    {#        alert("Please enter a valid keyword and frequency.");#}
+    {#    }#}
+    {##}
     function setFrequency(minutes) {
         document.getElementById('response-frequency-input').value = minutes;
     }
-
     // Prepare keywords data for submission
     document.querySelector('form').onsubmit = function() {
-        document.getElementById('keywords-input').value = JSON.stringify(keywordsList);
+        document.getElementById('keywords-input').value = JSON.stringify(keywords);
     };
 
     // Password validation

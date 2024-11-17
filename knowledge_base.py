@@ -80,3 +80,41 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
 
+
+    def project_login_existing_account(self, email, password):
+        """
+        Verifies the email and password for a project login.
+        Returns specific messages for email not found and incorrect password.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT app_password FROM projects WHERE email_id = %s", (email,))
+            result = cursor.fetchone()
+            return True, result
+        except Exception as e:
+            return False, f"Database error: {e}"
+        finally:
+            cursor.close()
+            conn.close()
+
+    def create_project(self, email_id, project_name, app_password, prompt_text, response_frequency, keywords_data):
+        conn, conn_error = self.get_db_connection()
+        if not conn:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO projects(email_id, project_name, app_password, prompt_text, response_frequency, keywords_data) 
+                VALUES (%s, %s, %s, %s, %s, %s)
+            ''', (email_id, project_name, app_password, prompt_text, response_frequency, keywords_data))
+            conn.commit()
+            cursor.close()
+            return True, "Project created successfully!"
+        except Exception as e:
+            return False, f"Error creating project: {e}"
+        finally:
+            conn.close()

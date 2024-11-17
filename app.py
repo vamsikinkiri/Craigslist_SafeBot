@@ -1,3 +1,4 @@
+import json
 import os
 from flask import Flask, render_template, request, redirect, url_for
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
@@ -34,7 +35,6 @@ response_generator = ResponseGenerator()
 def load_user(user_id):
     return User(user_id)
 
-
 # Routes for login and logout
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -42,12 +42,11 @@ def login():
     if form.validate_on_submit():
         loginId = form.loginId.data
         password = form.password.data
-
         # Authenticate user and create session
         if auth_handler.authenticate_user(loginId, password):
             user = User(id=loginId)
             login_user(user)
-            return redirect(url_for('index'))
+            return redirect(url_for('project_account_login'))
         return redirect(url_for('login'))
 
     return render_template('login.html', form=form)
@@ -118,53 +117,69 @@ def generate_and_send_response(emails, message_id):
     print("Response sent successfully.")
     return
 
-@app.route('/add_category', methods=['GET', 'POST'])
-def add_category():
-    conn, conn_error = knowledge_base.get_db_connection()  # Get the database connection
-    if not conn:
-        flash(conn_error)
-        return redirect(url_for('index'))
-
+# Route for project account login
+@app.route('/project_account_login', methods=['GET', 'POST'])
+def project_account_login():
     if request.method == 'POST':
-        # Get values from the text inputs
-        category_type = request.form.get('category_input')
-        crime_type = request.form.get('crime_input') # this is optional
-        keywords = request.form.get('keywords_input')  # This is now optional
-        date_added = request.form.get('date',) or datetime.now().strftime('%Y-%m-%d ')  # Default to today's date if empty
+        email = request.form['email']
+        password = request.form['password']
+        success, message = knowledge_base.project_login_existing_account(email, password)
+        # Print statements to debug
+        print(f"Email: {email}")
+        print(f"Password: {password}")
+        print(f"Authentication success: {success}")
+        print(f"Message: {message}")
 
-        # Generate a hash value for the CATEGORY_ID
-        # hash_input = f"{category_type}-{crime_type}-{date_added}".encode('utf-8')  # Concatenate values
-        # category_id = hashlib.sha256(hash_input).hexdigest()  # Generate a SHA256 hash
-        category_id = "8369767565"
 
-        # Validate and process data
-        if not category_type :
-            flash('Please fill in the required fields.', 'error')
-            print('Please fill in the required fields.', 'error')
+        if success:
+            user = User(id=email)
+            login_user(user)
+            return redirect(url_for('index'))  # Redirect to the main dashboard or index
         else:
-            try:
-                cursor = conn.cursor()
-                cursor.execute(
-                    """
-                    INSERT INTO EMAIL_CATEGORIES (CATEGORY_ID, CATEGORY_NAME, KEYWORDS_LIST, LAST_UPDATED)
-                    VALUES (%s, %s, %s, %s)
-                    """,
-                    (category_id, category_type, '{' + (keywords.replace(', ', ',') if keywords else '') + '}', date_added)
-                )
-                conn.commit()
-                flash('Category added successfully!', 'success')
-                print('Category added successfully!', 'success')
-            except Exception as e:
-                flash(f'Error occurred while insertion: {e}', 'error')
-                print(f'Error occurred while insertion: {e}', 'error')
-            finally:
-                cursor.close()
-                conn.close()  # Close the connection after using it
-            return redirect(url_for('index'))
+            flash(message, "error")
 
-    return render_template('add_category.html')
-	
-	
+    return render_template('project_account_login.html')
+
+
+@app.route('/project_creation', methods=['GET', 'POST'])
+@login_required
+def project_creation():
+    if request.method == 'POST':
+        email = request.form['email']
+        project_name = request.form['project_name']
+        app_password = request.form['password']
+        prompt_text = request.form.get('prompt_text', '')
+        response_frequency = int(request.form.get('response_frequency', 0))
+
+        # # Get keywords data and convert it to JSON format
+        # keywords_data = json.loads(request.form['keywords_data'])
+        # keywords_json = json.dumps(keywords_data)
+
+        keywords_data = request.form['keywords_data']
+        try:
+            keywords_data = json.loads(keywords_data) if keywords_data else []
+        except json.JSONDecodeError:
+            flash("Invalid keywords data", "error")
+            return redirect(url_for('project_creation'))
+
+        # Insert the project using the create_project method from KnowledgeBase
+        success, message = knowledge_base.create_project(email_id=email,
+                                                         project_name=project_name,
+                                                         app_password=app_password,
+                                                         prompt_text=prompt_text,
+                                                         response_frequency=response_frequency,
+                                                         keywords_data=json.dumps(keywords_data)
+                                                         )
+
+        flash(message, "success" if success else "error")
+        if success:
+            return redirect(url_for('project_account_login'))
+        else:
+            print("Login failed:", message)
+            flash(message, "error")
+
+    return render_template('project_creation.html')
+
 # Main route to display emails and conversations
 @app.route('/', methods=['GET'])
 @login_required

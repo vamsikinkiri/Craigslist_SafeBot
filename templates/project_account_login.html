@@ -164,8 +164,8 @@
 </div>
 <div class="container">
     <h2>PROJECTS</h2>
-    <form action="{{ url_for('Project_Account_Login') }}" method="POST">
-        <input type="text" name="email" placeholder="Email ID" required>
+    <form action="{{ url_for('project_account_login') }}" method="POST">
+    <input type="text" name="email" placeholder="Email ID" required>
         <input type="password" name="password" placeholder="App Password" required>
         <button type="submit" class="btn btn-primary">Login to an Existing Account</button>
     </form>
@@ -173,7 +173,7 @@
 
     <!-- Button container for the Create New Account button -->
     <div class="button-container">
-        <a href="{{ url_for('Project_Creation') }}">
+        <a href="{{ url_for('project_creation') }}">
             <button type="button" class="btn btn-secondary">Create a New Account</button>
         </a>
     </div>

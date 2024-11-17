@@ -4,3 +4,5 @@ WTForms
 psycopg2
 bcrypt
 flask-wtf
+pyyaml
+langchain-groq
