@@ -396,6 +396,18 @@
         button[type="submit"]:hover {
             background: #a6badf; /* Slightly darker on hover */
         }
+        .back-link {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .back-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .back-link a:hover {
+            text-decoration: underline;
+        }
 
         .keyword-frequency-wrapper {
             display: flex;
@@ -507,6 +519,9 @@
                 <button type="submit">Save Project</button>
             </a>
         </div>
+        <div class="back-link">
+            <p>Already have a project? <a href="{{ url_for('project_account_login') }}">Log in here</a></p>
+        </div>
     </form>
 </div>
 
@@ -519,45 +534,7 @@
     function setFrequency(minutes) {
         document.getElementById('response-frequency-input').value = minutes;
     }
-    {#const keywords = []; // Array to store keywords in the new format#}
-    {##}
-    {#function addKeyword() {#}
-    {#    const keywordInput = document.getElementById("keyword-input");#}
-    {#    const keywordFrequencyInput = document.getElementById("keyword-frequency");#}
-    {##}
-    {#    const keyword = keywordInput.value.trim();#}
-    {#    const frequency = parseInt(keywordFrequencyInput.value);#}
-    {##}
-    {#    if (keyword && frequency > 0) {#}
-    {#        // Create the new format with the keyword as the key and frequency as the value#}
-    {#        const keywordObj = {};#}
-    {#        keywordObj[keyword] = frequency;#}
-    {##}
-    {#        // Add the keyword object to the keywords array#}
-    {#        keywords.push(keywordObj);#}
-    {##}
-    {#        // Update the hidden input with the JSON stringified version of keywords#}
-    {#        document.getElementById("keywords-input").value = JSON.stringify(keywords);#}
-    {##}
-    {#        // Display the keyword in the added keywords list#}
-    {#        const addedKeywords = document.getElementById("added-keywords");#}
-    {#        const entry = document.createElement("div");#}
-    {#        entry.classList.add("keyword-entry");#}
-    {#        entry.innerText = `${keyword}: ${frequency}`;#}
-    {#        addedKeywords.appendChild(entry);#}
-    {##}
-    {#        // Clear only the keyword-related fields#}
-    {#        keywordInput.value = "";#}
-    {#        keywordFrequencyInput.value = "";#}
-    {#    } else {#}
-    {#        alert("Please enter a valid keyword and frequency.");#}
-    {#    }#}
-    {#}#}
-    {##}
-    {#// Prepare keywords data for submission#}
-    {#document.querySelector('form').onsubmit = function() {#}
-    {#    document.getElementById('keywords-input').value = JSON.stringify(keywords);#}
-    {#};#}
+
     const keywords = {};  // Object to store keywords and their frequencies as key-value pairs
 
     function addKeyword() {

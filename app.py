@@ -97,17 +97,17 @@ def project_account_login():
             flash(result + 'and' + project_result)
             return render_template('project_account_login.html')
         keywords_success, keywords_result =  knowledge_base.get_project_keywords(email, project_result[0])
-        print("TESTING: ", email, result[0], project_result[0])
-        # if not keywords_success:
-        #     flash(keywords_result)
-        #     return render_template('project_account_login.html')
+        #print("TESTING: ", email, result[0], project_result[0])
+        if not keywords_success:
+            flash(keywords_result)
+            return render_template('project_account_login.html')
         if result:
             session['email'] = email
             session['app_password'] = result[0]
             session['project'] = project_result[0]
-            #session['project_keywords'] =  keywords_result
-            #print("TESTING: ", session['email'], session['app_password'], session['project'], session['project_keywords'])
-            print("TESTING: ", session['email'], session['app_password'], session['project'])
+            session['project_keywords'] =  keywords_result
+            print("TESTING: ", session['email'], session['app_password'], session['project'], session['project_keywords'])
+            #print("TESTING: ", session['email'], session['app_password'], session['project'])
             user = User(id=email)
             login_user(user)
             return redirect(url_for('index'))  # Redirect to the main dashboard or index

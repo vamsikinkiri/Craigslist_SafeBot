@@ -143,6 +143,19 @@
         .btn-primary:hover, .btn-secondary:hover {
             background: #4c6a9c;
         }
+        .create-project-link {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .create-project-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .create-project-link a:hover {
+            text-decoration: underline;
+        }
+
 
         /* Error message styling */
         .error-message {
@@ -190,10 +203,8 @@
     <div id="error-message" class="error-message">This email doesn't exist. Please try again.</div>
 
     <!-- Button container for the Create New Account button -->
-    <div class="button-container">
-        <a href="{{ url_for('project_creation') }}">
-            <button type="button" class="btn btn-secondary">Don't have an account? Create one</button>
-        </a>
+    <div class="create-project-link">
+        <p>Don't have a project? <a href="{{ url_for('project_creation') }}">Create one</a></p>
     </div>
 </div>
 

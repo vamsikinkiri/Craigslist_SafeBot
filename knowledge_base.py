@@ -208,7 +208,13 @@ class KnowledgeBase:
             """, (email, project_name))
             result = cursor.fetchone()
             if result:
-                return True, json.loads(result[0])  # Deserialize JSON data
+                keywords_data = result[0]
+                # Ensure data is a dictionary
+                if isinstance(keywords_data, str):  # If stored as a string, deserialize it
+                    keywords_data = json.loads(keywords_data)
+                elif not isinstance(keywords_data, dict):  # Handle unexpected data types
+                    return False, "Invalid data format for keywords_data."
+                return True, keywords_data
             else:
                 return True, {}
         except Exception as error:
