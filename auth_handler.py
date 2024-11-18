@@ -1,6 +1,3 @@
-import yaml
-import os
-import psycopg2
 import bcrypt
 from knowledge_base import KnowledgeBase
 from flask import flash

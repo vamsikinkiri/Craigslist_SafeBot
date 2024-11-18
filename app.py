@@ -1,12 +1,8 @@
 import json
 import os
-from flask import Flask, render_template, request, redirect, url_for
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
-from flask import render_template, redirect, url_for, request
+from flask import Flask, flash, session, render_template, request, redirect, url_for
+from flask_login import LoginManager, login_user, login_required, logout_user
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_login import LoginManager, UserMixin, login_user
-from wtforms.validators import DataRequired
 from email_handler import EmailHandler
 from auth_handler import LoginForm, User, AuthHandler
 from knowledge_base import KnowledgeBase
@@ -49,6 +45,7 @@ def login():
 @app.route('/logout', methods=['POST', 'GET'])
 @login_required
 def logout():
+    session.clear()
     logout_user()
     return redirect(url_for('login'))
 
@@ -72,11 +69,11 @@ def create_account():
         # Validate form fields
         if not login_id or not password or not confirm_password or not email_id:
             flash("All mandatory fields must be filled", "error")
-            return redirect(url_for('create_account'))
+            return redirect(url_for('create_account.html'))
 
         if not confirm_password == password:
             flash("Passwords do not match. Try again!", "error")
-            return redirect(url_for('create_account'))
+            return redirect(url_for('create_account.html'))
 
         success, message = knowledge_base.create_admin(login_id, password, email_id, phone_number, affiliation)
         flash(message, "success" if success else "error")
@@ -92,22 +89,20 @@ def create_account():
 def project_account_login():
     if request.method == 'POST':
         email = request.form['email']
-        password = request.form['password']
-        success, message = knowledge_base.project_login_existing_account(email, password)
-        # Print statements to debug
-        print(f"Email: {email}")
-        print(f"Password: {password}")
-        print(f"Authentication success: {success}")
-        print(f"Message: {message}")
-
-
-        if success:
+        success, result = knowledge_base.get_app_password(email)
+        if not success:
+            flash(result)
+            return render_template('project_account_login.html')
+        if result:
+            session['email'] = email
+            session['app_password'] = result[0]
             user = User(id=email)
             login_user(user)
             return redirect(url_for('index'))  # Redirect to the main dashboard or index
         else:
-            flash(message, "error")
-
+            flash("Unable to retrieve app password. Please check the email and try again.")
+            return render_template('project_account_login.html')
+        
     return render_template('project_account_login.html')
 
 

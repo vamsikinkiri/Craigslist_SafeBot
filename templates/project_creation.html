@@ -355,7 +355,7 @@
 
 <!-- Main Content -->
 <div class="container">
-    <h1>PROJECT CREATION</h1>
+    <h1>Project creation</h1>
     <!-- Flash Message Box -->
     {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -451,45 +451,6 @@
         }
     }
 
-    {#function addKeyword() {#}
-    {#    const keywordInput = document.getElementById('keyword-input');#}
-    {#    const keyword = keywordInput.value.trim();#}
-    {#    if (keyword && selectedImportance > 0) {#}
-    {#        keywordsList.push({ keyword: keyword, importance: selectedImportance });#}
-    {##}
-    {#        const addedKeywords = document.getElementById('added-keywords');#}
-    {#        const keywordEntry = document.createElement('div');#}
-    {#        keywordEntry.classList.add('keyword-entry');#}
-    {#        keywordEntry.innerHTML = `<span>${keyword}</span><span class="stars">${'&#9733;'.repeat(selectedImportance)}</span>`;#}
-    {#        addedKeywords.appendChild(keywordEntry);#}
-    {##}
-    {#        keywordInput.value = '';#}
-    {#        setImportance(0);#}
-    {#    } else {#}
-    {#        alert("Please enter a keyword and select an importance level.");#}
-    {#    }#}
-    {#function addKeyword() {#}
-    {#    const keywordInput = document.getElementById("keyword");#}
-    {#    const frequencyInput = document.getElementById("frequency");#}
-    {##}
-    {#    const keyword = keywordInput.value.trim();#}
-    {#    const frequency = parseInt(frequencyInput.value);#}
-    {##}
-    {#    if (keyword && frequency > 0) {#}
-    {#        keywords.push({ keyword, frequency });#}
-    {##}
-    {#        const keywordList = document.getElementById("keyword-list");#}
-    {#        const entry = document.createElement("div");#}
-    {#        entry.classList.add("keyword-entry");#}
-    {#        entry.innerText = `Keyword: ${keyword}, Frequency: ${frequency}`;#}
-    {#        keywordList.appendChild(entry);#}
-    {##}
-    {#        keywordInput.value = "";#}
-    {#        frequencyInput.value = "";#}
-    {#    } else {#}
-    {#        alert("Please enter a valid keyword and frequency.");#}
-    {#    }#}
-    {##}
     function setFrequency(minutes) {
         document.getElementById('response-frequency-input').value = minutes;
     }

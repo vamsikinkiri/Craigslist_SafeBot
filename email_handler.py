@@ -4,27 +4,34 @@ import yaml
 import re
 import os
 import re
-from datetime import datetime, timedelta
+from flask import session
+from datetime import datetime, timedelta, timezone
 from collections import Counter, defaultdict
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.header import decode_header
 
 
 class EmailHandler:
     def __init__(self):
+        self.user = None
+        self.password = None
+        self.smtp_server = "smtp.gmail.com"
+        self.smtp_port = 587
         project_root = os.path.dirname(os.path.abspath(__file__))
-        credentials_path = os.path.join(project_root, "credentials.yaml")
-        with open(credentials_path) as f:
-            self.credentials = yaml.load(f, Loader=yaml.FullLoader)
 
     def fetch_emails(self, **filters):
         """
         Fetch emails based on various filters.
         """
-        user, password = self.credentials["user"], self.credentials["password"]
+        self.user = session.get('email')  # Get the session email
+        self.password = session.get('app_password')  # Get the session app password
+        if not self.user or not self.password:
+            raise ValueError("Session email or app password not set.")
+        print("Checking session: ", self.user, self.password)
         mail = imaplib.IMAP4_SSL('imap.gmail.com')
-        mail.login(user, password)
+        mail.login(self.user, self.password)
         mail.select('"[Gmail]/All Mail"')
 
         search_criteria = self._build_search_criteria(filters)
@@ -45,19 +52,23 @@ class EmailHandler:
         """
         Send an email reply with threading information.
         """
-        smtp_config = self.credentials['smtp']
+        self.user = session.get('email')  # Get the session email
+        self.password = session.get('app_password')  # Get the session app password
+        if not self.user or not self.password:
+            raise ValueError("Session email or app password not set.")
+        print("Checking session 2: ", self.user, self.password)
         try:
             msg = MIMEMultipart()
-            msg['From'] = smtp_config['smtp_user']
+            msg['From'] = self.user
             msg['To'] = to_address
             msg['Subject'] = "Re: " + subject
             msg['In-Reply-To'] = message_id
             msg['References'] = ' '.join(references + [message_id])
             msg.attach(MIMEText(content, 'plain'))
 
-            with smtplib.SMTP(smtp_config['smtp_server'], smtp_config['smtp_port']) as server:
+            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
                 server.starttls()
-                server.login(smtp_config['smtp_user'], smtp_config['smtp_password'])
+                server.login(self.user, self.password)
                 server.send_message(msg)
         except Exception as e:
             print("Failed to send email:", e)
@@ -67,7 +78,31 @@ class EmailHandler:
         Extract common keywords from email subjects.
         (Note: Consider moving to a different module if not used in Email Engagement)
         """
-        subject_texts = [email['subject'] for email in emails]
+        def decode_subject(subject):
+            """
+            Decode the subject into a plain string.
+            """
+            if subject:
+                decoded_parts = decode_header(subject)
+                subject_str = ""
+                for part, encoding in decoded_parts:
+                    try:
+                        # Handle bytes and decode them with the detected or default encoding
+                        if isinstance(part, bytes):
+                            if encoding in (None, 'unknown-8bit'):
+                                # Assume UTF-8 for unknown or missing encodings
+                                subject_str += part.decode('utf-8', errors='ignore')
+                            else:
+                                subject_str += part.decode(encoding, errors='ignore')
+                        else:
+                            # If part is already a string, append it directly
+                            subject_str += part
+                    except (LookupError, UnicodeDecodeError):
+                        # Fallback to UTF-8 if decoding fails
+                        subject_str += part.decode('utf-8', errors='ignore') if isinstance(part, bytes) else str(part)
+                return subject_str
+            return ""
+        subject_texts = [decode_subject(email['subject']) for email in emails]
         words = [word.lower() for subject in subject_texts for word in re.findall(r'\b\w+\b', subject)]
         return [word for word, _ in Counter(words).most_common(10) if len(word) > 3]
 
@@ -106,15 +141,20 @@ class EmailHandler:
                 if isinstance(part, tuple):
                     msg = email.message_from_bytes(part[1])
                     email_body = self._get_text_from_email(msg)
+                    raw_subject = msg['subject']
+                    subject = self._decode_subject(raw_subject)
+                    email_date = email.utils.parsedate_to_datetime(msg['Date'])
+                    if email_date and email_date.tzinfo is None:
+                        email_date = email_date.replace(tzinfo=timezone.utc)  # Make offset-aware
                     emails.append({
                         "from": msg['from'],
                         "to": msg['to'],
-                        "subject": msg['subject'],
+                        "subject": subject,
                         "content": email_body,
                         "message_id": msg['Message-ID'],
                         "in_reply_to": msg.get('In-Reply-To'),
                         "references": msg.get('References', '').split(),
-                        "date": email.utils.parsedate_to_datetime(msg['Date'])
+                        "date": email_date
                     })
         emails.sort(key=lambda x: x['date'], reverse=True)
         print(f"Fetched emails: {len(emails)}")  # Debug statement
@@ -128,13 +168,37 @@ class EmailHandler:
         body = ""
         for part in msg.walk():
             if part.get_content_type() == 'text/plain':
-                body += self.clean_email_body(part.get_payload(decode=True).decode())
+                try:
+                    body += self.clean_email_body(part.get_payload(decode=True).decode('utf-8'))
+                except UnicodeDecodeError:
+                    # Fallback to ISO-8859-1 or other encodings
+                    body += self.clean_email_body(part.get_payload(decode=True).decode('latin1', errors='ignore'))
         return body  
+    
+    def _decode_subject(self, raw_subject):
+        """
+        Decode email subject into a plain string.
+        """
+        if not raw_subject:
+            return ""
+        decoded_parts = decode_header(raw_subject)
+        subject = ""
+        for part, encoding in decoded_parts:
+            try:
+                if isinstance(part, bytes):
+                    subject += part.decode(encoding or 'utf-8', errors='ignore')
+                else:
+                    subject += part
+            except Exception:
+                subject += "[Undecodable Subject]"
+        return subject
 
     def clean_email_body(self, email_body):
         """
         Remove quoted text (previous messages) from an email body.
         """
+        if not isinstance(email_body, str):
+            return ""
         # Regex pattern to match common quoted reply formats
         pattern = re.compile(
             r"(On\s+[A-Za-z]+,\s+[A-Za-z]+\s+\d{1,2},\s+\d{4}\s+at\s+\d{1,2}:\d{2}(\s+[AP]M)?\s+.*?wrote:)|"

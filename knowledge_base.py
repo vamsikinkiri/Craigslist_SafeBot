@@ -2,7 +2,7 @@ import psycopg2
 import os
 import yaml
 import bcrypt
-from flask import flash
+
 
 class KnowledgeBase:
    
@@ -79,23 +79,24 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
-
-
-    def project_login_existing_account(self, email, password):
+    
+    def get_app_password(self, email):
         """
-        Verifies the email and password for a project login.
-        Returns specific messages for email not found and incorrect password.
+        Fetch the app password for a given email from the database.
         """
         conn, conn_error = self.get_db_connection()
         if conn is None:
             return False, conn_error
+
         try:
             cursor = conn.cursor()
             cursor.execute("SELECT app_password FROM projects WHERE email_id = %s", (email,))
             result = cursor.fetchone()
             return True, result
-        except Exception as e:
-            return False, f"Database error: {e}"
+        
+        except Exception as error:
+            return False, f"Database error: {error}"
+        
         finally:
             cursor.close()
             conn.close()
