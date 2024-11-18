@@ -133,6 +133,7 @@ def project_creation():
         # keywords_json = json.dumps(keywords_data)
 
         keywords_data = request.form['keywords_data']
+        print(keywords_data)
         try:
             keywords_data = json.loads(keywords_data) if keywords_data else []
         except json.JSONDecodeError:

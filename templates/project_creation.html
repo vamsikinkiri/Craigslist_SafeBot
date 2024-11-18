@@ -519,23 +519,24 @@
     function setFrequency(minutes) {
         document.getElementById('response-frequency-input').value = minutes;
     }
-
-    const keywords = [];  // Array to store keywords and frequencies
+    const keywords = []; // Array to store keywords in the new format
 
     function addKeyword() {
-        console.log("addKeyword function triggered"); // Debug statement
-
         const keywordInput = document.getElementById("keyword-input");
         const keywordFrequencyInput = document.getElementById("keyword-frequency");
 
         const keyword = keywordInput.value.trim();
         const frequency = parseInt(keywordFrequencyInput.value);
 
-        console.log("Keyword:", keyword, "Frequency:", frequency); // Debug statement
-
         if (keyword && frequency > 0) {
-            // Add the keyword and frequency to the list
-            keywords.push({ keyword, frequency });
+            // Create the new format with the keyword as the key and frequency as the value
+            const keywordObj = {};
+            keywordObj[keyword] = frequency;
+
+            // Add the keyword object to the keywords array
+            keywords.push(keywordObj);
+
+            // Update the hidden input with the JSON stringified version of keywords
             document.getElementById("keywords-input").value = JSON.stringify(keywords);
 
             // Display the keyword in the added keywords list
