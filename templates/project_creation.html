@@ -519,7 +519,46 @@
     function setFrequency(minutes) {
         document.getElementById('response-frequency-input').value = minutes;
     }
-    const keywords = []; // Array to store keywords in the new format
+    {#const keywords = []; // Array to store keywords in the new format#}
+    {##}
+    {#function addKeyword() {#}
+    {#    const keywordInput = document.getElementById("keyword-input");#}
+    {#    const keywordFrequencyInput = document.getElementById("keyword-frequency");#}
+    {##}
+    {#    const keyword = keywordInput.value.trim();#}
+    {#    const frequency = parseInt(keywordFrequencyInput.value);#}
+    {##}
+    {#    if (keyword && frequency > 0) {#}
+    {#        // Create the new format with the keyword as the key and frequency as the value#}
+    {#        const keywordObj = {};#}
+    {#        keywordObj[keyword] = frequency;#}
+    {##}
+    {#        // Add the keyword object to the keywords array#}
+    {#        keywords.push(keywordObj);#}
+    {##}
+    {#        // Update the hidden input with the JSON stringified version of keywords#}
+    {#        document.getElementById("keywords-input").value = JSON.stringify(keywords);#}
+    {##}
+    {#        // Display the keyword in the added keywords list#}
+    {#        const addedKeywords = document.getElementById("added-keywords");#}
+    {#        const entry = document.createElement("div");#}
+    {#        entry.classList.add("keyword-entry");#}
+    {#        entry.innerText = `${keyword}: ${frequency}`;#}
+    {#        addedKeywords.appendChild(entry);#}
+    {##}
+    {#        // Clear only the keyword-related fields#}
+    {#        keywordInput.value = "";#}
+    {#        keywordFrequencyInput.value = "";#}
+    {#    } else {#}
+    {#        alert("Please enter a valid keyword and frequency.");#}
+    {#    }#}
+    {#}#}
+    {##}
+    {#// Prepare keywords data for submission#}
+    {#document.querySelector('form').onsubmit = function() {#}
+    {#    document.getElementById('keywords-input').value = JSON.stringify(keywords);#}
+    {#};#}
+    const keywords = {};  // Object to store keywords and their frequencies as key-value pairs
 
     function addKeyword() {
         const keywordInput = document.getElementById("keyword-input");
@@ -529,14 +568,7 @@
         const frequency = parseInt(keywordFrequencyInput.value);
 
         if (keyword && frequency > 0) {
-            // Create the new format with the keyword as the key and frequency as the value
-            const keywordObj = {};
-            keywordObj[keyword] = frequency;
-
-            // Add the keyword object to the keywords array
-            keywords.push(keywordObj);
-
-            // Update the hidden input with the JSON stringified version of keywords
+            keywords[keyword] = frequency;  // Add as a key-value pair to the object
             document.getElementById("keywords-input").value = JSON.stringify(keywords);
 
             // Display the keyword in the added keywords list
@@ -546,7 +578,7 @@
             entry.innerText = `${keyword}: ${frequency}`;
             addedKeywords.appendChild(entry);
 
-            // Clear only the keyword-related fields
+            // Clear the keyword-related fields
             keywordInput.value = "";
             keywordFrequencyInput.value = "";
         } else {
@@ -554,12 +586,8 @@
         }
     }
 
-    // Prepare keywords data for submission
-    document.querySelector('form').onsubmit = function() {
-        document.getElementById('keywords-input').value = JSON.stringify(keywords);
-    };
 
-    // Password validation
+        // Password validation
     const passwordInput = document.getElementById('password');
     const retypePasswordInput = document.getElementById('retype-password');
     const passwordError = document.getElementById('password-error');

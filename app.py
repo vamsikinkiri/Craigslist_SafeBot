@@ -132,10 +132,12 @@ def project_creation():
         # keywords_data = json.loads(request.form['keywords_data'])
         # keywords_json = json.dumps(keywords_data)
 
-        keywords_data = request.form['keywords_data']
+        keywords_data_fetch = request.form['keywords_data']
+        keywords_data = keywords_data_fetch.replace('""', '"')
         print(keywords_data)
         try:
-            keywords_data = json.loads(keywords_data) if keywords_data else []
+            keywords_data_updated = json.loads(keywords_data) if keywords_data else []
+            # print(keywords_data)
         except json.JSONDecodeError:
             flash("Invalid keywords data", "error")
             return redirect(url_for('project_creation'))
@@ -146,7 +148,7 @@ def project_creation():
                                                          app_password=app_password,
                                                          prompt_text=prompt_text,
                                                          response_frequency=response_frequency,
-                                                         keywords_data=json.dumps(keywords_data)
+                                                         keywords_data=json.dumps(keywords_data_updated)
                                                          )
 
         flash(message, "success" if success else "error")
