@@ -18,8 +18,16 @@ def create_tables(cursor):
             INTERACTION_SCORE REAL,
             AI_RESPONSE_ENABLED BOOLEAN,
             RESPONSE_FREQUENCY INT,
+            seen_keywords_data JSONB,
             ASSIGNED_ADMIN_ID BIGINT,
             LAST_UPDATED TIMESTAMP
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS SCORED_EMAILS (
+            MESSAGE_ID TEXT PRIMARY KEY,
+            THREAD_ID TEXT NOT NULL,
+            LAST_UPDATED TIMESTAMP DEFAULT NOW()
         );
         """,
         """

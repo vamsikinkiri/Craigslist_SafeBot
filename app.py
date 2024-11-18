@@ -7,6 +7,7 @@ from email_handler import EmailHandler
 from auth_handler import LoginForm, User, AuthHandler
 from knowledge_base import KnowledgeBase
 from response_generator import ResponseGenerator
+from interaction_profiling import InteractionProfiling
 from datetime import datetime, timedelta
 
 # Initialize the Flask application
@@ -24,6 +25,7 @@ email_handler = EmailHandler()
 knowledge_base = KnowledgeBase()
 auth_handler = AuthHandler()
 response_generator = ResponseGenerator()
+interaction_profiling = InteractionProfiling()
 
 
 # Routes for login, logout and load user for login session management
@@ -90,12 +92,22 @@ def project_account_login():
     if request.method == 'POST':
         email = request.form['email']
         success, result = knowledge_base.get_app_password(email)
-        if not success:
-            flash(result)
+        project_success, project_result = knowledge_base.get_project_name(email)
+        if not success or not project_success:
+            flash(result + 'and' + project_result)
             return render_template('project_account_login.html')
+        keywords_success, keywords_result =  knowledge_base.get_project_keywords(email, project_result[0])
+        print("TESTING: ", email, result[0], project_result[0])
+        # if not keywords_success:
+        #     flash(keywords_result)
+        #     return render_template('project_account_login.html')
         if result:
             session['email'] = email
             session['app_password'] = result[0]
+            session['project'] = project_result[0]
+            #session['project_keywords'] =  keywords_result
+            #print("TESTING: ", session['email'], session['app_password'], session['project'], session['project_keywords'])
+            print("TESTING: ", session['email'], session['app_password'], session['project'])
             user = User(id=email)
             login_user(user)
             return redirect(url_for('index'))  # Redirect to the main dashboard or index
@@ -202,17 +214,16 @@ def index():
         last_30_days = True  # Ensure the button state is correct for initial load
 
     # Fetch, filter, and group emails
-    emails = email_handler.fetch_emails(
+    emails, grouped_emails, keywords = email_handler.fetch_emails_and_keywords(
         subject=subject, content=content,
         start_date=start_date, end_date=end_date,
         bidirectional_address=bidirectional_address
     ) if search_initiated or last_30_days or last_60_days else []
 
+    #process_grouped_emails(grouped_emails)
+
     # Call function to generate and send a response for a specific email
     # generate_and_send_response(emails, "<CAPBq5+2wXNpAfhTjaKD8aPEW+bL__8ryV=Lt108Qrmh26aR4rQ@mail.gmail.com>")
-
-    grouped_emails = email_handler.group_emails_by_conversation(emails)
-    keywords = email_handler.extract_keywords(emails) if emails else []
 
     # Filter emails by selected keyword
     if selected_keyword:
@@ -224,6 +235,46 @@ def index():
                            search_initiated=search_initiated, last_30_days=last_30_days,
                            last_60_days=last_60_days, conversations=grouped_emails,
                            start_date=start_date, end_date=end_date)
+
+
+def process_grouped_emails(grouped_emails):
+    for thread_id, emails in grouped_emails.items():
+        if len(emails) == 1:
+            # New conversation
+            email = emails[0]
+            success, result = knowledge_base.is_email_scored(email['message_id'])
+            if not success:
+                flash(result)
+                return
+            if not result:
+                # Thread is not present. Extract details.
+                content = email['content']
+                keywords_scores = session.get('project_keywords', {})
+                seen_keywords = {}
+                # Get interaction profiling score
+                seen_keywords, score = interaction_profiling.calculate_cumulative_score(
+                    content, keywords_scores, seen_keywords
+                )
+                # Insert new thread
+                knowledge_base.update_thread_score(thread_id, email['message_id'], score, seen_keywords)
+        else:
+            # User replied to an AI response
+            for email in emails:
+                if email['from'] != session['email']: # Ignore the emails the chatbot sent
+                    if not knowledge_base.is_email_scored(email['message_id']):
+                        content = email['content']
+                        keywords_scores = session.get('project_keywords', {})
+                        success, result =  knowledge_base.get_seen_keywords(thread_id)
+                        if not success:
+                            flash(result)
+                            return
+                        seen_keywords = result
+                        # Get updated interaction profiling score
+                        seen_keywords, score = interaction_profiling.calculate_cumulative_score(
+                            content, keywords_scores, seen_keywords
+                        )
+                        # Update thread score
+                        knowledge_base.update_thread_score(thread_id, email['message_id'], score, seen_keywords)
 
 
 if __name__ == '__main__':

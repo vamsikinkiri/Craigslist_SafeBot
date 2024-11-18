@@ -2,6 +2,7 @@ import psycopg2
 import os
 import yaml
 import bcrypt
+import json
 
 
 class KnowledgeBase:
@@ -113,9 +114,133 @@ class KnowledgeBase:
                 VALUES (%s, %s, %s, %s, %s, %s)
             ''', (email_id, project_name, app_password, prompt_text, response_frequency, keywords_data))
             conn.commit()
-            cursor.close()
             return True, "Project created successfully!"
         except Exception as e:
             return False, f"Error creating project: {e}"
         finally:
             conn.close()
+            cursor.close()
+    
+    def is_email_scored(self, message_id):
+        """
+        Check if an email is already scored.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1 FROM scored_emails WHERE message_id = %s", (message_id,))
+            result = cursor.fetchone()
+            return True, result is not None
+        except Exception as error:
+            return False, f"Database error while checking scored email: {error}"
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def update_thread_score(self, thread_id, message_id, score, seen_keywords):
+        """
+        Update the interaction score and seen keywords for a thread.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            # Update email_threads table
+            cursor.execute("""
+                UPDATE email_threads
+                SET interaction_score = interaction_score + %s,
+                    seen_keywords_data = %s,
+                    last_updated = NOW()
+                WHERE thread_id = %s
+            """, (score, json.dumps(seen_keywords), thread_id))
+            
+            # Insert into scored_emails table
+            cursor.execute("""
+                INSERT INTO scored_emails (message_id, thread_id, last_updated)
+                VALUES (%s, %s, NOW())
+            """, (message_id, thread_id))
+
+            conn.commit()
+            return True, None
+        except Exception as error:
+            return False, f"Database error while updating thread score: {error}"
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def get_project_name(self, email):
+        """
+        Fetch the project name for a given email.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT project_name FROM projects WHERE email_id = %s", (email,))
+            result = cursor.fetchone()
+            return True, result
+        except Exception as error:
+            return False, f"Database error: {error}"
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def get_project_keywords(self, email, project_name):
+        """
+        Fetch the keywords data for a given email and project.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT keywords_data FROM projects 
+                WHERE email_id = %s AND project_name = %s
+            """, (email, project_name))
+            result = cursor.fetchone()
+            if result:
+                return True, json.loads(result[0])  # Deserialize JSON data
+            else:
+                return True, {}
+        except Exception as error:
+            return False, f"Database error: {error}"
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def get_seen_keywords(self, thread_id):
+        """
+        Fetch the seen keywords for a given thread ID.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT seen_keywords_data FROM email_threads 
+                WHERE thread_id = %s
+            """, (thread_id,))
+            result = cursor.fetchone()
+            if result:
+                return True, json.loads(result[0])  # Deserialize JSON data
+            else:
+                return True, {}
+        except Exception as error:
+            return False, f"Database error: {error}"
+        finally:
+            cursor.close()
+            conn.close()
+
+
+

@@ -39,36 +39,36 @@ class InteractionProfiling:
         return seen_keywords, round(normalized_score, 2)
 
 
-interaction_profiling = InteractionProfiling()
+# interaction_profiling = InteractionProfiling()
 
-# Example Usage
-# Admin-defined keyword thresholds
-keywords_scores = {
-    "illicit": 5,
-    "trafficking": 3,
-    "stolen": 6,
-    "goods": 4,
-    "suspicious": 3
-}
+# # Example Usage
+# # Admin-defined keyword thresholds
+# keywords_scores = {
+#     "illicit": 5,
+#     "trafficking": 3,
+#     "stolen": 6,
+#     "goods": 4,
+#     "suspicious": 3
+# }
 
-# Initialize seen keywords dictionary
-seen_keywords = {keyword: 0 for keyword in keywords_scores}
+# # Initialize seen keywords dictionary
+# seen_keywords = {keyword: 0 for keyword in keywords_scores}
 
-# Simulate a conversation
-email_1 = "This conversation cotains the keywords trafficking, stolen, illicit and suspicious goods"
-email_2 = "This conversation cotains the keywords trafficking, stolen, illicit and suspicious goods"
-email_3 = "This conversation cotains the keywords trafficking, stolen, illicit and suspicious goods"
-email_4 = "This conversation cotains the keywords trafficking, stolen, illicit and suspicious goods"
+# # Simulate a conversation
+# email_1 = "This conversation cotains the keywords trafficking, stolen, illicit and suspicious goods"
+# email_2 = "This conversation cotains the keywords trafficking, stolen, illicit and suspicious goods"
+# email_3 = "This conversation cotains the keywords trafficking, stolen, illicit and suspicious goods"
+# email_4 = "This conversation cotains the keywords trafficking, stolen, illicit and suspicious goods"
 
-# Process emails
-seen_keywords, score_1 = interaction_profiling.calculate_cumulative_score(email_1, keywords_scores, seen_keywords)
-print(f"After email 1: Score = {score_1}, Seen Keywords = {seen_keywords}")
+# # Process emails
+# seen_keywords, score_1 = interaction_profiling.calculate_cumulative_score(email_1, keywords_scores, seen_keywords)
+# print(f"After email 1: Score = {score_1}, Seen Keywords = {seen_keywords}")
 
-seen_keywords, score_2 = interaction_profiling.calculate_cumulative_score(email_2, keywords_scores, seen_keywords)
-print(f"After email 2: Score = {score_2}, Seen Keywords = {seen_keywords}")
+# seen_keywords, score_2 = interaction_profiling.calculate_cumulative_score(email_2, keywords_scores, seen_keywords)
+# print(f"After email 2: Score = {score_2}, Seen Keywords = {seen_keywords}")
 
-seen_keywords, score_3 = interaction_profiling.calculate_cumulative_score(email_3, keywords_scores, seen_keywords)
-print(f"After email 3: Score = {score_3}, Seen Keywords = {seen_keywords}")
+# seen_keywords, score_3 = interaction_profiling.calculate_cumulative_score(email_3, keywords_scores, seen_keywords)
+# print(f"After email 3: Score = {score_3}, Seen Keywords = {seen_keywords}")
 
-seen_keywords, score_4 = interaction_profiling.calculate_cumulative_score(email_4, keywords_scores, seen_keywords)
-print(f"After email 3: Score = {score_4}, Seen Keywords = {seen_keywords}")
+# seen_keywords, score_4 = interaction_profiling.calculate_cumulative_score(email_4, keywords_scores, seen_keywords)
+# print(f"After email 3: Score = {score_4}, Seen Keywords = {seen_keywords}")
