@@ -199,98 +199,6 @@
             margin-top: 10px;
             transition: none; /* Ensure no transition on display change */
         }
-        /* Main container with sidebar and content layout */
-        .main-container {
-            display: flex;
-        }
-        /* Sidebar styling */
-        .sidebar {
-            width: 220px;
-            background-color: #1a3a7a;
-            color: #ffffff;
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            padding-top: 80px; /* Adjust this value to control top spacing */
-            box-sizing: border-box;
-        }
-
-        .sidebar ul {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .sidebar ul li {
-            padding: 10px 20px;
-        }
-
-        .sidebar ul li a {
-            color: #ffffff;
-            text-decoration: none;
-        }
-
-        .sidebar ul li a:hover {
-            text-decoration: underline;
-        }
-
-
-        .sidebar ul li a {
-            color: #ffffff;
-            text-decoration: none;
-        }
-
-        .sidebar ul li a:hover {
-            text-decoration: underline;
-        }
-
-        /*.sidebar ul {*/
-        /*    list-style-type: none;*/
-        /*    padding: 0;*/
-        /*    padding-top: 400px;*/
-        /*    margin-top: 300px; !* Adjust this value as needed *!*/
-        /*}*/
-
-        /* Sidebar styling */
-        .sidebar {
-            width: 220px;
-            background-color: #1e3a8a;
-            color: white;
-            padding-top: 120px;
-            height: 100vh; /* Full viewport height */
-            position: fixed; /* Fixes sidebar to the left */
-            top: 0;
-            left: 0;
-            overflow-y: auto; /* Adds scroll if sidebar content overflows */
-        }
-
-        .sidebar h2 {
-            color: #ffffff;
-            margin-bottom: 20px;
-        }
-
-        .sidebar ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .sidebar ul li {
-            margin: 15px 0;
-            padding-left: 20px; /* Adds padding for better alignment */
-        }
-
-        .sidebar ul li a {
-            color: white;
-            text-decoration: none;
-        }
-
-        .sidebar ul li a:hover {
-            text-decoration: underline;
-        }
 
         /* Content styling */
         .content {
@@ -300,7 +208,6 @@
             background-color: #f4f4f4;
             box-sizing: border-box;
         }
-
 
         .email {
             padding: 10px;
@@ -480,18 +387,6 @@
 </head>
 <body>
 
-<!-- Sidebar -->
-
-<div class="sidebar">
-    <div class="spacer"></div>
-    <div class="sidebar">
-        <ul>
-            <li><a href="{{ url_for('index') }}">Dashboard</a></li>
-        </ul>
-    </div>
-
-    </ul>
-</div>
 
 
 <header>
@@ -499,7 +394,6 @@
     <button class="logout-button" onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
 </header>
 <div class="container">
-    <button class="chatgpt-button" onclick="toggleChatGPT(this)">ChatGPT On</button>
     <form method="get" action="/">
         <input type="text" name="email" placeholder="Email (From or To)" value="{{ request.args.get('email', '') }}">
         <input type="text" name="subject" placeholder="Subject" value="{{ request.args.get('subject', '') }}">
@@ -521,13 +415,13 @@
         <select name="keyword">
             <option value="">Relevant Keywords</option>
             {% for keyword in keywords %}
-            <option value="{{ keyword }}">{{ keyword }}</option>
+                <option value="{{ keyword }}">{{ keyword }}</option>
             {% endfor %}
         </select>
         <div class="button-container">
             <button type="submit" name="search">Search</button>
             <button type="button" onclick="clearFilters()">Clear Filters</button>
-{#            <button type="button" onclick="handleLogout()">Logout</button>#}
+            <button type="button" onclick="handleLogout()">Logout</button>
         </div>
     </form>
     <div class="results-container">

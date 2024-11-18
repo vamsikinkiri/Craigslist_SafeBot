@@ -91,7 +91,7 @@
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
             text-align: center;
             margin-top: 10px;
-            min-height: 500px; /* Set minimum height to increase container size */
+            min-height: 200px; /* Set minimum height to increase container size */
         }
         /* Form title styling */
         h2 {
@@ -175,25 +175,24 @@
     <!-- Flash Message Box -->
     {% with messages = get_flashed_messages() %}
         {% if messages %}
-        <div class="flash-message">
-            {% for message in messages %}
-                <p>{{ message }}</p>
-            {% endfor %}
-        </div>
+            <div class="flash-message">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
         {% endif %}
     {% endwith %}
 
     <form action="{{ url_for('project_account_login') }}" method="POST">
-    <input type="text" name="email" placeholder="Email ID" required>
-        <input type="password" name="password" placeholder="App Password" required>
-        <button type="submit" class="btn btn-primary">Login to an Existing Account</button>
+        <input type="text" name="email" placeholder="Email ID" required>
+        <button type="submit" class="btn btn-primary">Login</button>
     </form>
     <div id="error-message" class="error-message">This email doesn't exist. Please try again.</div>
 
     <!-- Button container for the Create New Account button -->
     <div class="button-container">
         <a href="{{ url_for('project_creation') }}">
-            <button type="button" class="btn btn-secondary">Create a New Account</button>
+            <button type="button" class="btn btn-secondary">Don't have an account? Create one</button>
         </a>
     </div>
 </div>

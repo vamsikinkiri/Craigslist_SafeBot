@@ -209,6 +209,40 @@
             text-align: center;
         }
 
+        .input-wrapper {
+            position: relative;
+            margin: 12px 0;
+        }
+
+        .input-wrapper label {
+            display: block;
+            font-size: 15px;
+            font-weight: bold;
+            color: #2f2e41;
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 15px;
+            background-color: #e8f0fe;
+            font-size: 16px;
+            color: #3b3b3b;
+            outline: none;
+            transition: background-color 0.3s;
+        }
+
+        .input-wrapper input::placeholder {
+            color: #9ca3af;
+        }
+
+        .input-wrapper input:focus {
+            background-color: #d7e3fc;
+        }
+
+
 
         .error-message {
             color: #e63946;
@@ -275,6 +309,37 @@
             color: #ffffff;
         }
 
+        .frequency-input {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Space between label and input */
+            margin-top: 20px;
+        }
+
+        .frequency-input label {
+            font-size: 15px;
+            font-weight: bold;
+            color: #2f2e41; /* Adjust to match the UI's font color */
+            white-space: nowrap; /* Prevents label from wrapping to a new line */
+        }
+
+        #frequency {
+            flex: 1; /* Allows the input to take remaining space in the row */
+            padding: 12px;
+            border: 2px solid #e0e7ff;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+            transition: background-color 0.3s;
+        }
+
+        #frequency:focus {
+            background-color: #d7e3fc;
+            border-color: #4C6A9C; /* Highlight color when focused */
+        }
+
+
+
         .added-keywords {
             margin-top: 20px;
             text-align: left;
@@ -292,27 +357,26 @@
             font-size: 14px;
         }
 
-        .stars {
-            color: #ff6b6b;
-            font-size: 18px;
-        }
-
         .add-keyword-btn {
-            margin-top: 10px;
-            padding: 10px 20px;
+            background-color: #003a8d;
+            color: white;
+            margin: 20px;
             border: none;
-            background-color: #ff6b6b;
-            color: #ffffff;
-            font-weight: bold;
-            border-radius: 12px;
+            border-radius: 50%; /* Makes the button round */
             cursor: pointer;
-            font-size: 14px;
+            font-size: 15px; /* Increases icon size */
+            width: 22px; /* Adjust size as needed */
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: background-color 0.3s;
         }
 
         .add-keyword-btn:hover {
-            background-color: #ff4757;
+            background-color: #4C6A9C;
         }
+
 
         /* Subtle styling for Save Project button */
         button[type="submit"] {
@@ -332,6 +396,44 @@
         button[type="submit"]:hover {
             background: #a6badf; /* Slightly darker on hover */
         }
+
+        .keyword-frequency-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin: 12px 0;
+        }
+
+        .keyword-box {
+            flex: 3; /* Wider keyword box */
+            padding: 12px;
+            border: none;
+            border-radius: 15px;
+            background-color: #e8f0fe;
+            font-size: 16px;
+            color: #3b3b3b;
+            outline: none;
+            transition: background-color 0.3s;
+        }
+
+        .frequency-box-wrapper {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .frequency-box {
+            width: 120px; /* Narrower frequency box */
+            padding: 12px;
+            border: none;
+            border-radius: 15px;
+            background-color: #e8f0fe;
+            font-size: 16px;
+            color: #3b3b3b;
+            outline: none;
+        }
+
+
     </style>
 </head>
 <body>
@@ -359,101 +461,98 @@
     <!-- Flash Message Box -->
     {% with messages = get_flashed_messages() %}
         {% if messages %}
-        <div class="flash-message">
-            {% for message in messages %}
-                <p>{{ message }}</p>
-            {% endfor %}
-        </div>
+            <div class="flash-message">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
         {% endif %}
     {% endwith %}
     <form action="{{ url_for('project_creation') }}" method="POST">
-    <input type="text" name="email" placeholder="Email ID" id="email" required>
-    <input type="text" name="project_name" placeholder="Project Name" id="project-name" required>
-
-    <div class="input-wrapper">
-        <input type="password" name="password" placeholder="Password (App Password)" id="password" required>
-        <!-- Font Awesome info icon with tooltip and clickable link -->
-        <span class="info-icon" onclick="toggleTooltip()">
+        <input type="text" name="email" placeholder="Email ID" id="email" required>
+        <input type="text" name="project_name" placeholder="Project Name" id="project-name" required>
+        <div class="input-wrapper">
+            <input type="password" name="password" placeholder="Password (App Password)" id="password" required>
+            <!-- Font Awesome info icon with tooltip and clickable link -->
+            <span class="info-icon" onclick="toggleTooltip()">
         <i class="fas fa-info-circle"></i>
         <span class="tooltip" id="tooltip">
             <p>Please use this link to access the app password:</p>
             <a href="https://support.google.com/accounts/answer/185833?hl=en" target="_blank">Generate App Password</a>
         </span>
     </span>
-    </div>
+        </div>
+        <input type="password" placeholder="Re-Type Password" id="retype-password" required>
+        <div class="error-message" id="password-error">Passwords do not match.</div>
+        <textarea name="prompt_text" rows="3" placeholder="Prompt Text Message"></textarea>
 
-    <input type="password" placeholder="Re-Type Password" id="retype-password" required>
-    <div class="error-message" id="password-error">Passwords do not match.</div>
-    <textarea name="prompt_text" rows="3" placeholder="Prompt Text Message"></textarea>
-    <input type="text" id="keyword-input" placeholder="Enter Keyword">
-    <!-- Keyword input section -->
+        <div class="input-wrapper">
+            <input type="number" id="frequency" name="frequency" placeholder="Please enter the Response Frequency (Mins):" min="1">
+        </div>
 
-    <div class="keywords">
-    <label for="frequency">Frequency:</label>
-    <input type="number" id="frequency" name="frequency" placeholder="Minimum occurrences" min="1">
-
-    <button type="button" class="add-keyword-btn" onclick="addKeyword()">Add Keyword</button>
-    </div>
-    <input type="hidden" name="keywords_data" id="keywords-input">
-
-    <div class="added-keywords" id="added-keywords">
-        <h5>Keywords List:</h5>
-    </div>
-
-    <div class="response-frequency">Click on Response Frequency (Minutes)</div>
-    <div class="frequency-buttons">
-        <button type="button" onclick="setFrequency(10)">10</button>
-        <button type="button" onclick="setFrequency(20)">20</button>
-        <button type="button" onclick="setFrequency(30)">30</button>
-        <button type="button" onclick="setFrequency(40)">40</button>
-        <button type="button" onclick="setFrequency(50)">50</button>
-    </div>
-
-{#    <button type="submit">Save Project</button>#}
-    <div class="button-container">
-        <a href="{{ url_for('project_account_login') }}">
-            <button type="submit">Save Project</button>
-        </a>
-    </div>
+        <div class="keyword-frequency-wrapper">
+            <input type="text" id="keyword-input" placeholder="Enter Keyword" class="keyword-box">
+            <div class="frequency-box-wrapper">
+                <input type="number" id="keyword-frequency" name="keyword-frequency" placeholder="Frequency" min="1" class="frequency-box">
+                <button type="button" class="add-keyword-btn" onclick="addKeyword()">
+                    <i class="fas fa-plus"></i> <!-- Font Awesome icon for 'plus' -->
+                </button>
+            </div>
+        </div>
+        <div class="added-keywords" id="added-keywords">
+        </div>
+        <input type="hidden" name="keywords_data" id="keywords-input">
+        <div class="button-container">
+            <a href="{{ url_for('project_account_login') }}">
+                <button type="submit">Save Project</button>
+            </a>
+        </div>
     </form>
 </div>
 
 <script>
-    const keywords = [];  // Array to store keywords and importance
-
     function toggleTooltip() {
         const tooltip = document.getElementById('tooltip');
         tooltip.classList.toggle('visible');
     }
 
+    function setFrequency(minutes) {
+        document.getElementById('response-frequency-input').value = minutes;
+    }
+
+    const keywords = [];  // Array to store keywords and frequencies
 
     function addKeyword() {
+        console.log("addKeyword function triggered"); // Debug statement
+
         const keywordInput = document.getElementById("keyword-input");
-        const frequencyInput = document.getElementById("frequency");
+        const keywordFrequencyInput = document.getElementById("keyword-frequency");
 
         const keyword = keywordInput.value.trim();
-        const frequency = parseInt(frequencyInput.value);
+        const frequency = parseInt(keywordFrequencyInput.value);
+
+        console.log("Keyword:", keyword, "Frequency:", frequency); // Debug statement
 
         if (keyword && frequency > 0) {
+            // Add the keyword and frequency to the list
             keywords.push({ keyword, frequency });
             document.getElementById("keywords-input").value = JSON.stringify(keywords);
 
+            // Display the keyword in the added keywords list
             const addedKeywords = document.getElementById("added-keywords");
             const entry = document.createElement("div");
             entry.classList.add("keyword-entry");
-            entry.innerText = `Keyword: ${keyword}, Frequency: ${frequency}`;
+            entry.innerText = `${keyword}: ${frequency}`;
             addedKeywords.appendChild(entry);
 
-            document.getElementById("keyword-input").value = "";
-            document.getElementById("frequency").value = "";
+            // Clear only the keyword-related fields
+            keywordInput.value = "";
+            keywordFrequencyInput.value = "";
         } else {
             alert("Please enter a valid keyword and frequency.");
         }
     }
 
-    function setFrequency(minutes) {
-        document.getElementById('response-frequency-input').value = minutes;
-    }
     // Prepare keywords data for submission
     document.querySelector('form').onsubmit = function() {
         document.getElementById('keywords-input').value = JSON.stringify(keywords);
