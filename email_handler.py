@@ -119,11 +119,10 @@ class EmailHandler:
             r"(On\s+[A-Za-z]+,\s+[A-Za-z]+\s+\d{1,2},\s+\d{4}\s+at\s+\d{1,2}:\d{2}(\s+[AP]M)?\s+.*?wrote:)|"
             r"(-----Original Message-----)|"
             r"(From:\s.*?\nTo:\s.*?\nSent:\s.*?\nSubject:\s.*?\n)|"
-            r"(^\s*>.*$)|"  # Lines starting with '>' (common in plain-text replies)
-            r"(On\s+\S+\s+\S+\s+.*\s+wrote:)|"
-            r"(On\s+[A-Za-z]+\s+\d{1,2}(\,\s+\d{4})?\s+at\s+\d{1,2}:\d{2}\s+[AP]M\s+[A-Za-z]+\s+[<].*?@[A-Za-z]+\.[A-Za-z]+[>]\s+wrote:)",
+            r"(^\s*>.*$)",  # Simplified regex to focus on the common cases
             re.MULTILINE | re.DOTALL | re.IGNORECASE
         )
+
         # Search for the pattern and truncate the email content before it
         match = pattern.search(email_body)
         if match:

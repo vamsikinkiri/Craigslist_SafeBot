@@ -55,10 +55,10 @@ class InteractionProfiling:
 # seen_keywords = {keyword: 0 for keyword in keywords_scores}
 
 # # Simulate a conversation
-# email_1 = "This conversation cotains the keywords trafficking, stolen, illicit and suspicious goods"
-# email_2 = "This conversation cotains the keywords trafficking, stolen, illicit and suspicious goods"
-# email_3 = "This conversation cotains the keywords trafficking, stolen, illicit and suspicious goods"
-# email_4 = "This conversation cotains the keywords trafficking, stolen, illicit and suspicious goods"
+# email_1 = "This conversation contains the keywords trafficking, stolen, illicit, and suspicious goods"
+# email_2 = "This conversation contains the keywords trafficking, stolen, illicit, and suspicious goods"
+# email_3 = "This conversation contains the keywords trafficking, stolen, illicit, and suspicious goods"
+# email_4 = "This conversation contains the keywords trafficking, stolen, illicit, and suspicious goods"
 
 # # Process emails
 # seen_keywords, score_1 = interaction_profiling.calculate_cumulative_score(email_1, keywords_scores, seen_keywords)

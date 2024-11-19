@@ -4,22 +4,30 @@ from knowledge_base import KnowledgeBase
 
 knowledge_base = KnowledgeBase()
 
-# def generate_hash(value):
-#     return int(hashlib.sha256(value.encode()).hexdigest(), 16) % (10**10)
+# Function to drop tables if they exist
+def drop_tables(cursor):
+    drop_tables_queries = [
+        "DROP TABLE IF EXISTS SCORED_EMAILS;",
+        "DROP TABLE IF EXISTS EMAIL_THREADS;",
+        "DROP TABLE IF EXISTS USER_PROFILES;",
+        "DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
+        "DROP TABLE IF EXISTS PROJECTS;"
+    ]
+    for query in drop_tables_queries:
+        cursor.execute(query)
 
 # Function to create tables if they don't exist
 def create_tables(cursor):
     create_tables_queries = [
         """
         CREATE TABLE IF NOT EXISTS EMAIL_THREADS (
-            THREAD_ID BIGINT PRIMARY KEY,
+            THREAD_ID TEXT PRIMARY KEY,
             PROJECT_EMAIL TEXT,
             PROJECT_NAME TEXT,
             INTERACTION_SCORE REAL,
             AI_RESPONSE_ENABLED BOOLEAN,
             RESPONSE_FREQUENCY INT,
             seen_keywords_data JSONB,
-            ASSIGNED_ADMIN_ID BIGINT,
             LAST_UPDATED TIMESTAMP
         );
         """,
@@ -59,6 +67,7 @@ def create_tables(cursor):
             prompt_text TEXT,
             response_frequency INTEGER,
             keywords_data JSONB,
+            ASSIGNED_ADMIN_ID BIGINT,
             PRIMARY KEY (email_id, project_name)  -- Composite primary key
         );
         """
@@ -77,12 +86,17 @@ def setup_database():
             exit
         cursor = conn.cursor()
 
+        # Drop existing tables
+        drop_tables(cursor)
+        print("Tables dropped successfully.")
+
         # Create tables and insert data
         create_tables(cursor)
+        print("Tables created successfully.")
 
         # Commit changes
         conn.commit()
-        print("Tables created successfully.")
+
 
     except Exception as e:
         print("An error occurred:", e)

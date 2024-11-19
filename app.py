@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from flask import Flask, flash, session, render_template, request, redirect, url_for
 from flask_login import LoginManager, login_user, login_required, logout_user
 from datetime import datetime
@@ -37,6 +38,7 @@ def login():
         password = form.password.data
         # Authenticate user and create session
         if auth_handler.authenticate_user(loginId, password):
+            session['admin_id'] = loginId
             user = User(id=loginId)
             login_user(user)
             return redirect(url_for('project_account_login'))
@@ -97,7 +99,6 @@ def project_account_login():
             flash(result + 'and' + project_result)
             return render_template('project_account_login.html')
         keywords_success, keywords_result =  knowledge_base.get_project_keywords(email, project_result[0])
-        #print("TESTING: ", email, result[0], project_result[0])
         if not keywords_success:
             flash(keywords_result)
             return render_template('project_account_login.html')
@@ -107,7 +108,6 @@ def project_account_login():
             session['project'] = project_result[0]
             session['project_keywords'] =  keywords_result
             print("TESTING: ", session['email'], session['app_password'], session['project'], session['project_keywords'])
-            #print("TESTING: ", session['email'], session['app_password'], session['project'])
             user = User(id=email)
             login_user(user)
             return redirect(url_for('index'))  # Redirect to the main dashboard or index
@@ -148,7 +148,8 @@ def project_creation():
                                                          app_password=app_password,
                                                          prompt_text=prompt_text,
                                                          response_frequency=response_frequency,
-                                                         keywords_data=json.dumps(keywords_data_updated)
+                                                         keywords_data=json.dumps(keywords_data_updated),
+                                                         assigned_admin_id=session['admin_id']
                                                          )
 
         flash(message, "success" if success else "error")
@@ -222,8 +223,8 @@ def index():
         start_date=start_date, end_date=end_date,
         bidirectional_address=bidirectional_address
     ) if search_initiated or last_30_days or last_60_days else []
-
-    #process_grouped_emails(grouped_emails)
+    #print(emails)
+    process_grouped_emails(grouped_emails)
 
     # Call function to generate and send a response for a specific email
     # generate_and_send_response(emails, "<CAPBq5+2wXNpAfhTjaKD8aPEW+bL__8ryV=Lt108Qrmh26aR4rQ@mail.gmail.com>")
@@ -242,42 +243,53 @@ def index():
 
 def process_grouped_emails(grouped_emails):
     for thread_id, emails in grouped_emails.items():
-        if len(emails) == 1:
-            # New conversation
-            email = emails[0]
+        for email in reversed(emails):
+            # Extract sender's email for comparison
+            match = re.search(r'<([^>]+)>', email['from'])
+            from_address = match.group(1) if match else email['from'].strip()
+            if from_address == session['email']:
+                continue  # Ignore the emails the chatbot sent
+
+            # Check if the email has already been scored
             success, result = knowledge_base.is_email_scored(email['message_id'])
             if not success:
+                print(result)
                 flash(result)
                 return
-            if not result:
-                # Thread is not present. Extract details.
-                content = email['content']
-                keywords_scores = session.get('project_keywords', {})
+            if result:
+                continue  # Skip already scored emails
+
+            # Extract content and keywords
+            content = email['content']
+            keywords_scores = session.get('project_keywords', {})
+
+            # Determine seen_keywords for the thread
+            if len(emails) == 1:
+                # New conversation
                 seen_keywords = {}
-                # Get interaction profiling score
-                seen_keywords, score = interaction_profiling.calculate_cumulative_score(
-                    content, keywords_scores, seen_keywords
-                )
-                # Insert new thread
-                knowledge_base.update_thread_score(thread_id, email['message_id'], score, seen_keywords)
-        else:
-            # User replied to an AI response
-            for email in emails:
-                if email['from'] != session['email']: # Ignore the emails the chatbot sent
-                    if not knowledge_base.is_email_scored(email['message_id']):
-                        content = email['content']
-                        keywords_scores = session.get('project_keywords', {})
-                        success, result =  knowledge_base.get_seen_keywords(thread_id)
-                        if not success:
-                            flash(result)
-                            return
-                        seen_keywords = result
-                        # Get updated interaction profiling score
-                        seen_keywords, score = interaction_profiling.calculate_cumulative_score(
-                            content, keywords_scores, seen_keywords
-                        )
-                        # Update thread score
-                        knowledge_base.update_thread_score(thread_id, email['message_id'], score, seen_keywords)
+            else:
+                # Reply to an AI response
+                success, result = knowledge_base.get_seen_keywords(thread_id)
+                if not success:
+                    print(result)
+                    flash(result)
+                    return
+                seen_keywords = result
+
+            # Calculate the cumulative score
+            seen_keywords, score = interaction_profiling.calculate_cumulative_score(
+                content, keywords_scores, seen_keywords
+            )
+            print('*' * 50 + thread_id, score, seen_keywords)
+
+            # Update or create the thread in the database
+            success, result = knowledge_base.update_email_thread(
+                thread_id, email['message_id'], score, seen_keywords
+            )
+            if not success:
+                print(result)
+                flash(result)
+                return
 
 
 if __name__ == '__main__':

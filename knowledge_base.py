@@ -3,6 +3,7 @@ import os
 import yaml
 import bcrypt
 import json
+from flask import session
 
 
 class KnowledgeBase:
@@ -102,7 +103,7 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
 
-    def create_project(self, email_id, project_name, app_password, prompt_text, response_frequency, keywords_data):
+    def create_project(self, email_id, project_name, app_password, prompt_text, response_frequency, keywords_data, assigned_admin_id):
         conn, conn_error = self.get_db_connection()
         if not conn:
             return False, conn_error
@@ -110,9 +111,9 @@ class KnowledgeBase:
         try:
             cursor = conn.cursor()
             cursor.execute('''
-                INSERT INTO projects(email_id, project_name, app_password, prompt_text, response_frequency, keywords_data) 
-                VALUES (%s, %s, %s, %s, %s, %s)
-            ''', (email_id, project_name, app_password, prompt_text, response_frequency, keywords_data))
+                INSERT INTO projects(email_id, project_name, app_password, prompt_text, response_frequency, keywords_data, assigned_admin_id) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ''', (email_id, project_name, app_password, prompt_text, response_frequency, keywords_data, assigned_admin_id))
             conn.commit()
             return True, "Project created successfully!"
         except Exception as e:
@@ -135,14 +136,15 @@ class KnowledgeBase:
             result = cursor.fetchone()
             return True, result is not None
         except Exception as error:
+            print(f"Database error while checking scored email: {error}")
             return False, f"Database error while checking scored email: {error}"
         finally:
             cursor.close()
             conn.close()
     
-    def update_thread_score(self, thread_id, message_id, score, seen_keywords):
+    def update_email_thread(self, thread_id, message_id, score, seen_keywords):
         """
-        Update the interaction score and seen keywords for a thread.
+        Insert or update a thread in the email_threads table and record the email in scored_emails.
         """
         conn, conn_error = self.get_db_connection()
         if conn is None:
@@ -150,28 +152,54 @@ class KnowledgeBase:
 
         try:
             cursor = conn.cursor()
-            # Update email_threads table
+
+            # Check if thread_id exists
             cursor.execute("""
-                UPDATE email_threads
-                SET interaction_score = interaction_score + %s,
-                    seen_keywords_data = %s,
-                    last_updated = NOW()
-                WHERE thread_id = %s
-            """, (score, json.dumps(seen_keywords), thread_id))
+                SELECT EXISTS (SELECT 1 FROM email_threads WHERE thread_id = %s)
+            """, (thread_id,))
+            thread_exists = cursor.fetchone()[0]
+            if thread_exists:
+                # Update existing thread
+                cursor.execute("""
+                    UPDATE email_threads
+                    SET interaction_score = %s,
+                        seen_keywords_data = %s,
+                        last_updated = NOW()
+                    WHERE thread_id = %s
+                """, (score, json.dumps(seen_keywords), thread_id))
+            else:
+                # Insert new thread
+                cursor.execute("""
+                    INSERT INTO email_threads (
+                        thread_id, project_email, project_name, interaction_score,
+                        ai_response_enabled, response_frequency, seen_keywords_data,
+                        last_updated
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
+                """, (
+                    thread_id,
+                    session['email'],  # Project email associated with the thread
+                    session['project'],  # Project name associated with the thread
+                    score,
+                    True,  # AI_RESPONSE_ENABLED set to True
+                    0,  # RESPONSE_FREQUENCY initialized to 0
+                    json.dumps(seen_keywords)
+                ))
             
-            # Insert into scored_emails table
+            # Insert into scored_emails table (always for the current email)
             cursor.execute("""
                 INSERT INTO scored_emails (message_id, thread_id, last_updated)
                 VALUES (%s, %s, NOW())
             """, (message_id, thread_id))
-
             conn.commit()
             return True, None
         except Exception as error:
-            return False, f"Database error while updating thread score: {error}"
+            print(f"Database error while processing email thread: {error}")
+            return False, f"Database error while processing email thread: {error}"
         finally:
             cursor.close()
             conn.close()
+
     
     def get_project_name(self, email):
         """
@@ -187,6 +215,7 @@ class KnowledgeBase:
             result = cursor.fetchone()
             return True, result
         except Exception as error:
+            print(f"Database error: {error}")
             return False, f"Database error: {error}"
         finally:
             cursor.close()
@@ -208,13 +237,7 @@ class KnowledgeBase:
             """, (email, project_name))
             result = cursor.fetchone()
             if result:
-                keywords_data = result[0]
-                # Ensure data is a dictionary
-                if isinstance(keywords_data, str):  # If stored as a string, deserialize it
-                    keywords_data = json.loads(keywords_data)
-                elif not isinstance(keywords_data, dict):  # Handle unexpected data types
-                    return False, "Invalid data format for keywords_data."
-                return True, keywords_data
+                return True, result[0]
             else:
                 return True, {}
         except Exception as error:
@@ -239,10 +262,11 @@ class KnowledgeBase:
             """, (thread_id,))
             result = cursor.fetchone()
             if result:
-                return True, json.loads(result[0])  # Deserialize JSON data
+                return True, result[0]  # Deserialize JSON data
             else:
                 return True, {}
         except Exception as error:
+            print(f"Database error: {error}")
             return False, f"Database error: {error}"
         finally:
             cursor.close()
