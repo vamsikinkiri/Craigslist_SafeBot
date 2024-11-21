@@ -104,7 +104,7 @@ class EmailProcessor:
             f"Please understand the entire context and generate a reply to the latest email in a way that seems human, and showing interest in the offer but not too eager. "
             f"Only reply the content of the reply and nothing else. Start the reponse with 'Hello', and then start the content of the email. End the email with Best, Jay. Make sure the response continues the facade that you are a human buyer interested in the watches."
         )
-        print(full_prompt)
+        #print(full_prompt)
         #prompt = "You are a police detective and posted an ad saying you are looking to buy watches at a cheap price in hope of catching some criminals. You received an email as below:"
         response_text = response_generator.generate_response(full_prompt)
 

@@ -197,6 +197,30 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
+    
+    def get_interaction_score(self, thread_id):
+        """
+        Retrieve the INTERACTION_SCORE value for a given thread from the EMAIL_THREADS table.
+        Args: thread_id (str): The thread ID.
+        Returns: tuple: (bool, float) Success status and the INTERACTION_SCORE value or an error message.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT interaction_score FROM email_threads
+                WHERE thread_id = %s
+            """, (thread_id,))
+            result = cursor.fetchone()
+            return True, result
+        except Exception as error:
+            return False, f"Database error: {error}"
+        finally:
+            cursor.close()
+            conn.close()
 
     def fetch_all_email_threads(self):
         conn, conn_error = self.get_db_connection()

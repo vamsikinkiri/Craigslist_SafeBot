@@ -126,7 +126,7 @@ def project_account_login():
                 'project_keywords': keywords_result
             })
 
-            print("Session variables: ", session)
+            # print("Session variables: ", session)
             user = User(id=email)
             login_user(user)
             return redirect(url_for('index'))  # Redirect to the main dashboard or index
@@ -206,12 +206,19 @@ def index():
     
     # Process the grouped emails
     email_processor.process_grouped_emails(grouped_emails)
-    # Fetch all threads with scores
-    conversations_score, error = fetch_score()
+
+    # Add the score to each conversation
+    conversations_score = {}
+    for thread_id in grouped_emails:
+        score_success, score = knowledge_base.get_interaction_score(thread_id=thread_id)
+        if not score_success:
+            print(score_success)
+            continue
+        # print("THE INTERACTION SCORE: ", score[0])
+        conversations_score[thread_id] = score
+        #grouped_emails[thread_id].append({'score': score[0]})
+
     print(conversations_score)
-    if error:
-        flash(error, "error")
-        conversations_score = {}
 
     # Filter emails by selected keyword
     if selected_keyword:
