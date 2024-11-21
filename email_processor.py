@@ -136,6 +136,7 @@ class EmailProcessor:
         #print(full_prompt)
         #prompt = "You are a police detective and posted an ad saying you are looking to buy watches at a cheap price in hope of catching some criminals. You received an email as below:"
         response_text = response_generator.generate_response(full_prompt)
+        print(response_text)
 
         # Step 4: Send the response as a reply and include the original email as quoted content
         quoted_conversation = ""
@@ -149,8 +150,8 @@ class EmailProcessor:
 
         email_with_quote = (
             f"{response_text}\n\n"
-            f"On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, {email['from']} wrote:\n"
-            f"{quoted_conversation.strip()}"
+            f"> On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, {email['from']} wrote:\n"
+            f"{email['content'].strip()}"
         )
 
         to_address = email['from']
