@@ -8,8 +8,8 @@ def drop_tables(cursor):
         "DROP TABLE IF EXISTS SCORED_EMAILS;",
         "DROP TABLE IF EXISTS EMAIL_THREADS;",
         "DROP TABLE IF EXISTS USER_PROFILES;",
-        #"DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
-        #"DROP TABLE IF EXISTS PROJECTS;"
+        # "DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
+        # "DROP TABLE IF EXISTS PROJECTS;"
     ]
     for query in drop_tables_queries:
         cursor.execute(query)
@@ -39,7 +39,7 @@ def create_tables(cursor):
         """
         CREATE TABLE IF NOT EXISTS USER_PROFILES (
             PRIMARY_EMAIL TEXT PRIMARY KEY,
-            THREAD_IDS JSON,
+            THREAD_IDS TEXT,
             EMAIL_LIST TEXT,
             CONTACT_NUMBERS JSON,
             LAST_ACTIVE TIMESTAMP,
@@ -58,14 +58,13 @@ def create_tables(cursor):
         """,
         """
         CREATE TABLE IF NOT EXISTS PROJECTS (
-            email_id VARCHAR(255) NOT NULL,
+            email_id VARCHAR(255) NOT NULL PRIMARY KEY,
             project_name VARCHAR(255) NOT NULL,
             app_password TEXT NOT NULL,
             ai_prompt_text TEXT,
             response_frequency INTEGER,
             keywords_data JSONB,
-            ASSIGNED_ADMIN_ID BIGINT,
-            PRIMARY KEY (EMAIL_ID, PROJECT_NAME)  -- COMPOSITE PRIMARY KEY
+            ASSIGNED_ADMIN_ID BIGINT
         );
         """
     ]

@@ -17,6 +17,7 @@ knowledge_base = KnowledgeBase()
 class EmailProcessor:
 
     def process_grouped_emails(self, grouped_emails):
+        print('Entered into process_grouped_emails')
         for thread_id, emails in grouped_emails.items():
             conversation_history = []
             for email in reversed(emails): # Process emails in the order they are received
@@ -58,11 +59,12 @@ class EmailProcessor:
                         print(seen_keywords)
                         flash(seen_keywords)
                         return
-
+                print('seen_keywords before')
                 # Calculate the cumulative score using the project keywords and seen_keywords
                 seen_keywords, score = interaction_profiling.calculate_cumulative_score(
                     content, project_keywords, seen_keywords
                 )
+                print('seen_keywords after')
 
                 # Update or create the thread in the database
                 success, result = knowledge_base.update_email_thread(

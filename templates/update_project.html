@@ -187,7 +187,7 @@
         input[type="number"],
         textarea {
             padding: 12px 1px;
-            margin-top: 20px;
+            margin-top: 14px;
             width: 100%;
             border: none;
             border-radius: 15px;
@@ -335,11 +335,11 @@
     {% endwith %}
     <form action="{{ url_for('update_project') }}" method="POST">
         <div class="form-field">
-            <label for="email_id">Enter Prompt Text:</label>
+            <label>Enter Prompt Text:</label>
             <textarea name="prompt_text" placeholder="Enter Prompt Text">{{ project_details.get('prompt_text', '') }}</textarea>
         </div>
         <div class="form-field">
-            <label for="phone_number">Response Frequency:</label>
+            <label>Response Frequency:</label>
             <input type="number" name="response_frequency" placeholder="Response Frequency (mins)" value="{{ project_details.get('response_frequency', '') }}" required>
         </div>
         <button type="submit" class="btn-primary">Update Project</button>

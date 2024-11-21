@@ -9,6 +9,15 @@
 
     <title>CRAIGSLIST SAFEBOT</title>
     <style>
+        .email-score {
+            font-size: 16px;
+            font-weight: bold;
+            color: #134258; /* Match theme */
+            padding: 5px 10px;
+            border-radius: 5px;
+            white-space: nowrap;
+            margin-right: 0px;
+        }
         body {
             font-family: 'Arial', sans-serif;
             background-color: #eaeaea;
@@ -697,7 +706,7 @@
                         <div class="email-chain-header">
                             <div class="subject-box" style="width: 70%;">{{ details[0]['subject'].replace('Re: ', '') }}</div>
                             <div class="email-score" style="width: 20%; text-align: right;">
-                                Score: {{ conversations_score.get(thread_id, 'N/A') }}
+                                Score: {{ conversations_score.get(key, '0') }}
                             </div>
                             <div class="button-box">
                                 <label class="toggle-switch">

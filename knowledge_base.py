@@ -4,6 +4,7 @@ import yaml
 import bcrypt
 import json
 from flask import session
+from collections import defaultdict
 
 class KnowledgeBase:
 
@@ -102,7 +103,7 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
 
-    def create_project(self, email_id, project_name, app_password, prompt_text, response_frequency, keywords_data, assigned_admin_id):
+    def create_project(self, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, assigned_admin_id):
         conn, conn_error = self.get_db_connection()
         if not conn:
             return False, conn_error
@@ -112,7 +113,7 @@ class KnowledgeBase:
             cursor.execute('''
                 INSERT INTO projects(email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, assigned_admin_id) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
-            ''', (email_id, project_name, app_password, prompt_text, response_frequency, keywords_data, assigned_admin_id))
+            ''', (email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, assigned_admin_id))
             conn.commit()
             return True, "Project created successfully!"
         except Exception as e:
@@ -466,7 +467,6 @@ class KnowledgeBase:
         conn, conn_error = self.get_db_connection()
         if conn is None:
             return False, conn_error
-
         try:
             cursor = conn.cursor()
             cursor.execute("""
@@ -515,7 +515,7 @@ class KnowledgeBase:
         try:
             cursor.execute(
                 """
-                SELECT prompt_text, response_frequency
+                SELECT ai_prompt_text, response_frequency
                 FROM projects
                 WHERE email_id = %s AND project_name = %s
                 """,
@@ -526,7 +526,7 @@ class KnowledgeBase:
             if not result:
                 return False, "No project found for the given email and project name."
             project_details = {
-                "prompt_text": result[0],
+                "ai_prompt_text": result[0],
                 "response_frequency": result[1]
             }
             return True, project_details
@@ -536,16 +536,16 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
 
-    def update_project(self,email, project_name, prompt_text, response_frequency):
+    def update_project(self,email, project_name, ai_prompt_text, response_frequency):
         conn, conn_error = self.get_db_connection()
         if conn is None:
             return False, conn_error
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                UPDATE projects SET prompt_text = %s, response_frequency = %s
+                UPDATE projects SET ai_prompt_text = %s, response_frequency = %s
                 WHERE email_id = %s AND project_name = %s
-            """, (prompt_text, response_frequency, email, project_name))
+            """, (ai_prompt_text, response_frequency, email, project_name))
 
             if cursor.rowcount == 0:
                 return False, "No matching project found for the provided email and project name."
@@ -621,9 +621,86 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
+    def fetch_scores_at_user_level(self):
+        conn, conn_error = self.get_db_connection()
+        if not conn:
+            return False, conn_error
 
+        cursor = conn.cursor()
+        try:
+            # Corrected SQL Query
+            query = """
+                SELECT 
+                    up.primary_email AS user_email,
+                    et.thread_id AS thread_ids,
+                    et.interaction_score AS user_scores
+                FROM 
+                    email_threads et
+                JOIN 
+                    user_profiles up 
+                ON 
+                    et.thread_id = regexp_replace(up.thread_ids, '[\\[\\]\"]', '', 'g')
+                ORDER BY 
+                    et.interaction_score DESC
+            """
+            cursor.execute(query)
+            rows = cursor.fetchall()
 
+            if not rows:
+                return False, "No user scores found."
 
+            # Build the user_scores dictionary
+            user_scores = {}
+            for user_email, thread_id, score in rows:
+                if user_email not in user_scores:
+                    user_scores[user_email] = {"total_score": 0}
+                user_scores[user_email]["total_score"] += score
 
+            print("DEBUG DB: Scores Data:", user_scores)  # Debugging
+            return True, user_scores
 
+        except Exception as e:
+            return False, f"Error fetching user scores: {e}"
+        finally:
+            cursor.close()
+            conn.close()
+    def get_all_user_profiles(self):
+            conn, conn_error = self.get_db_connection()
+            if not conn:
+                return False, conn_error
+            cursor = conn.cursor()
+            try:
+                # Query to fetch all user profiles
+                query = """
+                SELECT 
+                    primary_email, 
+                    thread_ids, 
+                    email_list, 
+                    contact_numbers, 
+                    last_active, 
+                    last_updated
+                FROM 
+                    user_profiles
+                """
+                cursor.execute(query)
+                rows = cursor.fetchall()
 
+                if not rows:
+                    return False, "No user profiles found."
+                user_profiles = []
+                for row in rows:
+                    primary_email, thread_ids, email_list, contact_numbers, last_active, last_updated = row
+                    user_profiles.append({
+                        "primary_email": primary_email,
+                        "thread_ids": json.loads(thread_ids) if thread_ids else [],
+                        "email_list": email_list,
+                        "contact_numbers": json.loads(contact_numbers) if contact_numbers else [],
+                        "last_active": last_active,
+                        "last_updated": last_updated
+                    })
+                return True, user_profiles
+            except Exception as e:
+                return False, f"Error fetching user profiles: {e}"
+            finally:
+                cursor.close()
+                conn.close()

@@ -1,6 +1,8 @@
 import re
 import json
 from knowledge_base import KnowledgeBase
+import json
+from collections import defaultdict
 from datetime import datetime
 
 knowledge_base = KnowledgeBase()
@@ -50,3 +52,13 @@ class UserProfiling:
         """
         match = re.search(r'\b\d{10}\b', email_content)  # Regex for 10-digit numbers
         return match.group(0) if match else ""
+
+    def get_all_users(self):
+        success, all_user_profiles = knowledge_base.get_all_user_profiles()
+        if not success:
+            print("Error fetching user profiles:", all_user_profiles)
+            return []
+
+        # Return the user profiles directly
+        return all_user_profiles
+

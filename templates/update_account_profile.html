@@ -270,16 +270,16 @@
         </button>
     </form>
 </header>
-
 <div class="sidebar" id="sidebar">
-    <div class="sidebar-item" onclick="window.location.href='{{ url_for('user_profiles') }}'">User Profiles</div>
+    <div class="sidebar-item" onclick="redirectToView('user_profiles')">User Profiles</div>
     <div id="user-level-view" class="dropdown-menu">
-        <div class="dropdown-item" onclick="redirectToView('active-users')">Active Users (Last 30 Days)</div>
-        <div class="dropdown-item" onclick="redirectToView('top-users')">Top K Users</div>
-        <div class="dropdown-item" onclick="redirectToView('time-period-users')">Users by Time Period</div>
+        <div class="dropdown-item" onclick="redirectToView('user_profiles_active_users')">Active Users (Last 30 Days)</div>
+        <div class="dropdown-item" onclick="redirectToView('user_profiles_top_users')">Top K Users</div>
+        <div class="dropdown-item" onclick="redirectToView('user_profiles_time_period_users')">Users by Time Period</div>
     </div>
-    <div class="sidebar-item" onclick="redirectToView('email-view')">Email View</div>
+    <div class="sidebar-item" onclick="redirectToView('email_view')">Email View</div>
 </div>
+
 
 <div class="container">
     <h1>Update Admin Profile</h1>
@@ -320,24 +320,21 @@
 
     // Redirect to different views
     function redirectToView(view) {
-        switch (view) {
-            case 'active-users':
-                window.location.href = '{{ url_for("user_profiles_active_users") }}';
-                break;
-            case 'top-users':
-                window.location.href = '{{ url_for("user_profiles_top_users") }}';
-                break;
-            case 'time-period-users':
-                window.location.href = '{{ url_for("user_profiles_time_period_users") }}';
-                break;
-            case 'email-view':
-                window.location.href = '{{ url_for("email_view") }}';
-                break;
-            default:
-                window.location.href = '{{ url_for("index") }}';
-                break;
+        const routes = {
+            user_profiles: "{{ url_for('user_profiles') }}",
+            user_profiles_active_users: "{{ url_for('user_profiles_active_users') }}",
+            user_profiles_top_users: "{{ url_for('user_profiles_top_users') }}",
+            user_profiles_time_period_users: "{{ url_for('user_profiles_time_period_users') }}",
+            email_view: "{{ url_for('email_view') }}"
+        };
+
+        if (routes[view]) {
+            window.location.href = routes[view];
+        } else {
+            console.error(`Route for view '${view}' not found.`);
         }
     }
+
     function handleLogout() {
         window.location.href = "{{ url_for('logout') }}";  // Redirect to the logout route
     }

@@ -10,6 +10,7 @@ from knowledge_base import KnowledgeBase
 from response_generator import ResponseGenerator
 from interaction_profiling import InteractionProfiling
 from datetime import datetime, timedelta
+from user_profiling import UserProfiling
 from email_processor import EmailProcessor
 
 # Initialize the Flask application
@@ -29,6 +30,7 @@ auth_handler = AuthHandler()
 response_generator = ResponseGenerator()
 interaction_profiling = InteractionProfiling()
 email_processor = EmailProcessor()
+user_profiling = UserProfiling()
 
 class User(UserMixin):
     def __init__(self, id):
@@ -214,8 +216,8 @@ def index():
         if not score_success:
             print(score_success)
             continue
-        # print("THE INTERACTION SCORE: ", score[0])
-        conversations_score[thread_id] = score
+        # conversations_score[thread_id] = score
+        conversations_score[thread_id] = score[0] if isinstance(score, (list, tuple)) else score
         #grouped_emails[thread_id].append({'score': score[0]})
 
     print(conversations_score)
@@ -231,7 +233,6 @@ def index():
                            last_60_days=last_60_days, conversations=grouped_emails,
                            conversations_score=conversations_score,
                            start_date=start_date, end_date=end_date)
-
 
 def fetch_score():
     try:
@@ -310,27 +311,48 @@ def update_account_profile():
                 'affiliation': affiliation,
                 'email_id': email_id})
 
-@app.route('/user_profiles')
+
+@app.route('/user_profiles', methods=['GET'])
 def user_profiles():
-    # Redirect to active users as the default
-    return redirect(url_for('user_profiles_active_users'))
+    all_users = user_profiling.get_all_users()
+    success, user_scores = knowledge_base.fetch_scores_at_user_level()
 
-@app.route('/user_profiles/active_users')
+    if success:
+        return render_template("user_profiles.html", active_users=all_users, user_scores=user_scores)
+    else:
+        return jsonify({"error": "Error fetching data"}), 500
+
+@app.route('/user_profiles/active_users', methods=['GET'])
 def user_profiles_active_users():
-    return render_template('user_profiles.html', chart='active_users')
+    all_users = user_profiling.get_all_users()
+    if all_users:
+        return render_template(
+            "user_profiles.html",
+            chart="active_users",
+            active_users=all_users,
+        )
+    else:
+        return jsonify({"error": "Error fetching active users"}), 500
 
-@app.route('/user_profiles/top_users')
+@app.route('/user_profiles/top_users', methods=['GET'])
 def user_profiles_top_users():
-    return render_template('user_profiles.html', chart='top_users')
+    success, user_scores = knowledge_base.fetch_scores_at_user_level()
+    print("DEBUG App: User Scores:", user_scores)  # Add this line to check the data
+    if not success:
+        return jsonify({"error": "Error fetching user scores"}), 500
+    return render_template(
+        'user_profiles.html',
+        chart='top_users',
+        user_scores=user_scores
+    )
 
-@app.route('/user_profiles/time_period_users')
+@app.route('/user_profiles/time_period_users', methods=['GET'])
 def user_profiles_time_period_users():
     return render_template('user_profiles.html', chart='time_period_users')
 
-@app.route('/email_view')
+@app.route('/email_view', methods=['GET'])
 def email_view():
-    return redirect(url_for('user_profiles_active_users'))
-    # return render_template('email_view.html')
+    return render_template('email_view.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

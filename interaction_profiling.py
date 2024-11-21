@@ -16,6 +16,8 @@ class InteractionProfiling:
         Returns:
             tuple: Updated seen_keywords dictionary and the cumulative normalized score out of 100.
         """
+
+        print('interaction_profiling function entered',keywords_scores, seen_keywords)
         # Tokenize and clean the email text
         words = re.findall(r'\b\w+\b', new_email.lower())
 
@@ -35,6 +37,7 @@ class InteractionProfiling:
 
         # Normalize the score to 100
         normalized_score = (current_score / max_score) * 100 if max_score > 0 else 0
+        print(normalized_score,seen_keywords)
 
         return seen_keywords, round(normalized_score, 2)
 
