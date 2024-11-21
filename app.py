@@ -10,6 +10,7 @@ from knowledge_base import KnowledgeBase
 from response_generator import ResponseGenerator
 from interaction_profiling import InteractionProfiling
 from datetime import datetime, timedelta
+from email_processor import EmailProcessor
 
 # Initialize the Flask application
 app = Flask(__name__)
@@ -27,6 +28,7 @@ knowledge_base = KnowledgeBase()
 auth_handler = AuthHandler()
 response_generator = ResponseGenerator()
 interaction_profiling = InteractionProfiling()
+email_processor = EmailProcessor()
 
 class User(UserMixin):
     def __init__(self, id):
@@ -104,25 +106,27 @@ def create_account():
 
 # Route for project account login
 @app.route('/project_account_login', methods=['GET', 'POST'])
+@login_required
 def project_account_login():
     if request.method == 'POST':
         email = request.form['email']
-        success, result = knowledge_base.get_app_password(email)
+        password_success, password_result = knowledge_base.get_app_password(email)
         project_success, project_result = knowledge_base.get_project_name(email)
-        if not success or not project_success:
-            flash(result + 'and' + project_result)
+        keywords_success, keywords_result = knowledge_base.get_project_keywords(email, project_result[0] if project_success else None)
+
+        if not password_success or not project_success or not keywords_success:
+            flash("Error retrieving project information. Please check your inputs and try again.", "error")
             return render_template('project_account_login.html')
-        keywords_success, keywords_result =  knowledge_base.get_project_keywords(email, project_result[0])
-        if not keywords_success:
-            flash(keywords_result)
-            return render_template('project_account_login.html')
-        if result:
-            session['email'] = email
-            session['app_password'] = result[0]
-            session['project'] = project_result[0]
-            session['project_keywords'] =  keywords_result
-            # print("TESTING: ", session['email'], session['app_password'], session['project'], session['project_keywords'])
-            print("Session Data After Login:", session)
+        
+        if password_result:
+            session.update({
+                'email': email,
+                'app_password': password_result[0],
+                'project': project_result[0],
+                'project_keywords': keywords_result
+            })
+
+            print("Session variables: ", session)
             user = User(id=email)
             login_user(user)
             return redirect(url_for('index'))  # Redirect to the main dashboard or index
@@ -142,17 +146,11 @@ def project_creation():
         app_password = request.form['password']
         prompt_text = request.form.get('prompt_text', '')
         response_frequency = int(request.form.get('response_frequency', 0))
-
-        # # Get keywords data and convert it to JSON format
-        # keywords_data = json.loads(request.form['keywords_data'])
-        # keywords_json = json.dumps(keywords_data)
-
         keywords_data_fetch = request.form['keywords_data']
         keywords_data = keywords_data_fetch.replace('""', '"')
-        print(keywords_data)
+        #print(keywords_data)
         try:
             keywords_data_updated = json.loads(keywords_data) if keywords_data else []
-            # print(keywords_data)
         except json.JSONDecodeError:
             flash("Invalid keywords data", "error")
             return redirect(url_for('project_creation'))
@@ -176,39 +174,6 @@ def project_creation():
 
     return render_template('project_creation.html')
 
-
-def generate_and_send_response(emails, message_id):
-    """
-    Fetch the email by message_id, generate a response using LLM, and send the reply.
-    """
-    # Step 1: Fetch emails and find the specified email
-    email = next((e for e in emails if e['message_id'] == message_id), None)
-
-    if not email:
-        print("Email not found.")
-        return
-
-    # Step 2: Clean the email body
-    clean_content = email['content']
-
-    # Step 3: Generate response
-    prompt = "You are a police detective and posted an ad saying you are looking to buy watches at a cheap price in hope of catching some criminals. You received an email as below:"
-    response_text = response_generator.generate_response(prompt, clean_content)
-
-    # Step 4: Send the response as a reply
-    to_address = email['from']
-    subject = email['subject']
-    references = email['references']
-    email_handler.send_email(
-        to_address=to_address,
-        content=response_text,
-        message_id=email['message_id'],
-        references=references,
-        subject=subject
-    )
-
-    print("Response sent successfully.")
-    return
 
 # Main route to display emails and conversations
 @app.route('/', methods=['GET'])
@@ -238,18 +203,15 @@ def index():
         start_date=start_date, end_date=end_date,
         bidirectional_address=bidirectional_address
     ) if search_initiated or last_30_days or last_60_days else []
-    #print(emails)
-    process_grouped_emails(grouped_emails)
-
+    
+    # Process the grouped emails
+    email_processor.process_grouped_emails(grouped_emails)
     # Fetch all threads with scores
     conversations_score, error = fetch_score()
     print(conversations_score)
     if error:
         flash(error, "error")
         conversations_score = {}
-
-    # Call function to generate and send a response for a specific email
-    # generate_and_send_response(emails, "<CAPBq5+2wXNpAfhTjaKD8aPEW+bL__8ryV=Lt108Qrmh26aR4rQ@mail.gmail.com>")
 
     # Filter emails by selected keyword
     if selected_keyword:

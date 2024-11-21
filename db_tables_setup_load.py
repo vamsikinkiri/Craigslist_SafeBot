@@ -1,5 +1,3 @@
-import hashlib
-from datetime import datetime, timedelta
 from knowledge_base import KnowledgeBase
 
 knowledge_base = KnowledgeBase()
@@ -9,9 +7,9 @@ def drop_tables(cursor):
     drop_tables_queries = [
         "DROP TABLE IF EXISTS SCORED_EMAILS;",
         "DROP TABLE IF EXISTS EMAIL_THREADS;",
-        "DROP TABLE IF EXISTS USER_PROFILES;"
-        # "DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
-        # "DROP TABLE IF EXISTS PROJECTS;"
+        "DROP TABLE IF EXISTS USER_PROFILES;",
+        #"DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
+        #"DROP TABLE IF EXISTS PROJECTS;"
     ]
     for query in drop_tables_queries:
         cursor.execute(query)
@@ -40,11 +38,10 @@ def create_tables(cursor):
         """,
         """
         CREATE TABLE IF NOT EXISTS USER_PROFILES (
-            USER_ID BIGINT PRIMARY KEY,
-            PRIMARY_EMAIL TEXT,
-            THREAD_IDS TEXT,
+            PRIMARY_EMAIL TEXT PRIMARY KEY,
+            THREAD_IDS JSON,
             EMAIL_LIST TEXT,
-            CONTACT_NUMBER INT,
+            CONTACT_NUMBERS JSON,
             LAST_ACTIVE TIMESTAMP,
             LAST_UPDATED TIMESTAMP
         );
@@ -61,12 +58,12 @@ def create_tables(cursor):
         """,
         """
         CREATE TABLE IF NOT EXISTS PROJECTS (
-            EMAIL_ID VARCHAR(255) NOT NULL,
-            PROJECT_NAME VARCHAR(255) NOT NULL,
-            APP_PASSWORD TEXT NOT NULL,
-            PROMPT_TEXT TEXT,
-            RESPONSE_FREQUENCY INTEGER,
-            KEYWORDS_DATA JSONB,
+            email_id VARCHAR(255) NOT NULL,
+            project_name VARCHAR(255) NOT NULL,
+            app_password TEXT NOT NULL,
+            ai_prompt_text TEXT,
+            response_frequency INTEGER,
+            keywords_data JSONB,
             ASSIGNED_ADMIN_ID BIGINT,
             PRIMARY KEY (EMAIL_ID, PROJECT_NAME)  -- COMPOSITE PRIMARY KEY
         );

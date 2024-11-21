@@ -110,7 +110,7 @@ class KnowledgeBase:
         try:
             cursor = conn.cursor()
             cursor.execute('''
-                INSERT INTO projects(email_id, project_name, app_password, prompt_text, response_frequency, keywords_data, assigned_admin_id) 
+                INSERT INTO projects(email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, assigned_admin_id) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
             ''', (email_id, project_name, app_password, prompt_text, response_frequency, keywords_data, assigned_admin_id))
             conn.commit()
@@ -120,8 +120,11 @@ class KnowledgeBase:
         finally:
             conn.close()
             cursor.close()
-
-    def is_email_scored(self, message_id):
+    
+    def is_email_processed(self, message_id):
+        """
+        Check if an email is already scored.
+        """
         conn, conn_error = self.get_db_connection()
         if conn is None:
             return False, conn_error
@@ -290,11 +293,195 @@ class KnowledgeBase:
             else:
                 return True, {}
         except Exception as error:
-            print(f"Database error: {error}")
             return False, f"Database error: {error}"
         finally:
             cursor.close()
             conn.close()
+    
+    def get_user_profile(self, user_email):
+        """
+        Retrieve user profile by email.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            print(conn_error)
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT * FROM USER_PROFILES WHERE PRIMARY_EMAIL = %s
+            """, (user_email,))
+            result = cursor.fetchone()
+            return True, result
+        except Exception as error:
+            print(f"Database error while retrieving user profile: {error}")
+            return False, f"Database error while retrieving user profile: {error}"
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def update_user_profile(self, user_email, thread_ids, contact_numbers, last_active):
+        """
+        Update THREAD_IDS and LAST_UPDATED for a user.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            print(conn_error)
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE USER_PROFILES
+                SET THREAD_IDS = %s, CONTACT_NUMBERS = %s, LAST_ACTIVE = %s, LAST_UPDATED = NOW()
+                WHERE PRIMARY_EMAIL = %s
+            """, (json.dumps(thread_ids), json.dumps(contact_numbers), last_active, user_email))
+            conn.commit()
+            return True, None
+        except Exception as error:
+            print(f"Database error while updating user profile: {error}")
+            return False, f"Database error while updating user profile: {error}"
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def create_user_profile(self, user_email, thread_ids, email_list, contact_numbers, last_active):
+        """
+        Create a new user profile.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            print(conn_error)
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO USER_PROFILES (
+                    PRIMARY_EMAIL, THREAD_IDS, EMAIL_LIST, CONTACT_NUMBERS, 
+                    LAST_ACTIVE, LAST_UPDATED
+                )
+                VALUES (%s, %s, %s, %s, %s, NOW())
+            """, (
+                user_email, json.dumps(thread_ids), email_list, json.dumps(contact_numbers), last_active
+            ))
+            conn.commit()
+            return True, None
+        except Exception as error:
+            print(f"Database error while creating user profile: {error}")
+            return False, f"Database error while creating user profile: {error}"
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def get_ai_prompt_text(self, email_id, project_name):
+        """
+        Retrieve the prompt_text for a given project from the PROJECTS table.
+
+        Args:
+            email_id (str): The email ID associated with the project.
+            project_name (str): The name of the project.
+
+        Returns:
+            tuple: (bool, str) Success status and the prompt text or an error message.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT ai_prompt_text FROM projects
+                WHERE email_id = %s AND project_name = %s
+            """, (email_id, project_name))
+            result = cursor.fetchone()
+            return True, result
+        except Exception as error:
+            return False, f"Database error: {error}"
+        finally:
+            cursor.close()
+            conn.close()
+
+    def get_ai_response_enabled(self, thread_id):
+        """
+        Retrieve the AI_RESPONSE_ENABLED value for a given thread from the EMAIL_THREADS table.
+        Args: thread_id (str): The thread ID.
+        Returns: tuple: (bool, bool) Success status and the AI_RESPONSE_ENABLED value or an error message.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT ai_response_enabled FROM email_threads
+                WHERE thread_id = %s
+            """, (thread_id,))
+            result = cursor.fetchone()
+            print(result)
+            return True, result
+        except Exception as error:
+            return False, f"Database error: {error}"
+        finally:
+            cursor.close()
+            conn.close()
+
+    def update_ai_response_enabled(self, thread_id, new_value):
+        """
+        Update the AI_RESPONSE_ENABLED value for a given thread in the EMAIL_THREADS table.
+
+        Args:
+            thread_id (str): The thread ID.
+            new_value (bool): The new value for AI_RESPONSE_ENABLED.
+
+        Returns: tuple: (bool, str) Success status and a success or error message.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE email_threads
+                SET ai_response_enabled = %s, last_updated = NOW()
+                WHERE thread_id = %s
+            """, (new_value, thread_id))
+            conn.commit()
+            return True, "AI_RESPONSE_ENABLED updated successfully."
+        except Exception as error:
+            return False, f"Database error: {error}"
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def get_response_frequency(self, thread_id):
+        """
+        Retrieve the RESPONSE_FREQUENCY value for a given thread from the EMAIL_THREADS table.
+        Args: thread_id (str): The thread ID.
+        Returns: tuple: (bool, int) Success status and the RESPONSE_FREQUENCY value or an error message.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT response_frequency FROM email_threads
+                WHERE thread_id = %s
+            """, (thread_id,))
+            result = cursor.fetchone()
+            return True, result # Use result[0]
+        except Exception as error:
+            return False, f"Database error: {error}"
+        finally:
+            cursor.close()
+            conn.close()
+
 
     def get_project_details(self, email, project_name):
         conn, conn_error = self.get_db_connection()

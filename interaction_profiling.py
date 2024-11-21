@@ -44,6 +44,7 @@ class InteractionProfiling:
 # # Example Usage
 # # Admin-defined keyword thresholds
 # keywords_scores = {
+#     "watches": 5,
 #     "illicit": 5,
 #     "trafficking": 3,
 #     "stolen": 6,

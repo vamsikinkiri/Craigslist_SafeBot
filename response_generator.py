@@ -10,7 +10,7 @@ class ResponseGenerator:
             model_name="llama-3.1-8b-instant"
         )
 
-    def generate_response(self, prompt, email_content):
+    def generate_response(self, full_prompt):
         """
         Generates a response using an open-source LLM based on a prompt and email content.
         Args:
@@ -20,13 +20,7 @@ class ResponseGenerator:
         Returns:
             str: The generated response from the LLM.
         """
-        print(prompt, email_content)
-        full_prompt = (
-            f"{prompt}\n\n"
-            f"Received Email:\n'{email_content}'\n\n"
-            "Reply in a way that seems human, showing interest in the offer but not too eager. "
-            "Only reply the content of the reply and nothing else. Start the reponse with 'Hello', and then start the content of the email. End the email with Best, Jay. Make sure the response continues the facade that you are a buyer interested in the watches."
-        )
+        #print(full_prompt)
         
         response = self.llm.invoke(full_prompt)
         return response.content if response else "No response generated."

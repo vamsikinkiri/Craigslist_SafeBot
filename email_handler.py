@@ -1,6 +1,5 @@
 import imaplib
 import email
-import yaml
 import re
 import os
 import re
@@ -165,7 +164,6 @@ class EmailHandler:
         self.password = session.get('app_password')  # Get the session app password
         if not self.user or not self.password:
             raise ValueError("Session email or app password not set.")
-        print("Checking session 2: ", self.user, self.password)
         try:
             msg = MIMEMultipart()
             msg['From'] = self.user
