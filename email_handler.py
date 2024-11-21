@@ -156,11 +156,11 @@ class EmailHandler:
             conversations[conversation_key].append(email)
         return conversations
 
-    def send_email(self, to_address, content, message_id=None, references=None, subject=None):
+    def send_email(self, to_address, content, references=None, message_id=None, subject=None):
         """
         Send an email reply with threading information.
         """
-        print('*'*50 + subject)
+        print('*'*50 + subject, references)
         self.user = session.get('email')  # Get the session email
         self.password = session.get('app_password')  # Get the session app password
         if not self.user or not self.password:
@@ -172,7 +172,7 @@ class EmailHandler:
             msg['Subject'] = subject
             if message_id:
                 msg['In-Reply-To'] = message_id
-            if references:
+            if references is not None:
                 msg['References'] = ' '.join(references + [message_id])
             msg.attach(MIMEText(content, 'plain'))
 

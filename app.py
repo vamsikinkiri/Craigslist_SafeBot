@@ -224,6 +224,7 @@ def index():
         #grouped_emails[thread_id].append({'score': score[0]})
 
     print(conversations_score)
+    print(grouped_emails)
 
     # Filter emails by selected keyword
     if selected_keyword:

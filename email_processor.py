@@ -159,8 +159,8 @@ class EmailProcessor:
         email_handler.send_email(
             to_address=to_address,
             content=email_with_quote,
-            message_id=email['message_id'],
             references=references,
+            message_id=email['message_id'],
             subject="Re: " + subject
         )
 

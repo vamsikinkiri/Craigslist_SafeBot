@@ -28,8 +28,8 @@ class UserProfiling:
         if user_profile:  # User already exists
             print(user_profile)
             primary_email, thread_ids, email_list, contact_numbers, last_active_db, last_updated = user_profile
-            if thread_id not in thread_ids:
-                thread_ids.append(thread_id)
+            # if thread_id not in thread_ids:
+            #     thread_ids.append(thread_id)
             if contact_number and contact_number not in contact_numbers:
                 contact_numbers.append(contact_number)
                 # Update the THREAD_IDS, CONTACT_NUMBER and LAST_ACTIVE
@@ -39,7 +39,7 @@ class UserProfiling:
             contact_numbers = [contact_number] if contact_number else []
             knowledge_base.create_user_profile(
                 user_email=user_email,
-                thread_ids=[thread_id],
+                thread_ids=thread_id,
                 email_list="",
                 contact_numbers=contact_numbers,
                 last_active=last_active,

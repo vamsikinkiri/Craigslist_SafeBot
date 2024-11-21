@@ -361,7 +361,7 @@ class KnowledgeBase:
                 UPDATE USER_PROFILES
                 SET THREAD_IDS = %s, CONTACT_NUMBERS = %s, LAST_ACTIVE = %s, LAST_UPDATED = NOW()
                 WHERE PRIMARY_EMAIL = %s
-            """, (json.dumps(thread_ids), json.dumps(contact_numbers), last_active, user_email))
+            """, (thread_ids, json.dumps(contact_numbers), last_active, user_email))
             conn.commit()
             return True, None
         except Exception as error:
@@ -389,7 +389,7 @@ class KnowledgeBase:
                 )
                 VALUES (%s, %s, %s, %s, %s, NOW())
             """, (
-                user_email, json.dumps(thread_ids), email_list, json.dumps(contact_numbers), last_active
+                user_email, thread_ids, email_list, json.dumps(contact_numbers), last_active
             ))
             conn.commit()
             return True, None
@@ -692,7 +692,7 @@ class KnowledgeBase:
                     primary_email, thread_ids, email_list, contact_numbers, last_active, last_updated = row
                     user_profiles.append({
                         "primary_email": primary_email,
-                        "thread_ids": json.loads(thread_ids) if thread_ids else [],
+                        "thread_ids": thread_ids if thread_ids else [],
                         "email_list": email_list,
                         "contact_numbers": json.loads(contact_numbers) if contact_numbers else [],
                         "last_active": last_active,
