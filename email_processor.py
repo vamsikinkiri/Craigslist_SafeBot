@@ -1,6 +1,8 @@
 import re
+import json
 from flask import session, flash
 from knowledge_base import KnowledgeBase
+from datetime import datetime
 from interaction_profiling import InteractionProfiling
 from response_generator import ResponseGenerator
 from email_handler import EmailHandler
@@ -35,7 +37,7 @@ class EmailProcessor:
                 success, is_email_processed = knowledge_base.is_email_processed(email['message_id'])
                 if not success:
                     print(is_email_processed)
-                    flash(is_email_processed)
+                    flash(is_email_processed, "error")
                     return
                 if is_email_processed:
                     continue  # Skip since we already scored this email
@@ -57,7 +59,7 @@ class EmailProcessor:
                     success, seen_keywords = knowledge_base.get_seen_keywords(thread_id)
                     if not success:
                         print(seen_keywords)
-                        flash(seen_keywords)
+                        flash(seen_keywords, "error")
                         return
                 print('seen_keywords before')
                 # Calculate the cumulative score using the project keywords and seen_keywords
@@ -72,18 +74,43 @@ class EmailProcessor:
                 )
                 if not success:
                     print(result)
-                    flash(result)
+                    flash(result, "error")
                 
                 # Check if the AI reponse function is enabled
                 ai_success, is_ai_enabled = knowledge_base.get_ai_response_enabled(thread_id=thread_id)
                 print(ai_success, is_ai_enabled)
                 if not ai_success:
                     print(is_ai_enabled)
-                    flash(is_ai_enabled)
+                    flash(is_ai_enabled, "error")
                     return
                 if score > 0 and is_ai_enabled[0]:
                     # AI is enabled and user is a potential criminal, we need to generate an AI response.
-                    self.generate_and_send_response(email=email, conversation_history=conversation_history)
+                    if score >= 75:
+                        admin_email = session.get('admin_email')
+                        success, user_profile = knowledge_base.get_user_profile(from_address)
+                        primary_email, thread_ids, email_list, contact_numbers, last_active_db, last_updated = user_profile
+                        user_details = f"""Primary Email: {primary_email}\nEmail List: {email_list if email_list else 'N/A'}\nContact Numbers: {', '.join(contact_numbers) if contact_numbers else 'N/A'}\nLast Active: {last_active_db}"""
+                        print(user_details)
+                        if success:
+                            # Extract user profile details
+                            #user_details = json.dumps(user_profile, indent=2)  # Format user profile for readability
+                            notification_content = (
+                                f"Attention Required: A manual takeover is suggested.\n\n"
+                                f"User Profile:\n{user_details}\n"
+                                f"Interaction Score: {score}\n"
+                                f"Thread ID: {str(thread_id)}\n\n"
+                                f"Please investigate further."
+                            )
+                            email_handler.send_email(
+                                to_address=admin_email,
+                                content=notification_content,
+                                subject=f"Manual Takeover Alert: Score Exceeded Threshold ({score}) - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                            )
+                            knowledge_base.update_ai_response_enabled(thread_id=thread_id, new_value=False)
+                        else:
+                            flash("Failed to fetch user profile for notification.", "error")
+                    else:
+                        self.generate_and_send_response(email=email, conversation_history=conversation_history)
 
     def generate_and_send_response(self, email, conversation_history):
         # Step 1: Combine conversation history into a single string
@@ -96,7 +123,7 @@ class EmailProcessor:
         success, admin_prompt = knowledge_base.get_ai_prompt_text(session['email'], session['project'])
         if not success:
             print(admin_prompt)
-            flash(admin_prompt)
+            flash(admin_prompt, "error")
             return
         full_prompt = (
             f"{admin_prompt[0]}\n\n"
@@ -110,16 +137,31 @@ class EmailProcessor:
         #prompt = "You are a police detective and posted an ad saying you are looking to buy watches at a cheap price in hope of catching some criminals. You received an email as below:"
         response_text = response_generator.generate_response(full_prompt)
 
-        # Step 4: Send the response as a reply
+        # Step 4: Send the response as a reply and include the original email as quoted content
+        quoted_conversation = ""
+        for msg in reversed(conversation_history):
+            if "We replied:" in msg:
+                quoted_conversation += f"On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, you wrote:\n"
+                quoted_conversation += f"> {msg.replace('We replied:', '').strip()}\n"
+            elif "User sent:" in msg:
+                quoted_conversation += f"On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, they wrote:\n"
+                quoted_conversation += f"> {msg.replace('User sent:', '').strip()}\n"
+
+        email_with_quote = (
+            f"{response_text}\n\n"
+            f"On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, {email['from']} wrote:\n"
+            f"{quoted_conversation.strip()}"
+        )
+
         to_address = email['from']
         subject = email['subject']
         references = email['references']
         email_handler.send_email(
             to_address=to_address,
-            content=response_text,
+            content=email_with_quote,
             message_id=email['message_id'],
             references=references,
-            subject=subject
+            subject="Re: " + subject
         )
 
         #print("Response sent successfully.")

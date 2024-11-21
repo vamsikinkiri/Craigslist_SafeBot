@@ -4,6 +4,7 @@ from knowledge_base import KnowledgeBase
 import json
 from collections import defaultdict
 from datetime import datetime
+from flask import flash
 
 knowledge_base = KnowledgeBase()
 
@@ -18,11 +19,11 @@ class UserProfiling:
         """
         # Check if user already exists in USER_PROFILES
         success, user_profile = knowledge_base.get_user_profile(user_email)
-        contact_number = self.extract_contact_number(email_content)
         if not success:
-            # Error when accessing the database
             print(user_profile)
+            flash(user_profile, "error")
             return
+        contact_number = self.extract_contact_number(email_content)
         
         if user_profile:  # User already exists
             print(user_profile)

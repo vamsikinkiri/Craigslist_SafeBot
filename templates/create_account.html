@@ -5,84 +5,120 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Admin Account</title>
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #eaeaea;
-            color: #333;
+        /* Global Reset */
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
             display: flex;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
-            flex-direction: column;
+            align-items: flex-start;
+            min-height: 100vh;
+            background-color: #eaeaea;
+            color: #3b3b3b;
+            padding-top: 70px;
         }
+
         header {
-            background-color: #134258;
-            color: white;
-            padding: 20px;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            font-size: 28px;
             position: fixed;
             top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
+            width: 100%;
+            background-color: #134258;
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-size: 18px;
+            color: #ffffff;
         }
+
         .header-title {
             flex: 1;
             text-align: center;
             font-size: 34px;
             margin-left: 0%;
         }
-        .create-account-container {
-            background-color: #ffffff;
+
+        .container {
+            width: 500px;
             padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-            box-sizing: border-box;
-            margin-top: 80px;
-        }
-        h2 {
+            border-radius: 25px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
             text-align: center;
-            color: #023346;
-            margin-bottom: 30px;
+            margin-top: 20px;
+        }
+
+        h2 {
             font-size: 28px;
+            color: #023346;
+            margin-bottom: 25px;
             font-weight: 700;
         }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px; /* Reduced gap for consistency */
-        }
-        label {
-            font-size: 14px;
-            font-weight: 500;
-            color: #666;
-            margin-top: 10px; /* Added space above labels for consistency */
-        }
-        input {
-            padding: 12px;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            font-size: 16px;
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        input[type="tel"] {
             width: 100%;
-            box-sizing: border-box;
-            color: #495057;
-            transition: border-color 0.3s;
-        }
-        input:focus {
+            padding: 12px;
+            margin: 12px 0;
+            border: none;
+            border-radius: 15px;
+            background-color: #e7eef0;
+            font-size: 16px;
+            font-weight: bold;
+            color: #3b3b3b;
             outline: none;
-            border-color: #0077b6;
-            box-shadow: 0 0 5px rgba(0, 119, 182, 0.3);
+            transition: background-color 0.3s;
         }
+
+        input::placeholder {
+            color: #9ca3af;
+        }
+
+        input:focus {
+            background-color: #d7e3fc;
+        }
+
+        button[type="submit"] {
+            margin-top: 20px;
+            padding: 12px 20px;
+            width: 100%;
+            border: none;
+            background-color: #007195;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button[type="submit"]:hover {
+            background: #134258;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .back-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+
         .flash-message {
             background-color: #f8d7da;
             color: #721c24;
@@ -92,76 +128,65 @@
             text-align: center;
             border: 1px solid #f5c6cb;
         }
-        .btn-primary {
-            padding: 12px;
-            background-color: #007195;
-            color: white;
-            border: none;
+        .alert {
+            padding: 10px;
+            margin-bottom: 10px;
             border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            width: 100%;
-            box-sizing: border-box;
-            transition: background-color 0.3s ease;
-            margin-top: 20px; /* Added space above button */
-        }
-        .btn-primary:hover {
-            background-color: #134258;
-        }
-        .back-link {
-            text-align: center;
-            margin-top: 10px;
             font-size: 14px;
+            text-align: center;
         }
-        .back-link a {
-            color: #007bff;
-            text-decoration: none;
+
+        .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
         }
-        .back-link a:hover {
-            text-decoration: underline;
+
+        .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
         }
-        /* Add responsiveness */
-        @media (max-width: 500px) {
-            .create-account-container {
-                padding: 30px;
-            }
-            input, button {
-                padding: 12px;
-                font-size: 14px;
-            }
+
+        .alert-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
 <header>
     <div class="header-title">Craigslist Safebot</div>
 </header>
-    <div class="create-account-container">
-        <h2>Create Admin Account</h2>
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-          <div class="flash-message">
-              {% for message in messages %}
-                  <p>{{ message }}</p>
-              {% endfor %}
-          </div>
-          {% endif %}
-        {% endwith %}
-        
-        <form method="POST" action="{{ url_for('create_account') }}">
-            <input type="text" name="login_id" placeholder="Login ID" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <input type="password" name="confirm_password" placeholder="Confirm Password" required>
-            <input type="email" name="email_id" placeholder="Email ID" required>
-            <input type="tel" name="phone_number" placeholder="Phone Number (Optional)">
-            <input type="text" name="affiliation" placeholder="Affiliation (Optional)">
-        </form>
-        
-        <div class="back-link">
-            <p>Already have an account? <a href="{{ url_for('login') }}">Log in here</a></p>
+<div class="container">
+    <h2>Create Admin Account</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div>
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+            </div>
+        {% endfor %}
         </div>
+    {% endif %}
+    {% endwith %}
+
+    
+    <form method="POST" action="{{ url_for('create_account') }}">
+        <input type="text" name="login_id" placeholder="Login ID" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+        <input type="email" name="email_id" placeholder="Email ID" required>
+        <input type="tel" name="phone_number" placeholder="Phone Number (Optional)">
+        <input type="text" name="affiliation" placeholder="Affiliation (Optional)">
+        <button type="submit">Create Account</button>
+    </form>
+    
+    <div class="back-link">
+        <p>Already have an account? <a href="{{ url_for('login') }}">Log in here</a></p>
     </div>
+</div>
 </body>
 </html>

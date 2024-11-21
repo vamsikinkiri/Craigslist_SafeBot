@@ -50,14 +50,16 @@ def login():
         if auth_handler.authenticate_user(loginId, password):
             session['admin_id'] = loginId
             session['user_id'] = loginId
+            success, admin_details = knowledge_base.get_account_profile(loginId)
+            if success:
+                session['admin_email'] = admin_details.get('email_id')  # Store admin email in session
             user = User(id=loginId)
             login_user(user)
-            print(f"Session Data After Login: {session}")
-            next_page = request.args.get('next') or url_for('project_account_login')
-            flash("Login successful!", "success")
-            return redirect(next_page)
+            # print(f"Session Data After Login: {session}")
+            flash("Admin login successful!", "success")
+            return redirect(url_for('project_account_login'))
         else:
-            flash("Invalid credentials. Please try again.", "error")
+            # flash("Invalid credentials. Please try again.", "error")
             return redirect(url_for('login'))
         #     return redirect(url_for('project_account_login'))
         # return redirect(url_for('login'))
@@ -91,11 +93,11 @@ def create_account():
         # Validate form fields
         if not login_id or not password or not confirm_password or not email_id:
             flash("All mandatory fields must be filled", "error")
-            return redirect(url_for('create_account.html'))
+            return redirect(url_for('create_account'))
 
         if not confirm_password == password:
             flash("Passwords do not match. Try again!", "error")
-            return redirect(url_for('create_account.html'))
+            return redirect(url_for('create_account'))
 
         success, message = knowledge_base.create_admin(login_id, password, email_id, phone_number, affiliation)
         flash(message, "success" if success else "error")
@@ -114,9 +116,10 @@ def project_account_login():
         email = request.form['email']
         password_success, password_result = knowledge_base.get_app_password(email)
         project_success, project_result = knowledge_base.get_project_name(email)
-        keywords_success, keywords_result = knowledge_base.get_project_keywords(email, project_result[0] if project_success else None)
+        if project_success and project_result:
+            keywords_success, keywords_result = knowledge_base.get_project_keywords(email, project_result[0])
 
-        if not password_success or not project_success or not keywords_success:
+        if not password_success or not project_success:
             flash("Error retrieving project information. Please check your inputs and try again.", "error")
             return render_template('project_account_login.html')
         
@@ -128,12 +131,12 @@ def project_account_login():
                 'project_keywords': keywords_result
             })
 
-            # print("Session variables: ", session)
+            print("Session variables: ", session)
             user = User(id=email)
             login_user(user)
             return redirect(url_for('index'))  # Redirect to the main dashboard or index
         else:
-            flash("Unable to retrieve app password. Please check the email and try again.")
+            flash("Unable to retrieve app password. Please check the email and try again.", "error")
             return render_template('project_account_login.html')
         
     return render_template('project_account_login.html')
@@ -251,14 +254,14 @@ def fetch_score():
 @login_required
 def update_project():
     if 'email' not in session or 'project' not in session:
-        flash("You need to be logged in to update project details.")
+        flash("You need to be logged in to update project details.", "error")
         return redirect(url_for('project_account_login'))
     email = session['email']
     project_name = session['project']
     if request.method == 'GET':
         success, project_details = knowledge_base.get_project_details(email, project_name)
         if not success:
-            flash(project_details)
+            flash(project_details, "error")
             return redirect(url_for('index'))
         return render_template('update_project.html', project_details=project_details)
     elif request.method == 'POST':
@@ -266,7 +269,7 @@ def update_project():
         response_frequency = request.form['response_frequency']
         success, message = knowledge_base.update_project(email, project_name, prompt_text, response_frequency)
         if success:
-            flash("Project details updated successfully.")
+            flash("Project details updated successfully.", "success")
             return redirect(url_for('index'))
             flash("Failed to update project details. ")
             return render_template('update_project.html')
@@ -278,7 +281,7 @@ def update_account_profile():
 
     if 'admin_id' not in session:
         print("admin_id not in session")
-        flash("You need to be logged in to update your account profile.")
+        flash("You need to be logged in to update your account profile.", "error")
         return redirect(url_for('project_account_login'))
 
     login_id = session['admin_id']
@@ -288,7 +291,7 @@ def update_account_profile():
     if request.method == 'GET':
         success, account_details = knowledge_base.get_account_profile(login_id)
         if not success:
-            flash(account_details)  # Display error message if fetching fails
+            flash(account_details, "error")  # Display error message if fetching fails
             return redirect(url_for('index'))
         else:
             return render_template('update_account_profile.html', account_details=account_details)
@@ -302,10 +305,10 @@ def update_account_profile():
             login_id, phone_number, affiliation, email_id)
         print(f"Update status: {success}, message: {message}")
         if success:
-            flash("Account profile updated successfully.")
+            flash("Account profile updated successfully.", "success")
             return redirect(url_for('index'))
         else:
-            flash("Failed to update account profile. ")
+            flash("Failed to update account profile.", "error")
             return render_template('update_account_profile.html', account_details={
                 'phone_number': phone_number,
                 'affiliation': affiliation,

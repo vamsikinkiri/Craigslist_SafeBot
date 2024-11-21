@@ -283,15 +283,18 @@
 
 <div class="container">
     <h1>Update Admin Profile</h1>
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="flash-message">
-                {% for message in messages %}
-                    <p>{{ message }}</p>
-                {% endfor %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div>
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
             </div>
-        {% endif %}
+        {% endfor %}
+        </div>
+    {% endif %}
     {% endwith %}
+
     <form action="{{ url_for('update_account_profile') }}" method="POST">
         <div class="form-field">
             <label for="email_id">Email ID:</label>

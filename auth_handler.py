@@ -36,7 +36,7 @@ class AuthHandler:
         """
         success, result = knowledge_base.get_password(loginId)
         if not success:
-            flash(result)
+            flash(result, "error")
             return False
 
         if result:
@@ -45,7 +45,7 @@ class AuthHandler:
             if bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')):
                 return True
             else:
-                flash("Invalid password.")
+                flash("Invalid password.", "error")
         else:
-            flash("User not found.")
+            flash("User not found.", "error")
         return False

@@ -156,10 +156,11 @@ class EmailHandler:
             conversations[conversation_key].append(email)
         return conversations
 
-    def send_email(self, to_address, content, message_id, references, subject=None):
+    def send_email(self, to_address, content, message_id=None, references=None, subject=None):
         """
         Send an email reply with threading information.
         """
+        print('*'*50 + subject)
         self.user = session.get('email')  # Get the session email
         self.password = session.get('app_password')  # Get the session app password
         if not self.user or not self.password:
@@ -168,9 +169,11 @@ class EmailHandler:
             msg = MIMEMultipart()
             msg['From'] = self.user
             msg['To'] = to_address
-            msg['Subject'] = "Re: " + subject
-            msg['In-Reply-To'] = message_id
-            msg['References'] = ' '.join(references + [message_id])
+            msg['Subject'] = subject
+            if message_id:
+                msg['In-Reply-To'] = message_id
+            if references:
+                msg['References'] = ' '.join(references + [message_id])
             msg.attach(MIMEText(content, 'plain'))
 
             with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:

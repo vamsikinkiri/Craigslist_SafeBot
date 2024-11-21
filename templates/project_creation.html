@@ -84,7 +84,8 @@
             font-weight: bold;
         }
         label {
-            font-size: 14px;
+            font-size: 16px;
+            font-weight: bold;
             color: #666;
             margin: 0 5px;
             text-align: left;
@@ -221,6 +222,31 @@
             border: 1px solid #f5c6cb;
             text-align: center;
         }
+        .alert {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+        }
 
         .input-wrapper {
             position: relative;
@@ -229,7 +255,8 @@
 
         .input-wrapper label {
             display: block;
-            font-size: 14px;
+            font-size: 16px;
+            font-weight: bold;
             color: #666;
         }
 
@@ -283,7 +310,8 @@
 
         .response-frequency {
             color: #2f2e41;
-            font-size: 15px;
+            font-size: 16px;
+            font-weight: bold;
             margin: 20px 0 10px;
             font-weight: bold;
         }
@@ -322,7 +350,8 @@
         }
 
         .frequency-input label {
-            font-size: 15px;
+            font-size: 16px;
+            font-weight: bold;
             font-weight: bold;
             color: #666; /* Adjust to match the UI's font color */
             white-space: nowrap; /* Prevents label from wrapping to a new line */
@@ -415,6 +444,8 @@
         }
 
         .keyword-frequency-wrapper {
+            font-size: 16px; /* Adjust the value as needed */
+            font-weight: bold;
             display: flex;
             gap: 10px;
             align-items: center;
@@ -480,15 +511,18 @@
 <div class="container">
     <h1>Project creation</h1>
     <!-- Flash Message Box -->
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="flash-message">
-                {% for message in messages %}
-                    <p>{{ message }}</p>
-                {% endfor %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div>
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
             </div>
-        {% endif %}
+        {% endfor %}
+        </div>
+    {% endif %}
     {% endwith %}
+
     <form action="{{ url_for('project_creation') }}" method="POST">
         <input type="text" name="email" placeholder="Email ID" id="email" required>
         <input type="text" name="project_name" placeholder="Project Name" id="project-name" required>
@@ -505,14 +539,14 @@
         </div>
         <input type="password" placeholder="Re-Type Password" id="retype-password" required>
         <div class="error-message" id="password-error">Passwords do not match.</div>
-        <textarea name="prompt_text" rows="3" placeholder="Prompt Text Message"></textarea>
+        <textarea name="prompt_text" rows="3" placeholder="AI Prompt Text Message"></textarea>
 
         <div class="input-wrapper">
-            <input type="number" id="response_frequency" name="response_frequency" placeholder="Please enter the Response Frequency (Mins):" min="1">
+            <input type="number" id="response_frequency" name="response_frequency" placeholder="Response Frequency (In Minutes)" min="1" style="margin-top: 10px;">
         </div>
 
         <div class="keyword-frequency-wrapper">
-            <input type="text" id="keyword-input" placeholder="Enter Keyword" class="keyword-box">
+            <input type="text" id="keyword-input" placeholder="Keyword" class="keyword-box">
             <div class="frequency-box-wrapper">
                 <input type="number" id="keyword-frequency" name="keyword-frequency" placeholder="Frequency" min="1" class="frequency-box">
                 <button type="button" class="add-keyword-btn" onclick="addKeyword()">
