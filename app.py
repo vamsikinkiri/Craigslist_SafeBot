@@ -226,56 +226,6 @@ def index():
                            start_date=start_date, end_date=end_date)
 
 
-def process_grouped_emails(grouped_emails):
-    for thread_id, emails in grouped_emails.items():
-        for email in reversed(emails):
-            # Extract sender's email for comparison
-            match = re.search(r'<([^>]+)>', email['from'])
-            from_address = match.group(1) if match else email['from'].strip()
-            if from_address == session['email']:
-                continue  # Ignore the emails the chatbot sent
-
-            # Check if the email has already been scored
-            success, result = knowledge_base.is_email_scored(email['message_id'])
-            if not success:
-                print(result)
-                flash(result)
-                return
-            if result:
-                continue  # Skip already scored emails
-
-            # Extract content and keywords
-            content = email['content']
-            keywords_scores = session.get('project_keywords', {})
-
-            # Determine seen_keywords for the thread
-            if len(emails) == 1:
-                # New conversation
-                seen_keywords = {}
-            else:
-                # Reply to an AI response
-                success, result = knowledge_base.get_seen_keywords(thread_id)
-                if not success:
-                    print(result)
-                    flash(result)
-                    return
-                seen_keywords = result
-
-            # Calculate the cumulative score
-            seen_keywords, score = interaction_profiling.calculate_cumulative_score(
-                content, keywords_scores, seen_keywords
-            )
-            print('*' * 50 + thread_id, score, seen_keywords)
-
-            # Update or create the thread in the database
-            success, result = knowledge_base.update_email_thread(
-                thread_id, email['message_id'], score, seen_keywords
-            )
-            if not success:
-                print(result)
-                flash(result)
-                return
-
 def fetch_score():
     try:
         email_threads = knowledge_base.fetch_all_email_threads()
@@ -312,6 +262,7 @@ def update_project():
             return redirect(url_for('index'))
             flash("Failed to update project details. ")
             return render_template('update_project.html')
+        
 @app.route('/update_account_profile', methods=['GET', 'POST'])
 @login_required
 def update_account_profile():
