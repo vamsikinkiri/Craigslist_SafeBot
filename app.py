@@ -1,8 +1,8 @@
 import json
 import os
 import re
-from flask import Flask, flash, session, render_template, request, redirect, url_for
-from flask_login import LoginManager, login_user, login_required, logout_user
+from flask import Flask, flash, session, render_template, request, redirect, url_for, jsonify
+from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin
 from datetime import datetime
 from email_handler import EmailHandler
 from auth_handler import LoginForm, User, AuthHandler
@@ -28,6 +28,12 @@ auth_handler = AuthHandler()
 response_generator = ResponseGenerator()
 interaction_profiling = InteractionProfiling()
 
+class User(UserMixin):
+    def __init__(self, id):
+        self.id = id
+
+    def get_id(self):
+        return self.id
 
 # Routes for login, logout and load user for login session management
 @app.route('/login', methods=['GET', 'POST'])
@@ -39,10 +45,18 @@ def login():
         # Authenticate user and create session
         if auth_handler.authenticate_user(loginId, password):
             session['admin_id'] = loginId
+            session['user_id'] = loginId
             user = User(id=loginId)
             login_user(user)
-            return redirect(url_for('project_account_login'))
-        return redirect(url_for('login'))
+            print(f"Session Data After Login: {session}")
+            next_page = request.args.get('next') or url_for('project_account_login')
+            flash("Login successful!", "success")
+            return redirect(next_page)
+        else:
+            flash("Invalid credentials. Please try again.", "error")
+            return redirect(url_for('login'))
+        #     return redirect(url_for('project_account_login'))
+        # return redirect(url_for('login'))
 
     return render_template('login.html', form=form)
 
@@ -107,7 +121,8 @@ def project_account_login():
             session['app_password'] = result[0]
             session['project'] = project_result[0]
             session['project_keywords'] =  keywords_result
-            print("TESTING: ", session['email'], session['app_password'], session['project'], session['project_keywords'])
+            # print("TESTING: ", session['email'], session['app_password'], session['project'], session['project_keywords'])
+            print("Session Data After Login:", session)
             user = User(id=email)
             login_user(user)
             return redirect(url_for('index'))  # Redirect to the main dashboard or index
@@ -226,6 +241,13 @@ def index():
     #print(emails)
     process_grouped_emails(grouped_emails)
 
+    # Fetch all threads with scores
+    conversations_score, error = fetch_score()
+    print(conversations_score)
+    if error:
+        flash(error, "error")
+        conversations_score = {}
+
     # Call function to generate and send a response for a specific email
     # generate_and_send_response(emails, "<CAPBq5+2wXNpAfhTjaKD8aPEW+bL__8ryV=Lt108Qrmh26aR4rQ@mail.gmail.com>")
 
@@ -238,6 +260,7 @@ def index():
     return render_template('index.html', emails=emails, keywords=keywords,
                            search_initiated=search_initiated, last_30_days=last_30_days,
                            last_60_days=last_60_days, conversations=grouped_emails,
+                           conversations_score=conversations_score,
                            start_date=start_date, end_date=end_date)
 
 
@@ -291,6 +314,103 @@ def process_grouped_emails(grouped_emails):
                 flash(result)
                 return
 
+def fetch_score():
+    try:
+        email_threads = knowledge_base.fetch_all_email_threads()
+        conversations_score = {}
+        for thread in email_threads:
+            thread_id = thread["thread_id"]
+            score = thread["interaction_score"]
+            conversations_score[thread_id] = score  # Map thread ID to its score
+        return conversations_score, None
+    except Exception as error:
+        print(f"Error fetching email threads: {error}")
+        return {}, f"Error fetching email threads: {error}"
+
+@app.route('/update_project', methods=['GET', 'POST'])
+@login_required
+def update_project():
+    if 'email' not in session or 'project' not in session:
+        flash("You need to be logged in to update project details.")
+        return redirect(url_for('project_account_login'))
+    email = session['email']
+    project_name = session['project']
+    if request.method == 'GET':
+        success, project_details = knowledge_base.get_project_details(email, project_name)
+        if not success:
+            flash(project_details)
+            return redirect(url_for('index'))
+        return render_template('update_project.html', project_details=project_details)
+    elif request.method == 'POST':
+        prompt_text = request.form['prompt_text']
+        response_frequency = request.form['response_frequency']
+        success, message = knowledge_base.update_project(email, project_name, prompt_text, response_frequency)
+        if success:
+            flash("Project details updated successfully.")
+            return redirect(url_for('index'))
+            flash("Failed to update project details. ")
+            return render_template('update_project.html')
+@app.route('/update_account_profile', methods=['GET', 'POST'])
+@login_required
+def update_account_profile():
+    print("Session Data in update_account_profile:", session)  # Debug session data
+
+    if 'admin_id' not in session:
+        print("admin_id not in session")
+        flash("You need to be logged in to update your account profile.")
+        return redirect(url_for('project_account_login'))
+
+    login_id = session['admin_id']
+
+    print(login_id)
+    print("Session Data in update_account_profile:", session)  # Debug session data
+    if request.method == 'GET':
+        success, account_details = knowledge_base.get_account_profile(login_id)
+        if not success:
+            flash(account_details)  # Display error message if fetching fails
+            return redirect(url_for('index'))
+        else:
+            return render_template('update_account_profile.html', account_details=account_details)
+
+    elif request.method == 'POST':
+        phone_number = request.form.get('phone_number')
+        affiliation = request.form.get('affiliation')
+        email_id = request.form.get('email_id')  # Optional email_id update
+
+        success, message = knowledge_base.update_account_profile(
+            login_id, phone_number, affiliation, email_id)
+        print(f"Update status: {success}, message: {message}")
+        if success:
+            flash("Account profile updated successfully.")
+            return redirect(url_for('index'))
+        else:
+            flash("Failed to update account profile. ")
+            return render_template('update_account_profile.html', account_details={
+                'phone_number': phone_number,
+                'affiliation': affiliation,
+                'email_id': email_id})
+
+@app.route('/user_profiles')
+def user_profiles():
+    # Redirect to active users as the default
+    return redirect(url_for('user_profiles_active_users'))
+
+@app.route('/user_profiles/active_users')
+def user_profiles_active_users():
+    return render_template('user_profiles.html', chart='active_users')
+
+@app.route('/user_profiles/top_users')
+def user_profiles_top_users():
+    return render_template('user_profiles.html', chart='top_users')
+
+@app.route('/user_profiles/time_period_users')
+def user_profiles_time_period_users():
+    return render_template('user_profiles.html', chart='time_period_users')
+
+@app.route('/email_view')
+def email_view():
+    return redirect(url_for('user_profiles_active_users'))
+    # return render_template('email_view.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

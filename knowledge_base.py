@@ -5,9 +5,8 @@ import bcrypt
 import json
 from flask import session
 
-
 class KnowledgeBase:
-   
+
     def get_db_connection(self):
         """
         Connect to PostgreSQL using credentials stored in 'credentials.yaml'.
@@ -39,7 +38,7 @@ class KnowledgeBase:
         Create a new admin in the database.
         """
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        
+
         conn, conn_error = self.get_db_connection()
         if not conn:
             return False, conn_error
@@ -60,7 +59,7 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
-    
+
     def get_password(self, loginId):
         """
         Extract the stored hashed password for the provided login_id.
@@ -81,7 +80,7 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
-    
+
     def get_app_password(self, email):
         """
         Fetch the app password for a given email from the database.
@@ -95,10 +94,10 @@ class KnowledgeBase:
             cursor.execute("SELECT app_password FROM projects WHERE email_id = %s", (email,))
             result = cursor.fetchone()
             return True, result
-        
+
         except Exception as error:
             return False, f"Database error: {error}"
-        
+
         finally:
             cursor.close()
             conn.close()
@@ -121,15 +120,11 @@ class KnowledgeBase:
         finally:
             conn.close()
             cursor.close()
-    
+
     def is_email_scored(self, message_id):
-        """
-        Check if an email is already scored.
-        """
         conn, conn_error = self.get_db_connection()
         if conn is None:
             return False, conn_error
-
         try:
             cursor = conn.cursor()
             cursor.execute("SELECT 1 FROM scored_emails WHERE message_id = %s", (message_id,))
@@ -141,7 +136,7 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
-    
+
     def update_email_thread(self, thread_id, message_id, score, seen_keywords):
         """
         Insert or update a thread in the email_threads table and record the email in scored_emails.
@@ -185,7 +180,7 @@ class KnowledgeBase:
                     0,  # RESPONSE_FREQUENCY initialized to 0
                     json.dumps(seen_keywords)
                 ))
-            
+
             # Insert into scored_emails table (always for the current email)
             cursor.execute("""
                 INSERT INTO scored_emails (message_id, thread_id, last_updated)
@@ -200,7 +195,36 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
 
-    
+    def fetch_all_email_threads(self):
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            raise Exception(conn_error)
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT
+                    et.thread_id,
+                    et.interaction_score
+                FROM email_threads et
+                JOIN scored_emails se ON et.thread_id = se.thread_id
+            """)
+            rows = cursor.fetchall()
+            email_threads = []
+            for row in rows:
+                email_threads.append({
+                    "thread_id": row[0],
+                    "interaction_score": row[1]
+                })
+
+            return email_threads
+
+        except Exception as error:
+            print(f"Database error while fetching email threads: {error}")
+            raise
+        finally:
+            cursor.close()
+            conn.close()
+
     def get_project_name(self, email):
         """
         Fetch the project name for a given email.
@@ -220,7 +244,7 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
-    
+
     def get_project_keywords(self, email, project_name):
         """
         Fetch the keywords data for a given email and project.
@@ -245,7 +269,7 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
-    
+
     def get_seen_keywords(self, thread_id):
         """
         Fetch the seen keywords for a given thread ID.
@@ -271,6 +295,124 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
+
+    def get_project_details(self, email, project_name):
+        conn, conn_error = self.get_db_connection()
+        if not conn:
+            return False, conn_error
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                SELECT prompt_text, response_frequency
+                FROM projects
+                WHERE email_id = %s AND project_name = %s
+                """,
+                (email, project_name)
+            )
+            result = cursor.fetchone()
+
+            if not result:
+                return False, "No project found for the given email and project name."
+            project_details = {
+                "prompt_text": result[0],
+                "response_frequency": result[1]
+            }
+            return True, project_details
+        except Exception as e:
+            return False, f"Error fetching project details: {e}"
+        finally:
+            cursor.close()
+            conn.close()
+
+    def update_project(self,email, project_name, prompt_text, response_frequency):
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE projects SET prompt_text = %s, response_frequency = %s
+                WHERE email_id = %s AND project_name = %s
+            """, (prompt_text, response_frequency, email, project_name))
+
+            if cursor.rowcount == 0:
+                return False, "No matching project found for the provided email and project name."
+            conn.commit()
+            return True, "Project details updated successfully."
+        except Exception as error:
+            print(f"Database error: {error}")
+            return False, f"Database error: {error}"
+        finally:
+            cursor.close()
+            conn.close()
+
+    def get_account_profile(self, login_id):
+        conn, conn_error = self.get_db_connection()
+        if not conn:
+            return False, conn_error
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                SELECT login_id, contact_number, affiliation, email_id, last_updated
+                FROM admin_accounts
+                WHERE login_id = %s
+                """,
+                (login_id,)
+            )
+            print(login_id)
+            record = cursor.fetchone()
+            if not record:
+                return False, f"No account found for login_id: {login_id}."
+            account_profile = {
+                "login_id": record[0],
+                "phone_number": record[1],
+                "affiliation": record[2],
+                "email_id": record[3],
+                "last_updated": record[4]
+            }
+            print(f"Fetching account profile for Login ID: {login_id}")
+            return True, account_profile
+        except Exception as e:
+            return False, f"Error fetching account profile: {e}"
+        finally:
+            cursor.close()
+            conn.close()
+
+    def update_account_profile(self, login_id, phone_number, affiliation, email_id):
+        conn, conn_error = self.get_db_connection()
+        if not conn:
+            return False, conn_error
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                UPDATE admin_accounts
+                SET contact_number = %s,
+                    affiliation = %s,
+                    email_id = %s,
+                    last_updated = NOW()
+                WHERE login_id = %s
+                """,
+                (phone_number, affiliation, email_id, login_id)
+            )
+            conn.commit()
+            print(f"Executing query: UPDATE admin_accounts SET contact_number = {phone_number}, affiliation = {affiliation}, email_id = {email_id} WHERE login_id = {login_id}")
+            if cursor.rowcount == 0:
+                cursor.execute(""" SELECT 1 FROM admin_accounts WHERE login_id = %s AND contact_number = %s AND affiliation = %s AND email_id = %s """, (login_id, phone_number, affiliation, email_id) )
+                if cursor.fetchone():
+                    return True, "No changes were made; profile already up-to-date."
+                return False, "No account found with the provided login_id."
+            return True, "Profile updated successfully!"
+        except Exception as e:
+            return False, f"Error updating profile: {e}"
+        finally:
+            cursor.close()
+            conn.close()
+
+
+
 
 
 

@@ -9,9 +9,9 @@ def drop_tables(cursor):
     drop_tables_queries = [
         "DROP TABLE IF EXISTS SCORED_EMAILS;",
         "DROP TABLE IF EXISTS EMAIL_THREADS;",
-        "DROP TABLE IF EXISTS USER_PROFILES;",
-        "DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
-        "DROP TABLE IF EXISTS PROJECTS;"
+        "DROP TABLE IF EXISTS USER_PROFILES;"
+        # "DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
+        # "DROP TABLE IF EXISTS PROJECTS;"
     ]
     for query in drop_tables_queries:
         cursor.execute(query)
@@ -27,7 +27,7 @@ def create_tables(cursor):
             INTERACTION_SCORE REAL,
             AI_RESPONSE_ENABLED BOOLEAN,
             RESPONSE_FREQUENCY INT,
-            seen_keywords_data JSONB,
+            SEEN_KEYWORDS_DATA JSONB,
             LAST_UPDATED TIMESTAMP
         );
         """,
@@ -54,21 +54,21 @@ def create_tables(cursor):
             LOGIN_ID BIGINT PRIMARY KEY,
             PASSWORD TEXT,
             EMAIL_ID TEXT,
-            CONTACT_NUMBER INT,
+            CONTACT_NUMBER TEXT,
             AFFILIATION VARCHAR,
             LAST_UPDATED TIMESTAMP
         );
         """,
         """
         CREATE TABLE IF NOT EXISTS PROJECTS (
-            email_id VARCHAR(255) NOT NULL,
-            project_name VARCHAR(255) NOT NULL,
-            app_password TEXT NOT NULL,
-            prompt_text TEXT,
-            response_frequency INTEGER,
-            keywords_data JSONB,
+            EMAIL_ID VARCHAR(255) NOT NULL,
+            PROJECT_NAME VARCHAR(255) NOT NULL,
+            APP_PASSWORD TEXT NOT NULL,
+            PROMPT_TEXT TEXT,
+            RESPONSE_FREQUENCY INTEGER,
+            KEYWORDS_DATA JSONB,
             ASSIGNED_ADMIN_ID BIGINT,
-            PRIMARY KEY (email_id, project_name)  -- Composite primary key
+            PRIMARY KEY (EMAIL_ID, PROJECT_NAME)  -- COMPOSITE PRIMARY KEY
         );
         """
     ]

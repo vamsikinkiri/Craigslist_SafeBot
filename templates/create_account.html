@@ -6,8 +6,8 @@
     <title>Create Admin Account</title>
     <style>
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f0f2f5;
+            font-family: 'Arial', sans-serif;
+            background-color: #eaeaea;
             color: #333;
             margin: 0;
             padding: 0;
@@ -19,7 +19,7 @@
             flex-direction: column;
         }
         header {
-            background-color: #023e8a;
+            background-color: #134258;
             color: white;
             padding: 20px;
             width: 100%;
@@ -27,18 +27,18 @@
             align-items: center;
             justify-content: space-between;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            font-size: 40px;
+            font-size: 28px;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1000;
-            font-family: 'Roboto', sans-serif;
         }
         .header-title {
             flex: 1;
             text-align: center;
             font-size: 34px;
+            margin-left: 0%;
         }
         .create-account-container {
             background-color: #ffffff;
@@ -52,10 +52,10 @@
         }
         h2 {
             text-align: center;
-            color: #023e8a;
+            color: #023346;
             margin-bottom: 30px;
             font-size: 28px;
-            font-weight: 500;
+            font-weight: 700;
         }
         form {
             display: flex;
@@ -94,7 +94,7 @@
         }
         .btn-primary {
             padding: 12px;
-            background-color: #007bff;
+            background-color: #007195;
             color: white;
             border: none;
             border-radius: 5px;
@@ -107,7 +107,7 @@
             margin-top: 20px; /* Added space above button */
         }
         .btn-primary:hover {
-            background-color: #0056b3;
+            background-color: #134258;
         }
         .back-link {
             text-align: center;
@@ -130,17 +130,14 @@
                 padding: 12px;
                 font-size: 14px;
             }
-            h2 {
-                font-size: 22px;
-            }
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 </head>
+<body>
 <header>
     <div class="header-title">Craigslist Safebot</div>
 </header>
-<body>
     <div class="create-account-container">
         <h2>Create Admin Account</h2>
         {% with messages = get_flashed_messages() %}

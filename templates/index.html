@@ -2,11 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
     <title>CRAIGSLIST SAFEBOT</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f0f2f5;
+            background-color: #eaeaea;
             color: #333;
             margin: 0;
             padding: 0;
@@ -15,7 +20,7 @@
             align-items: center;
         }
         header {
-            background: linear-gradient(90deg, #3b5998, #4c6a9c);
+            background-color: #134258;
             color: white;
             padding: 20px;
             width: 100%;
@@ -29,12 +34,14 @@
             left: 0;
             right: 0;
             z-index: 1000;
+            text-decoration: none;
         }
         .header-title {
             flex: 1;
             text-align: center;
             font-size: 34px;
-            margin-left: 10%;
+            margin-left: 5%;
+            text-decoration: none;
         }
         .header-content {
             display: flex;
@@ -51,8 +58,8 @@
             border-radius: 10px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             width: 90%;
-            max-width: 800px;
-            margin-top: 80px; /* Reduced margin-top */
+            max-width: 900px;
+            margin-top: 120px; /* Reduced margin-top */
             margin-bottom: 20px;
             display: flex;
             flex-direction: column;
@@ -106,7 +113,7 @@
             justify-content: center;
         }
         .date-range-button {
-            background-color: #0077b6;
+            background-color: #007195;
             color: white;
             padding: 10px 20px;
             border: none;
@@ -115,13 +122,14 @@
             font-size: 14px;
         }
         .date-range-button:hover {
-            background-color: #005f8d;
+            background-color: #134258;
         }
+
         .date-range-button.active-30 {
-            background-color: #003f5c;
+            background-color: #007195;
         }
         .date-range-button.active-60 {
-            background-color: #003f5c;
+            background-color: #007195;
         }
         input[type="text"], select, button {
             padding: 15px;
@@ -137,23 +145,24 @@
             font-size: 24px;
             color: white;
         }
+
         button {
-            background-color: #0096c7;
+            background-color: #007195;
             color: white;
             cursor: pointer;
             font-size: 16px;
             border: none;
             border-radius: 5px;
-            padding: 15px 20px;
+            padding: 10px 20px;
             transition: background-color 0.3s ease;
         }
         button:hover {
-            background-color: #0077b6;
+            background-color: #134258;
         }
         .email-chain {
             background: #fff;
             padding: 15px;
-            margin-top: 10px;
+            margin-top: 10px 0;
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             transition: box-shadow 0.3s ease;
@@ -171,12 +180,32 @@
             font-weight: bold;
             gap: 10px;
         }
-        .email-chain-header .subject-box {
+        .email-chain-header {
             flex-grow: 1;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+        .subject-box {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .score-box {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #134258; /* Match with theme color */
+            background-color: #e0f7fa; /* Light background for better visibility */
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin: 0 10px;
+        }
+
+
         .email-chain-header .button-box {
             flex-shrink: 0;
         }
@@ -221,20 +250,6 @@
             display: flex;
             justify-content: flex-end; /* Aligns buttons to the right */
             gap: 10px; /* Spacing between buttons */
-        }
-
-        button {
-            padding: 10px 20px; /* Ensures buttons are of adequate size */
-            background-color: #0096c7;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        button:hover {
-            background-color: #0077b6; /* Hover effect for both buttons */
         }
 
         .email:nth-child(odd) {
@@ -314,19 +329,203 @@
             padding: 0;
         }
         .logout-button {
-            background-color: #0096c7;
-            color: white;
+            background: none;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 21px;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
             cursor: pointer;
-            margin-right: 40px;
-            max-width: 10%;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            margin-right: 30px;
+        }
+        /* Add margins to position Home and Logout */
+        .left a {
+            margin-left: 20px; /* Push Home button to the right */
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            text-decoration: none;
         }
 
-        .logout-button:hover {
-            background-color: #0077b6;
+        .settings-button .icon, .logout-button .icon{
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .header .settings:hover .dropdown {
+            display: block;
+        }
+
+        .header .settings .dropdown a {
+            display: block;
+            padding: 8px 15px;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .header .settings .dropdown a:hover {
+            background-color: #eaeaea;
+            text-decoration: none;
+        }
+        .settings-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .settings-button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            margin-right: 20px;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #ffffff;
+            min-width: 250px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            z-index: 1;
+            font-size: 18px;
+        }
+
+        .dropdown-content a {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.3s;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #eaeaea;
+        }
+
+        .settings-dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            background-color: #0096c7;
+            padding: 15px;
+            font-size: 20px;
+            color: #ffffff;
+        }
+
+        .nav-item {
+            margin-right: 20px;
+            position: relative;
+        }
+
+        .nav-item a {
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: bold;
+            padding: 10px;
+        }
+
+        .nav-item .icon {
+            margin-right: 8px;
+            font-size: 20px;
+        }
+
+        .user-profiles-button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+        }
+
+        .user-profiles-button .icon {
+            margin-right: 8px;
+        }
+
+        /* Sidebar styling with a complementary color */
+        .sidebar {
+            width: 250px;
+            background-color: #ffffff; /* Light complementary color */
+            color: #333;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 80px;
+            left: -250px;
+            height: 100%;
+            transition: left 0.3s ease;
+            z-index: 999;
+            border-right: 1px solid #e0e0e0;
+        }
+        .sidebar.active {
+            left: 0;
+        }
+        .sidebar h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            font-weight: 700;
+            color: #0a597e; /* Matching color to the header for branding consistency */
+            text-align: center;
+        }
+        .sidebar-item {
+            color: #333;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s;
+            margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .sidebar-item:hover {
+            background-color: #eaeaea;
+        }
+        .dropdown-menu {
+            display: none;
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+        .menu-icon {
+            font-size: 24px;
+            cursor: pointer;
+            margin-right: auto;
+        }
+        .dropdown-item {
+            color: #555;
+            padding: 8px 0;
+            cursor: pointer;
+        }
+        .dropdown-item:hover {
+            color: #eaeaea;
         }
 
     </style>
@@ -382,17 +581,83 @@
                 setDateRange(30); // Default to last 30 days
                 setButtonState(document.getElementById('last-30-days-button'), 'active-30');
             }
-        });
+        }        );
+
+        // Toggle sidebar visibility
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        // Toggle dropdown menus
+        function toggleDropdown(id) {
+            document.getElementById(id).classList.toggle('active');
+            document.getElementById(id).style.display = document.getElementById(id).style.display === 'block' ? 'none' : 'block';
+        }
+
+        function redirectToView(view) {
+            switch (view) {
+                case 'active-users':
+                    window.location.href = '{{ url_for("user_profiles_active_users") }}';
+                    break;
+                case 'top-users':
+                    window.location.href = '{{ url_for("user_profiles_top_users") }}';
+                    break;
+                case 'time-period-users':
+                    window.location.href = '{{ url_for("user_profiles_time_period_users") }}';
+                    break;
+                case 'email-view':
+                    window.location.href = '{{ url_for("email_view") }}';
+                    break;
+                default:
+                    window.location.href = '{{ url_for("index") }}';
+                    break;
+            }
+        }
+
     </script>
 </head>
 <body>
 
-
-
 <header>
+    <i class="fas fa-bars menu-icon" onclick="toggleSidebar()"></i>
+    <div class="left">
+        <a href="{{ url_for('index') }}" class="nav-item">
+            <i class="fas fa-home icon"></i> Home
+        </a>
+    </div>
     <div class="header-title">Craigslist Safebot</div>
-    <button class="logout-button" onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
+    <!-- Logout Button on the right -->
+    <div class="right">
+        <!-- Settings Icon with Dropdown -->
+        <div class="settings-dropdown">
+            <button class="settings-button">
+                <i class="fas fa-cog icon"></i> Settings
+            </button>
+            <div class="dropdown-content">
+                <a href="{{ url_for('update_account_profile') }}">Account Profile</a>
+                <a href="{{ url_for('update_project') }}">Update Projects</a>
+            </div>
+        </div>
+        <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
+            <button class="logout-button">
+                <i class="fas fa-sign-out-alt icon"></i> Logout
+            </button>
+        </form>
+    </div>
 </header>
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-item" onclick="window.location.href='{{ url_for('user_profiles') }}'">
+        User Profiles
+    </div>
+    <div id="user-level-view" class="dropdown-menu">
+        <div class="dropdown-item" onclick="redirectToView('active-users')">Active Users (Last 30 Days)</div>
+        <div class="dropdown-item" onclick="redirectToView('top-users')">Top K Users</div>
+        <div class="dropdown-item" onclick="redirectToView('time-period-users')">Users by Time Period</div>
+    </div>
+    <div class="sidebar-item" onclick="redirectToView('email-view')">
+        Email View
+    </div>
+</div>
 <div class="container">
     <form method="get" action="/">
         <input type="text" name="email" placeholder="Email (From or To)" value="{{ request.args.get('email', '') }}">
@@ -430,18 +695,19 @@
                 {% for key, details in conversations.items() %}
                     <div class="email-chain">
                         <div class="email-chain-header">
-                            <div class="subject-box">{{ details[0]['subject'].replace('Re: ', '') }}</div>
+                            <div class="subject-box" style="width: 70%;">{{ details[0]['subject'].replace('Re: ', '') }}</div>
+                            <div class="email-score" style="width: 20%; text-align: right;">
+                                Score: {{ conversations_score.get(thread_id, 'N/A') }}
+                            </div>
                             <div class="button-box">
-                                <!-- ChatGPT Toggle button -->
                                 <label class="toggle-switch">
                                     <input type="checkbox" id="toggleChatGPT1" onclick="toggleChatGPT(this)">
                                     <span class="slider"></span>
                                 </label>
-                                <!-- Expand/Collapse button -->
                                 <button class="toggle-button" onclick="toggleEmailChain('chain-{{ loop.index }}', this)">+</button>
-
                             </div>
                         </div>
+
                         <div class="email-chain-content" id="chain-{{ loop.index }}">
                             {% for email in details %}
                                 <div class="email">

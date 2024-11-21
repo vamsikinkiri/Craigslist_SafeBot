@@ -22,7 +22,7 @@
             justify-content: center;
             align-items: flex-start; /* Align container closer to the top */
             min-height: 100vh;
-            background-color: #f0f4f8;
+            background-color: #eaeaea;
             color: #3b3b3b;
             padding-top: 70px; /* Space for fixed header */
         }
@@ -32,7 +32,7 @@
             position: fixed;
             top: 0;
             width: 100%;
-            background: linear-gradient(90deg, #3b5998, #4c6a9c);
+            background-color: #134258;
             padding: 15px 0;
             display: flex;
             justify-content: space-around;
@@ -40,6 +40,12 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             font-size: 18px;
             color: #ffffff;
+        }
+        .header-title {
+            flex: 1;
+            text-align: center;
+            font-size: 34px;
+            margin-left: 3%;
         }
 
         .header span {
@@ -77,7 +83,14 @@
             color: #ffffff;
             font-weight: bold;
         }
-
+        label {
+            font-size: 14px;
+            color: #666;
+            margin: 0 5px;
+            text-align: left;
+            display: block;
+            margin-top: 8px;
+        }
         .header a:hover {
             color: #d1e9ff;
         }
@@ -105,7 +118,7 @@
 
         h1 {
             font-size: 28px; /* Larger font size for form title */
-            color: #2f2e41;
+            color: #023346;
             margin-bottom: 25px;
             font-weight: 700;
         }
@@ -119,7 +132,7 @@
             padding-right: 35px;
             border: none;
             border-radius: 15px;
-            background-color: #e8f0fe;
+            background-color: #e7eef0;
             font-size: 16px;
             color: #3b3b3b;
             outline: none;
@@ -216,10 +229,8 @@
 
         .input-wrapper label {
             display: block;
-            font-size: 15px;
-            font-weight: bold;
-            color: #2f2e41;
-            margin-bottom: 8px;
+            font-size: 14px;
+            color: #666;
         }
 
         .input-wrapper input {
@@ -227,7 +238,7 @@
             padding: 12px;
             border: none;
             border-radius: 15px;
-            background-color: #e8f0fe;
+            background-color: #e7eef0;
             font-size: 16px;
             color: #3b3b3b;
             outline: none;
@@ -268,12 +279,6 @@
 
         .star.selected {
             color: #ff6b6b;
-        }
-
-        .label {
-            font-size: 13px;
-            color: #6b7280;
-            margin: 0 5px;
         }
 
         .response-frequency {
@@ -319,7 +324,7 @@
         .frequency-input label {
             font-size: 15px;
             font-weight: bold;
-            color: #2f2e41; /* Adjust to match the UI's font color */
+            color: #666; /* Adjust to match the UI's font color */
             white-space: nowrap; /* Prevents label from wrapping to a new line */
         }
 
@@ -384,8 +389,8 @@
             padding: 12px 20px;
             width: 100%;
             border: none;
-            background: linear-gradient(90deg, #a6badf, #b3c7e6); /* Softer blue gradient */
-            color: #3b3b3b;
+            background-color: #007195;
+            color: #ffffff;
             font-weight: bold;
             font-size: 16px;
             border-radius: 15px;
@@ -394,7 +399,7 @@
         }
 
         button[type="submit"]:hover {
-            background: #a6badf; /* Slightly darker on hover */
+            background: #134258; /* Slightly darker on hover */
         }
         .back-link {
             text-align: center;
@@ -434,12 +439,24 @@
             position: relative;
         }
 
+        .logout-button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            margin-right: 20px;
+        }
         .frequency-box {
             width: 120px; /* Narrower frequency box */
             padding: 12px;
             border: none;
             border-radius: 15px;
-            background-color: #e8f0fe;
+            background-color: #e7eef0;
             font-size: 16px;
             color: #3b3b3b;
             outline: none;
@@ -449,22 +466,14 @@
     </style>
 </head>
 <body>
-
-<!-- Header Section -->
-<!-- Header Section -->
 <div class="header">
-    <!-- Home Button on the left -->
-    <div class="left">
-        <a href="#"><i class="fas fa-home icon"></i> Home    </a>
-    </div>
-    <!-- Center Title -->
-    <div class="center">
-        Craigslist Safebot
-    </div>
+    <div class="header-title">Craigslist Safebot</div>
     <!-- Logout Button on the right -->
-    <div class="right" style="text-align: right;">
-        <a href="#"><i class="fas fa-sign-out-alt icon"></i> Logout    </a>
-    </div>
+    <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
+        <button class="logout-button">
+            <i class="fas fa-sign-out-alt icon"></i> Logout
+        </button>
+    </form>
 </div>
 
 <!-- Main Content -->
@@ -481,9 +490,12 @@
         {% endif %}
     {% endwith %}
     <form action="{{ url_for('project_creation') }}" method="POST">
+        <label>Email ID</label>
         <input type="text" name="email" placeholder="Email ID" id="email" required>
+        <label>Project Name</label>
         <input type="text" name="project_name" placeholder="Project Name" id="project-name" required>
         <div class="input-wrapper">
+            <label>Password</label>
             <input type="password" name="password" placeholder="Password (App Password)" id="password" required>
             <!-- Font Awesome info icon with tooltip and clickable link -->
             <span class="info-icon" onclick="toggleTooltip()">
@@ -494,15 +506,19 @@
         </span>
     </span>
         </div>
+        <label>Re-Type Password</label>
         <input type="password" placeholder="Re-Type Password" id="retype-password" required>
         <div class="error-message" id="password-error">Passwords do not match.</div>
+        <label>Prompt Text Message ID</label>
         <textarea name="prompt_text" rows="3" placeholder="Prompt Text Message"></textarea>
 
         <div class="input-wrapper">
-            <input type="number" id="frequency" name="frequency" placeholder="Please enter the Response Frequency (Mins):" min="1">
+            <label>Response Frequency</label>
+            <input type="number" id="response_frequency" name="response_frequency" placeholder="Please enter the Response Frequency (Mins):" min="1">
         </div>
 
         <div class="keyword-frequency-wrapper">
+            <label>Keyword</label>
             <input type="text" id="keyword-input" placeholder="Enter Keyword" class="keyword-box">
             <div class="frequency-box-wrapper">
                 <input type="number" id="keyword-frequency" name="keyword-frequency" placeholder="Frequency" min="1" class="frequency-box">
@@ -563,6 +579,9 @@
         }
     }
 
+    function handleLogout() {
+        window.location.href = "{{ url_for('logout') }}";  // Redirect to the logout route
+    }
 
         // Password validation
     const passwordInput = document.getElementById('password');
