@@ -329,6 +329,7 @@ def user_profiles():
 @app.route('/user_profiles/active_users', methods=['GET'])
 def user_profiles_active_users():
     all_users = user_profiling.get_all_users()
+    print(all_users)
     if all_users:
         return render_template(
             "user_profiles.html",

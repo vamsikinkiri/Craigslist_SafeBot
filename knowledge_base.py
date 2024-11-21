@@ -664,43 +664,52 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
-    def get_all_user_profiles(self):
-            conn, conn_error = self.get_db_connection()
-            if not conn:
-                return False, conn_error
-            cursor = conn.cursor()
-            try:
-                # Query to fetch all user profiles
-                query = """
-                SELECT 
-                    primary_email, 
-                    thread_ids, 
-                    email_list, 
-                    contact_numbers, 
-                    last_active, 
-                    last_updated
-                FROM 
-                    user_profiles
-                """
-                cursor.execute(query)
-                rows = cursor.fetchall()
 
-                if not rows:
-                    return False, "No user profiles found."
-                user_profiles = []
-                for row in rows:
-                    primary_email, thread_ids, email_list, contact_numbers, last_active, last_updated = row
-                    user_profiles.append({
-                        "primary_email": primary_email,
-                        "thread_ids": thread_ids if thread_ids else [],
-                        "email_list": email_list,
-                        "contact_numbers": json.loads(contact_numbers) if contact_numbers else [],
-                        "last_active": last_active,
-                        "last_updated": last_updated
-                    })
-                return True, user_profiles
-            except Exception as e:
-                return False, f"Error fetching user profiles: {e}"
-            finally:
-                cursor.close()
-                conn.close()
+    def get_all_user_profiles(self):
+        conn, conn_error = self.get_db_connection()
+        if not conn:
+            return False, conn_error
+        cursor = conn.cursor()
+        try:
+            # Query to fetch all user profiles
+            query = """
+            SELECT 
+                PRIMARY_EMAIL, 
+                THREAD_IDS, 
+                EMAIL_LIST, 
+                CONTACT_NUMBERS, 
+                LAST_ACTIVE, 
+                LAST_UPDATED
+            FROM 
+                USER_PROFILES
+            """
+            cursor.execute(query)
+            rows = cursor.fetchall()
+
+            if not rows:
+                return False, "No user profiles found."
+
+            user_profiles = []
+            for row in rows:
+                primary_email, thread_ids, email_list, contact_numbers, last_active, last_updated = row
+
+                # Parse THREAD_IDS as a list if it's a JSON-like string
+                parsed_thread_ids = json.loads(thread_ids) if thread_ids and thread_ids.startswith('[') else thread_ids.split(',') if thread_ids else []
+
+                # Parse CONTACT_NUMBERS safely
+                parsed_contact_numbers = json.loads(contact_numbers) if isinstance(contact_numbers, str) else contact_numbers
+
+                user_profiles.append({
+                    "primary_email": primary_email,
+                    "thread_ids": parsed_thread_ids,
+                    "email_list": email_list if email_list else "",
+                    "contact_numbers": parsed_contact_numbers if parsed_contact_numbers else [],
+                    "last_active": last_active.strftime('%Y-%m-%d %H:%M:%S') if last_active else "Never",
+                    "last_updated": last_updated.strftime('%Y-%m-%d %H:%M:%S') if last_updated else "Never"
+                })
+            return True, user_profiles
+        except Exception as e:
+            return False, f"Error fetching user profiles: {e}"
+        finally:
+            cursor.close()
+            conn.close()

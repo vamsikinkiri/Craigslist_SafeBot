@@ -297,15 +297,15 @@
 
     <form action="{{ url_for('update_account_profile') }}" method="POST">
         <div class="form-field">
-            <label for="email_id">Email ID:</label>
+            <label for="email_id">Email ID</label>
             <input type="text" placeholder="Enter email id" name="email_id" id="email_id" value="{{ account_details.email_id }}" required>
         </div>
         <div class="form-field">
-            <label for="phone_number">Phone Number:</label>
+            <label for="phone_number">Phone Number</label>
             <input type="tel" placeholder="Enter Phone Number" name="phone_number" id="phone_number" value="{{ account_details.phone_number }}" required>
         </div>
         <div class="form-field">
-            <label for="affiliation">Affiliation:</label>
+            <label for="affiliation">Affiliation</label>
             <input type="text" placeholder="Enter affiliation" name="affiliation" id="affiliation" value="{{ account_details.affiliation }}" required>
         </div>
         <button type="submit" class="btn-primary">Update Profile</button>
