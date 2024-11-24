@@ -149,7 +149,7 @@ def project_creation():
         email = request.form['email']
         project_name = request.form['project_name']
         app_password = request.form['password']
-        prompt_text = request.form.get('prompt_text', '')
+        ai_prompt_text = request.form.get('ai_prompt_text', '')
         response_frequency = int(request.form.get('response_frequency', 0))
         keywords_data_fetch = request.form['keywords_data']
         keywords_data = keywords_data_fetch.replace('""', '"')
@@ -164,7 +164,7 @@ def project_creation():
         success, message = knowledge_base.create_project(email_id=email,
                                                          project_name=project_name,
                                                          app_password=app_password,
-                                                         prompt_text=prompt_text,
+                                                         ai_prompt_text=ai_prompt_text,
                                                          response_frequency=response_frequency,
                                                          keywords_data=json.dumps(keywords_data_updated),
                                                          assigned_admin_id=session['admin_id']
@@ -265,9 +265,9 @@ def update_project():
             return redirect(url_for('index'))
         return render_template('update_project.html', project_details=project_details)
     elif request.method == 'POST':
-        prompt_text = request.form['prompt_text']
+        ai_prompt_text = request.form['ai_prompt_text']
         response_frequency = request.form['response_frequency']
-        success, message = knowledge_base.update_project(email, project_name, prompt_text, response_frequency)
+        success, message = knowledge_base.update_project(email, project_name, ai_prompt_text, response_frequency)
         if success:
             flash("Project details updated successfully.", "success")
             return redirect(url_for('index'))

@@ -339,7 +339,7 @@
     <form action="{{ url_for('update_project') }}" method="POST">
         <div class="form-field">
             <label>Enter Prompt Text</label>
-            <textarea name="prompt_text" placeholder="Enter Prompt Text">{{ project_details.get('prompt_text', '') }}</textarea>
+            <textarea name="ai_prompt_text" placeholder="Enter Prompt Text">{{ project_details.get('ai_prompt_text', '') }}</textarea>
         </div>
         <div class="form-field">
             <label>Response Frequency</label>

@@ -536,94 +536,18 @@
         .dropdown-item:hover {
             color: #eaeaea;
         }
+        .filters-container {
+            display: block; /* Set to 'none' if you want filters hidden by default */
+            margin-bottom: 20px;
+        }
+
+        .email-list {
+            margin-top: 20px;
+        }
+
 
     </style>
-    <script>
-        function toggleChatGPT(toggle) {
-            console.log(`ChatGPT is now ${toggle.checked ? 'Enabled' : 'Disabled'}`);
-        }
 
-        function toggleEmailChain(chainId, button) {
-            const content = document.getElementById(chainId);
-            const isHidden = content.style.display === 'none' || !content.style.display;
-
-            // Toggle display immediately
-            content.style.display = isHidden ? 'block' : 'none';
-
-            // Change the button symbol without delay
-            button.textContent = isHidden ? '-' : '+';
-        }
-
-        function setDateRange(days) {
-            var endDate = new Date();
-            var startDate = new Date();
-            startDate.setDate(endDate.getDate() - days);
-
-            document.getElementById('start_date').value = startDate.toISOString().split('T')[0];
-            document.getElementById('end_date').value = endDate.toISOString().split('T')[0];
-        }
-
-        function setButtonState(button, state) {
-            var buttons = document.querySelectorAll('.date-range-button');
-            buttons.forEach(function(btn) {
-                btn.classList.remove('active-30', 'active-60');
-            });
-            if (state) {
-                button.classList.add(state);
-            }
-        }
-
-        function clearFilters() {
-            debugger;
-            document.querySelectorAll('input[type="text"], input[type="date"]').forEach(input => input.value = '');
-            document.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
-        }
-
-        function handleLogout() {
-            window.location.href = "{{ url_for('logout') }}";  // Redirect to the logout route
-        }
-
-
-        document.addEventListener("DOMContentLoaded", function() {
-            var urlParams = new URLSearchParams(window.location.search);
-            if (!urlParams.has('start_date') && !urlParams.has('end_date')) {
-                setDateRange(30); // Default to last 30 days
-                setButtonState(document.getElementById('last-30-days-button'), 'active-30');
-            }
-        }        );
-
-        // Toggle sidebar visibility
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-        }
-
-        // Toggle dropdown menus
-        function toggleDropdown(id) {
-            document.getElementById(id).classList.toggle('active');
-            document.getElementById(id).style.display = document.getElementById(id).style.display === 'block' ? 'none' : 'block';
-        }
-
-        function redirectToView(view) {
-            switch (view) {
-                case 'active-users':
-                    window.location.href = '{{ url_for("user_profiles_active_users") }}';
-                    break;
-                case 'top-users':
-                    window.location.href = '{{ url_for("user_profiles_top_users") }}';
-                    break;
-                case 'time-period-users':
-                    window.location.href = '{{ url_for("user_profiles_time_period_users") }}';
-                    break;
-                case 'email-view':
-                    window.location.href = '{{ url_for("email_view") }}';
-                    break;
-                default:
-                    window.location.href = '{{ url_for("index") }}';
-                    break;
-            }
-        }
-
-    </script>
 </head>
 <body>
 
@@ -667,37 +591,42 @@
         Email View
     </div>
 </div>
+
 <div class="container">
-    <form method="get" action="/">
-        <input type="text" name="email" placeholder="Email (From or To)" value="{{ request.args.get('email', '') }}">
-        <input type="text" name="subject" placeholder="Subject" value="{{ request.args.get('subject', '') }}">
-        <input type="text" name="content" placeholder="Content" value="{{ request.args.get('content', '') }}">
-        <div class="date-container">
-            <label>
-                <input type="date" name="start_date" id="start_date" value="{{ request.args.get('start_date', '') }}" placeholder="Start Date">
-                <span>Start Date</span>
-            </label>
-            <label>
-                <input type="date" name="end_date" id="end_date" value="{{ request.args.get('end_date', '') }}" placeholder="End Date">
-                <span>End Date</span>
-            </label>
-        </div>
-        <div class="date-range-buttons">
-            <button type="button" id="last-30-days-button" class="date-range-button" onclick="setDateRange(30); setButtonState(this, 'active-30');">Last 30 Days</button>
-            <button type="button" id="last-60-days-button" class="date-range-button" onclick="setDateRange(60); setButtonState(this, 'active-60');">Last 60 Days</button>
-        </div>
-        <select name="keyword">
-            <option value="">Relevant Keywords</option>
-            {% for keyword in keywords %}
-                <option value="{{ keyword }}">{{ keyword }}</option>
-            {% endfor %}
-        </select>
-        <div class="button-container">
-            <button type="submit" name="search">Search</button>
-            <button type="button" onclick="clearFilters()">Clear Filters</button>
-            <button type="button" onclick="handleLogout()">Logout</button>
-        </div>
-    </form>
+    <button id="toggle-filters-btn" class="btn-primary">Hide Filters</button>
+    <div id="filters-container" class="filters-container">
+        <form method="get" action="/">
+            <input type="text" name="email" placeholder="Email (From or To)" value="{{ request.args.get('email', '') }}">
+            <input type="text" name="subject" placeholder="Subject" value="{{ request.args.get('subject', '') }}">
+            <input type="text" name="content" placeholder="Content" value="{{ request.args.get('content', '') }}">
+            <div class="date-container">
+                <label>
+                    <input type="date" name="start_date" id="start_date" value="{{ request.args.get('start_date', '') }}" placeholder="Start Date">
+                    <span>Start Date</span>
+                </label>
+                <label>
+                    <input type="date" name="end_date" id="end_date" value="{{ request.args.get('end_date', '') }}" placeholder="End Date">
+                    <span>End Date</span>
+                </label>
+            </div>
+            <div class="date-range-buttons">
+                <button type="button" id="last-30-days-button" class="date-range-button" onclick="setDateRange(30); setButtonState(this, 'active-30');">Last 30 Days</button>
+                <button type="button" id="last-60-days-button" class="date-range-button" onclick="setDateRange(60); setButtonState(this, 'active-60');">Last 60 Days</button>
+            </div>
+            <select name="keyword">
+                <option value="">Relevant Keywords</option>
+                {% for keyword in keywords %}
+                    <option value="{{ keyword }}">{{ keyword }}</option>
+                {% endfor %}
+            </select>
+            <div class="button-container">
+                <button type="submit" name="search">Search</button>
+                <button type="button" onclick="clearFilters()">Clear Filters</button>
+                <button type="button" onclick="handleLogout()">Logout</button>
+            </div>
+
+        </form>
+    </div>
     <div class="results-container">
         {% if conversations %}
             <div>
@@ -736,5 +665,104 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+    function toggleChatGPT(toggle) {
+        console.log(`ChatGPT is now ${toggle.checked ? 'Enabled' : 'Disabled'}`);
+    }
+
+    function toggleEmailChain(chainId, button) {
+        const content = document.getElementById(chainId);
+        const isHidden = content.style.display === 'none' || !content.style.display;
+
+        // Toggle display immediately
+        content.style.display = isHidden ? 'block' : 'none';
+
+        // Change the button symbol without delay
+        button.textContent = isHidden ? '-' : '+';
+    }
+
+    function setDateRange(days) {
+        var endDate = new Date();
+        var startDate = new Date();
+        startDate.setDate(endDate.getDate() - days);
+
+        document.getElementById('start_date').value = startDate.toISOString().split('T')[0];
+        document.getElementById('end_date').value = endDate.toISOString().split('T')[0];
+    }
+
+    function setButtonState(button, state) {
+        var buttons = document.querySelectorAll('.date-range-button');
+        buttons.forEach(function(btn) {
+            btn.classList.remove('active-30', 'active-60');
+        });
+        if (state) {
+            button.classList.add(state);
+        }
+    }
+
+    function clearFilters() {
+        debugger;
+        document.querySelectorAll('input[type="text"], input[type="date"]').forEach(input => input.value = '');
+        document.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+    }
+
+    function handleLogout() {
+        window.location.href = "{{ url_for('logout') }}";  // Redirect to the logout route
+    }
+
+
+    document.addEventListener("DOMContentLoaded", function() {
+        var urlParams = new URLSearchParams(window.location.search);
+        if (!urlParams.has('start_date') && !urlParams.has('end_date')) {
+            setDateRange(30); // Default to last 30 days
+            setButtonState(document.getElementById('last-30-days-button'), 'active-30');
+        }
+    }        );
+
+    // Toggle sidebar visibility
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    // Toggle dropdown menus
+    function toggleDropdown(id) {
+        document.getElementById(id).classList.toggle('active');
+        document.getElementById(id).style.display = document.getElementById(id).style.display === 'block' ? 'none' : 'block';
+    }
+
+    function redirectToView(view) {
+        switch (view) {
+            case 'active-users':
+                window.location.href = '{{ url_for("user_profiles_active_users") }}';
+                break;
+            case 'top-users':
+                window.location.href = '{{ url_for("user_profiles_top_users") }}';
+                break;
+            case 'time-period-users':
+                window.location.href = '{{ url_for("user_profiles_time_period_users") }}';
+                break;
+            case 'email-view':
+                window.location.href = '{{ url_for("email_view") }}';
+                break;
+            default:
+                window.location.href = '{{ url_for("index") }}';
+                break;
+        }
+    }
+
+    document.getElementById('toggle-filters-btn').addEventListener('click', function () {
+        const filtersContainer = document.getElementById('filters-container');
+        if (filtersContainer.style.display === 'none' || filtersContainer.style.display === '') {
+            filtersContainer.style.display = 'block'; // Show filters
+            this.textContent = 'Hide Filters';
+        } else {
+            filtersContainer.style.display = 'none'; // Hide filters
+            this.textContent = 'Show Filters';
+        }
+    });
+
+</script>
+
 </body>
 </html>
