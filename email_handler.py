@@ -160,7 +160,7 @@ class EmailHandler:
         """
         Send an email reply with threading information.
         """
-        print('*'*50 + subject, references)
+        #print('*'*50 + subject, references)
         self.user = session.get('email')  # Get the session email
         self.password = session.get('app_password')  # Get the session app password
         if not self.user or not self.password:

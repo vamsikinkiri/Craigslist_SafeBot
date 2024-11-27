@@ -19,7 +19,6 @@ knowledge_base = KnowledgeBase()
 class EmailProcessor:
 
     def process_grouped_emails(self, grouped_emails):
-        print('Entered into process_grouped_emails')
         for thread_id, emails in grouped_emails.items():
             conversation_history = []
             for email in reversed(emails): # Process emails in the order they are received
@@ -36,7 +35,6 @@ class EmailProcessor:
                 # Check if the email has already been scored
                 success, is_email_processed = knowledge_base.is_email_processed(email['message_id'])
                 if not success:
-                    print(is_email_processed)
                     flash(is_email_processed, "error")
                     return
                 if is_email_processed:
@@ -58,29 +56,23 @@ class EmailProcessor:
                     # This email is a reply to an AI response and so seen_keywords so far needs to be extracted.
                     success, seen_keywords = knowledge_base.get_seen_keywords(thread_id)
                     if not success:
-                        print(seen_keywords)
                         flash(seen_keywords, "error")
                         return
-                print('seen_keywords before')
                 # Calculate the cumulative score using the project keywords and seen_keywords
                 seen_keywords, score = interaction_profiling.calculate_cumulative_score(
                     content, project_keywords, seen_keywords
                 )
-                print('seen_keywords after')
 
                 # Update or create the thread in the database
                 success, result = knowledge_base.update_email_thread(
                     thread_id, email['message_id'], score, seen_keywords
                 )
                 if not success:
-                    print(result)
                     flash(result, "error")
                 
                 # Check if the AI reponse function is enabled
                 ai_success, is_ai_enabled = knowledge_base.get_ai_response_enabled(thread_id=thread_id)
-                print(ai_success, is_ai_enabled)
                 if not ai_success:
-                    print(is_ai_enabled)
                     flash(is_ai_enabled, "error")
                     return
                 if score > 0 and is_ai_enabled[0]:
@@ -88,9 +80,8 @@ class EmailProcessor:
                     if score >= 75:
                         admin_email = session.get('admin_email')
                         success, user_profile = knowledge_base.get_user_profile(from_address)
-                        primary_email, thread_ids, email_list, contact_numbers, last_active_db, last_updated = user_profile
+                        user_id, primary_email, thread_ids, email_list, contact_numbers, last_active_db, last_updated = user_profile
                         user_details = f"""Primary Email: {primary_email}\nEmail List: {email_list if email_list else 'N/A'}\nContact Numbers: {', '.join(contact_numbers) if contact_numbers else 'N/A'}\nLast Active: {last_active_db}"""
-                        print(user_details)
                         if success:
                             # Extract user profile details
                             #user_details = json.dumps(user_profile, indent=2)  # Format user profile for readability
@@ -120,13 +111,13 @@ class EmailProcessor:
         email_content = email['content']
 
         # Step 3: Generate response using the prompt
-        success, admin_prompt = knowledge_base.get_ai_prompt_text(session['email'], session['project'])
+        success, project_details = knowledge_base.get_project_details(session['email'])
         if not success:
-            print(admin_prompt)
             flash(admin_prompt, "error")
-            return
+        #print("PROJECT: ", project_details)
+        _, _, _, _, admin_prompt, _, _, _ = project_details
         full_prompt = (
-            f"{admin_prompt[0]}\n\n"
+            f"{admin_prompt}\n\n"
             f"The following is a email conversation between a user (potential criminal) and an AI assistant (user doesn't know that he is having a conversation with an AI assistant):\n\n"
             f"{previous_conversations}\n\n"
             f"The last email is the latest email the user has sent. Attaching that email content alone here:\n{email_content}\n\n"
@@ -137,6 +128,7 @@ class EmailProcessor:
         #prompt = "You are a police detective and posted an ad saying you are looking to buy watches at a cheap price in hope of catching some criminals. You received an email as below:"
         response_text = response_generator.generate_response(full_prompt)
         print(response_text)
+        print('*'*50)
 
         # Step 4: Send the response as a reply and include the original email as quoted content
         quoted_conversation = ""

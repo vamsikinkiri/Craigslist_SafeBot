@@ -27,7 +27,7 @@ class UserProfiling:
         
         if user_profile:  # User already exists
             print(user_profile)
-            primary_email, thread_ids, email_list, contact_numbers, last_active_db, last_updated = user_profile
+            user_id, primary_email, thread_ids, email_list, contact_numbers, last_active_db, last_updated = user_profile
             # if thread_id not in thread_ids:
             #     thread_ids.append(thread_id)
             if contact_number and contact_number not in contact_numbers:

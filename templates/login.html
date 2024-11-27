@@ -184,7 +184,7 @@
 
         <form method="POST" action="{{ url_for('login') }}">
             {{ form.hidden_tag() }}
-            <input type="text" name="loginId" placeholder="Login ID" required>
+            <input type="text" name="loginId" placeholder="Email ID" required>
             <input type="password" name="password" placeholder="Password" required style="margin-bottom: 10px;">
             <div>
                 {{ form.submit(class_="btn btn-primary") }}

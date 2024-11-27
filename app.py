@@ -44,18 +44,16 @@ class User(UserMixin):
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        loginId = form.loginId.data
+        email_id = form.loginId.data
         password = form.password.data
         # Authenticate user and create session
-        if auth_handler.authenticate_user(loginId, password):
-            session['admin_id'] = loginId
-            session['user_id'] = loginId
-            success, admin_details = knowledge_base.get_account_profile(loginId)
-            if success:
-                session['admin_email'] = admin_details.get('email_id')  # Store admin email in session
-            user = User(id=loginId)
+        success, result = auth_handler.authenticate_user(email_id, password)
+        if success:
+            session['admin_id'] = result.get("admin_id")
+            #session['admin_email'] = email_id
+            session['admin_email'] = result.get('email_id')  # Store admin email in session
+            user = User(id=email_id)
             login_user(user)
-            # print(f"Session Data After Login: {session}")
             flash("Admin login successful!", "success")
             return redirect(url_for('project_account_login'))
         else:
@@ -83,15 +81,14 @@ def load_user(user_id):
 def create_account():
     if request.method == 'POST':
         # Get form data
-        login_id = request.form.get('login_id')
+        email_id = request.form.get('email_id')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
-        email_id = request.form.get('email_id')
         phone_number = request.form.get('phone_number') or None
         affiliation = request.form.get('affiliation') or None
 
         # Validate form fields
-        if not login_id or not password or not confirm_password or not email_id:
+        if not password or not confirm_password or not email_id:
             flash("All mandatory fields must be filled", "error")
             return redirect(url_for('create_account'))
 
@@ -99,7 +96,7 @@ def create_account():
             flash("Passwords do not match. Try again!", "error")
             return redirect(url_for('create_account'))
 
-        success, message = knowledge_base.create_admin(login_id, password, email_id, phone_number, affiliation)
+        success, message = knowledge_base.create_admin(password, email_id, phone_number, affiliation)
         flash(message, "success" if success else "error")
         
         if success:
@@ -114,21 +111,19 @@ def create_account():
 def project_account_login():
     if request.method == 'POST':
         email = request.form['email']
-        password_success, password_result = knowledge_base.get_app_password(email)
-        project_success, project_result = knowledge_base.get_project_name(email)
-        if project_success and project_result:
-            keywords_success, keywords_result = knowledge_base.get_project_keywords(email, project_result[0])
-
-        if not password_success or not project_success:
+        success, project_details = knowledge_base.get_project_details(email)
+        if not success:
             flash("Error retrieving project information. Please check your inputs and try again.", "error")
             return render_template('project_account_login.html')
-        
-        if password_result:
+        #print("PROJECT: ", project_details)
+        project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, assigned_admin_id = project_details
+
+        if success:
             session.update({
                 'email': email,
-                'app_password': password_result[0],
-                'project': project_result[0],
-                'project_keywords': keywords_result
+                'app_password': app_password,
+                'project': project_name,
+                'project_keywords': keywords_data
             })
 
             print("Session variables: ", session)
@@ -136,7 +131,7 @@ def project_account_login():
             login_user(user)
             return redirect(url_for('index'))  # Redirect to the main dashboard or index
         else:
-            flash("Unable to retrieve app password. Please check the email and try again.", "error")
+            flash("Error retrieving project information. Please check your inputs and try again.", "error")
             return render_template('project_account_login.html')
         
     return render_template('project_account_login.html')
@@ -153,7 +148,7 @@ def project_creation():
         response_frequency = int(request.form.get('response_frequency', 0))
         keywords_data_fetch = request.form['keywords_data']
         keywords_data = keywords_data_fetch.replace('""', '"')
-        #print(keywords_data)
+
         try:
             keywords_data_updated = json.loads(keywords_data) if keywords_data else []
         except json.JSONDecodeError:
@@ -174,7 +169,6 @@ def project_creation():
         if success:
             return redirect(url_for('project_account_login'))
         else:
-            print("Login failed:", message)
             flash(message, "error")
 
     return render_template('project_creation.html')
@@ -223,8 +217,6 @@ def index():
         conversations_score[thread_id] = score[0] if isinstance(score, (list, tuple)) else score
         #grouped_emails[thread_id].append({'score': score[0]})
 
-    print(conversations_score)
-
     # Filter emails by selected keyword
     if selected_keyword:
         grouped_emails = {key: details for key, details in grouped_emails.items()
@@ -237,18 +229,6 @@ def index():
                            conversations_score=conversations_score,
                            start_date=start_date, end_date=end_date)
 
-def fetch_score():
-    try:
-        email_threads = knowledge_base.fetch_all_email_threads()
-        conversations_score = {}
-        for thread in email_threads:
-            thread_id = thread["thread_id"]
-            score = thread["interaction_score"]
-            conversations_score[thread_id] = score  # Map thread ID to its score
-        return conversations_score, None
-    except Exception as error:
-        print(f"Error fetching email threads: {error}")
-        return {}, f"Error fetching email threads: {error}"
 
 @app.route('/update_project', methods=['GET', 'POST'])
 @login_required
@@ -259,10 +239,21 @@ def update_project():
     email = session['email']
     project_name = session['project']
     if request.method == 'GET':
-        success, project_details = knowledge_base.get_project_details(email, project_name)
+        success, project_info = knowledge_base.get_project_details(email)
         if not success:
-            flash(project_details, "error")
+            flash(project_info, "error")
             return redirect(url_for('index'))
+        project_details = {
+            "project_id": project_info[0],
+            "email_id": project_info[1],
+            "project_name": project_info[2],
+            "app_password": project_info[3],
+            "ai_prompt_text": project_info[4],
+            "response_frequency": project_info[5],
+            "keywords_data": project_info[6],
+            "assigned_admin_id": project_info[7]
+        }
+
         return render_template('update_project.html', project_details=project_details)
     elif request.method == 'POST':
         ai_prompt_text = request.form['ai_prompt_text']
@@ -277,7 +268,7 @@ def update_project():
 @app.route('/update_account_profile', methods=['GET', 'POST'])
 @login_required
 def update_account_profile():
-    print("Session Data in update_account_profile:", session)  # Debug session data
+    #print("Session Data in update_account_profile:", session)  # Debug session data
 
     if 'admin_id' not in session:
         print("admin_id not in session")
@@ -285,11 +276,11 @@ def update_account_profile():
         return redirect(url_for('project_account_login'))
 
     login_id = session['admin_id']
+    email_id = session['admin_email']
 
-    print(login_id)
-    print("Session Data in update_account_profile:", session)  # Debug session data
+    #print("Session Data in update_account_profile:", session)  # Debug session data
     if request.method == 'GET':
-        success, account_details = knowledge_base.get_account_profile(login_id)
+        success, account_details = knowledge_base.get_admin_details(email_id)
         if not success:
             flash(account_details, "error")  # Display error message if fetching fails
             return redirect(url_for('index'))
@@ -301,7 +292,7 @@ def update_account_profile():
         affiliation = request.form.get('affiliation')
         email_id = request.form.get('email_id')  # Optional email_id update
 
-        success, message = knowledge_base.update_account_profile(
+        success, message = knowledge_base.update_admin_profile(
             login_id, phone_number, affiliation, email_id)
         print(f"Update status: {success}, message: {message}")
         if success:
@@ -341,7 +332,7 @@ def user_profiles_active_users():
 @app.route('/user_profiles/top_users', methods=['GET'])
 def user_profiles_top_users():
     success, user_scores = knowledge_base.fetch_scores_at_user_level()
-    print("DEBUG App: User Scores:", user_scores)  # Add this line to check the data
+    #print("DEBUG App: User Scores:", user_scores)  # Add this line to check the data
     if not success:
         return jsonify({"error": "Error fetching user scores"}), 500
     return render_template(

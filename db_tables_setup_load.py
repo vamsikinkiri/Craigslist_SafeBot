@@ -8,8 +8,8 @@ def drop_tables(cursor):
         "DROP TABLE IF EXISTS SCORED_EMAILS;",
         "DROP TABLE IF EXISTS EMAIL_THREADS;",
         "DROP TABLE IF EXISTS USER_PROFILES;",
-        # "DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
-        # "DROP TABLE IF EXISTS PROJECTS;"
+        #"DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
+        #"DROP TABLE IF EXISTS PROJECTS;"
     ]
     for query in drop_tables_queries:
         cursor.execute(query)
@@ -24,7 +24,6 @@ def create_tables(cursor):
             PROJECT_NAME TEXT,
             INTERACTION_SCORE REAL,
             AI_RESPONSE_ENABLED BOOLEAN,
-            RESPONSE_FREQUENCY INT,
             SEEN_KEYWORDS_DATA JSONB,
             LAST_UPDATED TIMESTAMP
         );
@@ -38,7 +37,8 @@ def create_tables(cursor):
         """,
         """
         CREATE TABLE IF NOT EXISTS USER_PROFILES (
-            PRIMARY_EMAIL TEXT PRIMARY KEY,
+            USER_ID TEXT PRIMARY KEY,
+            PRIMARY_EMAIL TEXT,
             THREAD_IDS TEXT,
             EMAIL_LIST TEXT,
             CONTACT_NUMBERS JSON,
@@ -48,9 +48,9 @@ def create_tables(cursor):
         """,
         """
         CREATE TABLE IF NOT EXISTS ADMIN_ACCOUNTS (
-            LOGIN_ID BIGINT PRIMARY KEY,
+            ADMIN_ID TEXT PRIMARY KEY,
             PASSWORD TEXT,
-            EMAIL_ID TEXT,
+            EMAIL_ID TEXT UNIQUE,
             CONTACT_NUMBER TEXT,
             AFFILIATION VARCHAR,
             LAST_UPDATED TIMESTAMP
@@ -58,13 +58,14 @@ def create_tables(cursor):
         """,
         """
         CREATE TABLE IF NOT EXISTS PROJECTS (
-            email_id VARCHAR(255) NOT NULL PRIMARY KEY,
-            project_name VARCHAR(255) NOT NULL,
-            app_password TEXT NOT NULL,
-            ai_prompt_text TEXT,
-            response_frequency INTEGER,
-            keywords_data JSONB,
-            ASSIGNED_ADMIN_ID BIGINT
+            PROJECT_ID TEXT PRIMARY KEY,
+            EMAIL_ID VARCHAR(255) UNIQUE,
+            PROJECT_NAME VARCHAR(255) NOT NULL,
+            APP_PASSWORD TEXT NOT NULL,
+            AI_PROMPT_TEXT TEXT,
+            RESPONSE_FREQUENCY INTEGER,
+            KEYWORDS_DATA JSONB,
+            ASSIGNED_ADMIN_ID TEXT
         );
         """
     ]

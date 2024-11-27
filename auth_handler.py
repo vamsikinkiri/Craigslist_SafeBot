@@ -1,6 +1,7 @@
 import bcrypt
 from knowledge_base import KnowledgeBase
 from flask import flash
+from flask import session
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired
@@ -29,23 +30,23 @@ class LoginForm(FlaskForm):
 
 class AuthHandler:
     # Authentication function
-    def authenticate_user(self, loginId, password):
+    def authenticate_user(self, email_id, password):
         """
         Authenticate the user by verifying the login ID and password.
         Uses bcrypt for password hashing and comparison.
         """
-        success, result = knowledge_base.get_password(loginId)
+        success, result = knowledge_base.get_admin_details(email_id=email_id)
         if not success:
             flash(result, "error")
-            return False
+            return False, None
 
         if result:
-            stored_password = result[0]
+            stored_password = result.get('password')
             # Verify the password with bcrypt
             if bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')):
-                return True
+                return True, result
             else:
                 flash("Invalid password.", "error")
         else:
             flash("User not found.", "error")
-        return False
+        return False, None
