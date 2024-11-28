@@ -51,6 +51,7 @@ class KnowledgeBase:
         Args:
             generated_id (str): The login ID to check.
             db_table (str): Which table to check for uniqueness
+            col_name (str): Which column in the table to check
         Returns:
             bool: True if unique, False otherwise.
         """
@@ -134,6 +135,33 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
     
+    def get_email_by_admin_id(self, admin_id):
+        """
+        Fetch the email ID associated with a given admin ID from the ADMIN_ACCOUNTS table.
+        Args: admin_id (str): The admin ID to search for.
+        Returns: tuple: (bool, str): Success status and the email ID or an error message.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""SELECT EMAIL_ID FROM ADMIN_ACCOUNTS WHERE ADMIN_ID = %s""", (admin_id,))
+            result = cursor.fetchone()
+
+            if result:
+                return True, result[0]  # Return the email ID
+            else:
+                return False, f"No email ID found for admin ID: {admin_id}"
+        except Exception as e:
+            print(f"Database error while retrieving email by admin ID: {e}")
+            return False, f"Database error: {e}"
+        finally:
+            cursor.close()
+            conn.close()
+
+    
     def update_admin_profile(self, admin_id, phone_number, affiliation, email_id):
         conn, conn_error = self.get_db_connection()
         if not conn:
@@ -165,7 +193,7 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
 
-    def create_project(self, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, assigned_admin_id):
+    def create_project(self, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id):
         conn, conn_error = self.get_db_connection()
         if not conn:
             return False, conn_error
@@ -177,9 +205,9 @@ class KnowledgeBase:
         try:
             cursor = conn.cursor()
             cursor.execute('''
-                INSERT INTO projects(project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, assigned_admin_id) 
+                INSERT INTO projects(project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            ''', (generated_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, assigned_admin_id))
+            ''', (generated_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id))
             conn.commit()
             return True, "Project created successfully!"
         except Exception as e:
@@ -188,6 +216,33 @@ class KnowledgeBase:
         finally:
             conn.close()
             cursor.close()
+    
+    def is_email_unique_in_projects(self, email_id):
+        """
+        Check if the provided email ID already exists in the projects table.
+        Args: email_id (str): The email ID to check.
+        Returns: tuple: (bool, str): Success status and a message indicating presence or error.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""SELECT 1 FROM projects WHERE email_id = %s""", (email_id,))
+            result = cursor.fetchone()
+
+            if result:
+                return False, "Email ID already exists for a project. Try again!"
+            else:
+                return True, None
+        except Exception as e:
+            print(f"Database error while checking email ID presence: {e}")
+            return False, f"Database error: {e}"
+        finally:
+            cursor.close()
+            conn.close()
+
     
     def get_project_details(self, email_id):
         """
@@ -283,7 +338,7 @@ class KnowledgeBase:
                 cursor.execute("""
                     INSERT INTO email_threads (
                         thread_id, project_email, project_name, interaction_score,
-                        ai_response_enabled, seen_keywords_data,
+                        ai_response_state, seen_keywords_data,
                         last_updated
                     )
                     VALUES (%s, %s, %s, %s, %s, %s, NOW())
@@ -292,7 +347,7 @@ class KnowledgeBase:
                     session['email'],  # Project email associated with the thread
                     session['project'],  # Project name associated with the thread
                     score,
-                    True,  # AI_RESPONSE_ENABLED set to True
+                    'Automated',  # AI_RESPONSE_STATE set to automated
                     json.dumps(seen_keywords)
                 ))
 
@@ -523,11 +578,11 @@ class KnowledgeBase:
             conn.close()
     
 
-    def get_ai_response_enabled(self, thread_id):
+    def get_ai_response_state(self, thread_id):
         """
-        Retrieve the AI_RESPONSE_ENABLED value for a given thread from the EMAIL_THREADS table.
+        Retrieve the AI_RESPONSE_STATE value for a given thread from the EMAIL_THREADS table.
         Args: thread_id (str): The thread ID.
-        Returns: tuple: (bool, bool) Success status and the AI_RESPONSE_ENABLED value or an error message.
+        Returns: tuple: (bool, str): Success status and the AI response state or an error message.
         """
         conn, conn_error = self.get_db_connection()
         if conn is None:
@@ -535,43 +590,52 @@ class KnowledgeBase:
 
         try:
             cursor = conn.cursor()
-            cursor.execute("""
-                SELECT ai_response_enabled FROM email_threads
-                WHERE thread_id = %s
-            """, (thread_id,))
+            cursor.execute("""SELECT AI_RESPONSE_STATE FROM EMAIL_THREADS WHERE THREAD_ID = %s""", (thread_id,))
             result = cursor.fetchone()
-            return True, result
+            if result:
+                return True, result[0]
+            else:
+                return False, "No state found for the given thread ID."
         except Exception as error:
             return False, f"Database error: {error}"
         finally:
             cursor.close()
             conn.close()
 
-    def update_ai_response_enabled(self, thread_id, new_value):
+    def update_ai_response_state(self, thread_id, new_state):
         """
-        Update the AI_RESPONSE_ENABLED value for a given thread in the EMAIL_THREADS table.
+        Update the AI_RESPONSE_STATE value for a given thread in the EMAIL_THREADS table.
         Args:
             thread_id (str): The thread ID.
-            new_value (bool): The new value for AI_RESPONSE_ENABLED.
-        Returns: tuple: (bool, str) Success status and a success or error message.
+            new_state (str): The new state ('Manual', 'Automated', 'Archive').
+        Returns: tuple: (bool, str): Success status and a success or error message.
         """
+        valid_states = ['Manual', 'Automated', 'Archive']
+        if new_state not in valid_states:
+            return False, f"Invalid state: {new_state}. Must be one of {valid_states}."
+
         conn, conn_error = self.get_db_connection()
         if conn is None:
             return False, conn_error
+
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                UPDATE email_threads
-                SET ai_response_enabled = %s, last_updated = NOW()
-                WHERE thread_id = %s
-            """, (new_value, thread_id))
+                UPDATE EMAIL_THREADS
+                SET AI_RESPONSE_STATE = %s, LAST_UPDATED = NOW()
+                WHERE THREAD_ID = %s
+            """, (new_state, thread_id))
             conn.commit()
-            return True, "AI_RESPONSE_ENABLED updated successfully."
+            if cursor.rowcount > 0:
+                return True, "AI response state updated successfully."
+            else:
+                return False, "No thread found with the given thread ID."
         except Exception as error:
             return False, f"Database error: {error}"
         finally:
             cursor.close()
             conn.close()
+
     
     def get_response_frequency(self, email):
         """

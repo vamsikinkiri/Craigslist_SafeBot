@@ -8,8 +8,8 @@ def drop_tables(cursor):
         "DROP TABLE IF EXISTS SCORED_EMAILS;",
         "DROP TABLE IF EXISTS EMAIL_THREADS;",
         "DROP TABLE IF EXISTS USER_PROFILES;",
-        #"DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
-        #"DROP TABLE IF EXISTS PROJECTS;"
+        "DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
+        "DROP TABLE IF EXISTS PROJECTS;"
     ]
     for query in drop_tables_queries:
         cursor.execute(query)
@@ -23,7 +23,7 @@ def create_tables(cursor):
             PROJECT_EMAIL TEXT,
             PROJECT_NAME TEXT,
             INTERACTION_SCORE REAL,
-            AI_RESPONSE_ENABLED BOOLEAN,
+            AI_RESPONSE_STATE TEXT NOT NULL DEFAULT 'Automated',
             SEEN_KEYWORDS_DATA JSONB,
             LAST_UPDATED TIMESTAMP
         );
@@ -65,7 +65,7 @@ def create_tables(cursor):
             AI_PROMPT_TEXT TEXT,
             RESPONSE_FREQUENCY INTEGER,
             KEYWORDS_DATA JSONB,
-            ASSIGNED_ADMIN_ID TEXT
+            OWNER_ADMIN_ID TEXT
         );
         """
     ]

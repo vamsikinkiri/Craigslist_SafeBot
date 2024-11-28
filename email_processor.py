@@ -71,14 +71,34 @@ class EmailProcessor:
                     flash(result, "error")
                 
                 # Check if the AI reponse function is enabled
-                ai_success, is_ai_enabled = knowledge_base.get_ai_response_enabled(thread_id=thread_id)
+                ai_success, ai_state = knowledge_base.get_ai_response_state(thread_id=thread_id)
                 if not ai_success:
-                    flash(is_ai_enabled, "error")
+                    flash(ai_state, "error")
                     return
-                if score > 0 and is_ai_enabled[0]:
+                if ai_state == 'Manual':
+                    # Notify admin for manual intervention
+                    pass
+                elif ai_state == 'Automated' and score > 0:
                     # AI is enabled and user is a potential criminal, we need to generate an AI response.
-                    if score >= 75:
-                        admin_email = session.get('admin_email')
+                    if score < 75:
+                        # Continue the conversation by sending an AI generated response
+                        self.generate_and_send_response(email=email, conversation_history=conversation_history)
+                    else:
+                        # The score crossed the threshold, notify the admin via email and update the current response state of the thread to Manual
+                        project_success, project_details = knowledge_base.get_project_details(session['email'])
+                        if not project_success:
+                            print("Error retrieving project information. Please check your inputs and try again.", "error")
+                            flash("Error retrieving project information. Please check your inputs and try again.", "error")
+                            return
+                        #print("PROJECT: ", project_details)
+                        project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id = project_details
+
+                        admin_success, admin_email = knowledge_base.get_email_by_admin_id(admin_id=owner_admin_id)
+                        if not admin_success:
+                            print(admin_email)
+                            flash(admin_email)
+                            return
+
                         success, user_profile = knowledge_base.get_user_profile(from_address)
                         user_id, primary_email, thread_ids, email_list, contact_numbers, last_active_db, last_updated = user_profile
                         user_details = f"""Primary Email: {primary_email}\nEmail List: {email_list if email_list else 'N/A'}\nContact Numbers: {', '.join(contact_numbers) if contact_numbers else 'N/A'}\nLast Active: {last_active_db}"""
@@ -86,7 +106,7 @@ class EmailProcessor:
                             # Extract user profile details
                             #user_details = json.dumps(user_profile, indent=2)  # Format user profile for readability
                             notification_content = (
-                                f"Attention Required: A manual takeover is suggested.\n\n"
+                                f"Attention Required: A manual takeover for project {project_name} is suggested.\n\n"
                                 f"User Profile:\n{user_details}\n"
                                 f"Interaction Score: {score}\n"
                                 f"Thread ID: {str(thread_id)}\n\n"
@@ -97,11 +117,11 @@ class EmailProcessor:
                                 content=notification_content,
                                 subject=f"Manual Takeover Alert: Score Exceeded Threshold ({score}) - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
                             )
-                            knowledge_base.update_ai_response_enabled(thread_id=thread_id, new_value=False)
+                            knowledge_base.update_ai_response_state(thread_id=thread_id, new_state='Manual')
                         else:
                             flash("Failed to fetch user profile for notification.", "error")
-                    else:
-                        self.generate_and_send_response(email=email, conversation_history=conversation_history)
+                            print("Failed to fetch user profile for notification.", "error")
+                    
 
     def generate_and_send_response(self, email, conversation_history):
         # Step 1: Combine conversation history into a single string
@@ -113,6 +133,7 @@ class EmailProcessor:
         # Step 3: Generate response using the prompt
         success, project_details = knowledge_base.get_project_details(session['email'])
         if not success:
+            print("ERROR HERE 3")
             flash(admin_prompt, "error")
         #print("PROJECT: ", project_details)
         _, _, _, _, admin_prompt, _, _, _ = project_details
@@ -125,7 +146,7 @@ class EmailProcessor:
             f"Only reply the content of the reply and nothing else. Start the reponse with 'Hello', and then start the content of the email. End the email with Best, Jay. Make sure the response continues the facade that you are a human buyer interested in the watches."
         )
         #print(full_prompt)
-        #prompt = "You are a police detective and posted an ad saying you are looking to buy watches at a cheap price in hope of catching some criminals. You received an email as below:"
+        #prompt = "You are a police detective and posted an ad saying you are looking to buy watches at a cheap price in the hope of catching some criminals."
         response_text = response_generator.generate_response(full_prompt)
         print(response_text)
         print('*'*50)

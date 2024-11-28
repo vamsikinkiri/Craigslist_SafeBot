@@ -116,7 +116,7 @@ def project_account_login():
             flash("Error retrieving project information. Please check your inputs and try again.", "error")
             return render_template('project_account_login.html')
         #print("PROJECT: ", project_details)
-        project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, assigned_admin_id = project_details
+        project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id = project_details
 
         if success:
             session.update({
@@ -149,6 +149,11 @@ def project_creation():
         keywords_data_fetch = request.form['keywords_data']
         keywords_data = keywords_data_fetch.replace('""', '"')
 
+        project_success, message = knowledge_base.is_email_unique_in_projects(email)
+        if not project_success:
+            flash(message, "error")
+            return redirect(url_for('project_creation'))
+
         try:
             keywords_data_updated = json.loads(keywords_data) if keywords_data else []
         except json.JSONDecodeError:
@@ -162,7 +167,7 @@ def project_creation():
                                                          ai_prompt_text=ai_prompt_text,
                                                          response_frequency=response_frequency,
                                                          keywords_data=json.dumps(keywords_data_updated),
-                                                         assigned_admin_id=session['admin_id']
+                                                         owner_admin_id=session['admin_id']
                                                          )
 
         flash(message, "success" if success else "error")
@@ -251,7 +256,7 @@ def update_project():
             "ai_prompt_text": project_info[4],
             "response_frequency": project_info[5],
             "keywords_data": project_info[6],
-            "assigned_admin_id": project_info[7]
+            "owner_admin_id": project_info[7]
         }
 
         return render_template('update_project.html', project_details=project_details)
