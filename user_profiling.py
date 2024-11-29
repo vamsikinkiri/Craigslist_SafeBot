@@ -1,5 +1,6 @@
 import re
 import json
+import logging
 from knowledge_base import KnowledgeBase
 import json
 from collections import defaultdict
@@ -20,13 +21,13 @@ class UserProfiling:
         # Check if user already exists in USER_PROFILES
         success, user_profile = knowledge_base.get_user_profile(user_email)
         if not success:
-            print(user_profile)
+            logging.info(user_profile)
             flash(user_profile, "error")
             return
         contact_number = self.extract_contact_number(email_content)
         
         if user_profile:  # User already exists
-            print(user_profile)
+            logging.info(user_profile)
             user_id, primary_email, thread_ids, email_list, contact_numbers, last_active_db, last_updated = user_profile
             # if thread_id not in thread_ids:
             #     thread_ids.append(thread_id)
@@ -57,7 +58,7 @@ class UserProfiling:
     def get_all_users(self):
         success, all_user_profiles = knowledge_base.get_all_user_profiles()
         if not success:
-            print("Error fetching user profiles:", all_user_profiles)
+            logging.error(f"Error fetching user profiles: {all_user_profiles}")
             return []
 
         # Return the user profiles directly

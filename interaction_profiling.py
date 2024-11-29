@@ -1,4 +1,5 @@
 import re
+import logging
 
 class InteractionProfiling:
 
@@ -64,13 +65,13 @@ class InteractionProfiling:
 
 # # Process emails
 # seen_keywords, score_1 = interaction_profiling.calculate_cumulative_score(email_1, keywords_scores, seen_keywords)
-# print(f"After email 1: Score = {score_1}, Seen Keywords = {seen_keywords}")
+# logging.info(f"After email 1: Score = {score_1}, Seen Keywords = {seen_keywords}")
 
 # seen_keywords, score_2 = interaction_profiling.calculate_cumulative_score(email_2, keywords_scores, seen_keywords)
-# print(f"After email 2: Score = {score_2}, Seen Keywords = {seen_keywords}")
+# logging.info(f"After email 2: Score = {score_2}, Seen Keywords = {seen_keywords}")
 
 # seen_keywords, score_3 = interaction_profiling.calculate_cumulative_score(email_3, keywords_scores, seen_keywords)
-# print(f"After email 3: Score = {score_3}, Seen Keywords = {seen_keywords}")
+# logging.info(f"After email 3: Score = {score_3}, Seen Keywords = {seen_keywords}")
 
 # seen_keywords, score_4 = interaction_profiling.calculate_cumulative_score(email_4, keywords_scores, seen_keywords)
-# print(f"After email 3: Score = {score_4}, Seen Keywords = {seen_keywords}")
+# logging.info(f"After email 3: Score = {score_4}, Seen Keywords = {seen_keywords}")

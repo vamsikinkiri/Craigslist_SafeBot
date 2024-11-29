@@ -5,6 +5,7 @@ import bcrypt
 import json
 import random
 import string
+import logging
 from flask import session
 
 class KnowledgeBase:
@@ -62,10 +63,9 @@ class KnowledgeBase:
         try:
             cursor = conn.cursor()
             cursor.execute(f"SELECT 1 FROM {db_table} WHERE {col_name} = %s", (generated_id,))
-            #cursor.execute("SELECT 1 FROM scored_emails WHERE message_id = %s", (message_id,))
             return cursor.fetchone() is None
         except Exception as e:
-            print(f"Database error while checking login ID uniqueness: {e}")
+            logging.error(f"Database error while checking login ID uniqueness: {e}")
             return False
         finally:
             cursor.close()
@@ -155,7 +155,7 @@ class KnowledgeBase:
             else:
                 return False, f"No email ID found for admin ID: {admin_id}"
         except Exception as e:
-            print(f"Database error while retrieving email by admin ID: {e}")
+            logging.error(f"Database error while retrieving email by admin ID: {e}")
             return False, f"Database error: {e}"
         finally:
             cursor.close()
@@ -180,7 +180,7 @@ class KnowledgeBase:
                 (phone_number, affiliation, email_id, admin_id)
             )
             conn.commit()
-            print(f"Executing query: UPDATE admin_accounts SET contact_number = {phone_number}, affiliation = {affiliation}, email_id = {email_id} WHERE admin_id = {admin_id}")
+            logging.info(f"Executing query: UPDATE admin_accounts SET contact_number = {phone_number}, affiliation = {affiliation}, email_id = {email_id} WHERE admin_id = {admin_id}")
             if cursor.rowcount == 0:
                 cursor.execute(""" SELECT 1 FROM admin_accounts WHERE admin_id = %s AND contact_number = %s AND affiliation = %s AND email_id = %s """, (admin_id, phone_number, affiliation, email_id) )
                 if cursor.fetchone():
@@ -211,7 +211,7 @@ class KnowledgeBase:
             conn.commit()
             return True, "Project created successfully!"
         except Exception as e:
-            print(f"Error creating project: {e}")
+            logging.error(f"Error creating project: {e}")
             return False, f"Error creating project: {e}"
         finally:
             conn.close()
@@ -237,7 +237,7 @@ class KnowledgeBase:
             else:
                 return True, None
         except Exception as e:
-            print(f"Database error while checking email ID presence: {e}")
+            logging.error(f"Database error while checking email ID presence: {e}")
             return False, f"Database error: {e}"
         finally:
             cursor.close()
@@ -250,7 +250,7 @@ class KnowledgeBase:
         """
         conn, conn_error = self.get_db_connection()
         if conn is None:
-            print(conn_error)
+            logging.error(conn_error)
             return False, conn_error
 
         try:
@@ -261,11 +261,32 @@ class KnowledgeBase:
             result = cursor.fetchone()
             return True, result
         except Exception as error:
-            print(f"Database error while retrieving project details: {error}")
+            logging.error(f"Database error while retrieving project details: {error}")
             return False, f"Database error while retrieving project details: {error}"
         finally:
             cursor.close()
             conn.close()
+    
+
+    def fetch_all_projects(self):
+        """
+        Fetch all projects and their details from the database.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM projects")
+            projects = cursor.fetchall()
+            return True, projects
+        except Exception as error:
+            return False, f"Database error while fetching all projects: {error}"
+        finally:
+            cursor.close()
+            conn.close()
+
     
     def update_project(self,email, project_name, ai_prompt_text, response_frequency):
         conn, conn_error = self.get_db_connection()
@@ -283,7 +304,7 @@ class KnowledgeBase:
             conn.commit()
             return True, "Project details updated successfully."
         except Exception as error:
-            print(f"Database error: {error}")
+            logging.error(f"Database error: {error}")
             return False, f"Database error: {error}"
         finally:
             cursor.close()
@@ -302,13 +323,13 @@ class KnowledgeBase:
             result = cursor.fetchone()
             return True, result is not None
         except Exception as error:
-            print(f"Database error while checking scored email: {error}")
+            logging.error(f"Database error while checking scored email: {error}")
             return False, f"Database error while checking scored email: {error}"
         finally:
             cursor.close()
             conn.close()
 
-    def update_email_thread(self, thread_id, message_id, score, seen_keywords):
+    def update_email_thread(self, thread_id, session_email, session_project, message_id, score, seen_keywords):
         """
         Insert or update a thread in the email_threads table and record the email in scored_emails.
         """
@@ -344,8 +365,8 @@ class KnowledgeBase:
                     VALUES (%s, %s, %s, %s, %s, %s, NOW())
                 """, (
                     thread_id,
-                    session['email'],  # Project email associated with the thread
-                    session['project'],  # Project name associated with the thread
+                    session_email,  # Project email associated with the thread
+                    session_project,  # Project name associated with the thread
                     score,
                     'Automated',  # AI_RESPONSE_STATE set to automated
                     json.dumps(seen_keywords)
@@ -353,13 +374,13 @@ class KnowledgeBase:
 
             # Insert into scored_emails table (always for the current email)
             cursor.execute("""
-                INSERT INTO scored_emails (message_id, thread_id, last_updated)
-                VALUES (%s, %s, NOW())
-            """, (message_id, thread_id))
+                INSERT INTO scored_emails (message_id, thread_id, project_name, last_updated)
+                VALUES (%s, %s, %s, NOW())
+            """, (message_id, thread_id, session_project))
             conn.commit()
             return True, None
         except Exception as error:
-            print(f"Database error while processing email thread: {error}")
+            logging.error(f"Database error while processing email thread: {error}")
             return False, f"Database error while processing email thread: {error}"
         finally:
             cursor.close()
@@ -413,7 +434,7 @@ class KnowledgeBase:
             return email_threads
 
         except Exception as error:
-            print(f"Database error while fetching email threads: {error}")
+            logging.error(f"Database error while fetching email threads: {error}")
             raise
         finally:
             cursor.close()
@@ -450,7 +471,7 @@ class KnowledgeBase:
         """
         conn, conn_error = self.get_db_connection()
         if conn is None:
-            print(conn_error)
+            logging.error(conn_error)
             return False, conn_error
         
         generated_id = self.generate_random_string(8)
@@ -471,7 +492,7 @@ class KnowledgeBase:
             conn.commit()
             return True, None
         except Exception as error:
-            print(f"Database error while creating user profile: {error}")
+            logging.error(f"Database error while creating user profile: {error}")
             return False, f"Database error while creating user profile: {error}"
         finally:
             cursor.close()
@@ -483,7 +504,7 @@ class KnowledgeBase:
         """
         conn, conn_error = self.get_db_connection()
         if conn is None:
-            print(conn_error)
+            logging.error(conn_error)
             return False, conn_error
 
         try:
@@ -494,7 +515,7 @@ class KnowledgeBase:
             result = cursor.fetchone()
             return True, result
         except Exception as error:
-            print(f"Database error while retrieving user profile: {error}")
+            logging.error(f"Database error while retrieving user profile: {error}")
             return False, f"Database error while retrieving user profile: {error}"
         finally:
             cursor.close()
@@ -558,7 +579,7 @@ class KnowledgeBase:
         """
         conn, conn_error = self.get_db_connection()
         if conn is None:
-            print(conn_error)
+            logging.error(conn_error)
             return False, conn_error
 
         try:
@@ -571,7 +592,7 @@ class KnowledgeBase:
             conn.commit()
             return True, None
         except Exception as error:
-            print(f"Database error while updating user profile: {error}")
+            logging.error(f"Database error while updating user profile: {error}")
             return False, f"Database error while updating user profile: {error}"
         finally:
             cursor.close()
@@ -696,7 +717,7 @@ class KnowledgeBase:
                     user_scores[user_email] = {"total_score": 0}
                 user_scores[user_email]["total_score"] += score
 
-            print("DEBUG DB: Scores Data:", user_scores)  # Debugging
+            logging.info(f"DEBUG DB: Scores Data: {user_scores}")  # Debugging
             return True, user_scores
 
         except Exception as e:

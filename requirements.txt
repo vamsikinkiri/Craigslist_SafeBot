@@ -6,3 +6,4 @@ bcrypt
 flask-wtf
 pyyaml
 langchain-groq
+apscheduler

@@ -3,6 +3,7 @@ import email
 import re
 import os
 import re
+import logging
 from flask import session
 from datetime import datetime, timedelta, timezone
 from collections import Counter, defaultdict
@@ -20,14 +21,14 @@ class EmailHandler:
         self.smtp_port = 587
         project_root = os.path.dirname(os.path.abspath(__file__))
 
-    def fetch_emails_and_keywords(self, **filters):
+    def fetch_emails_and_keywords(self, user, password, **filters):
         """
         Fetch emails based on various filters.
         """
-        self.user = session.get('email')  # Get the session email
-        self.password = session.get('app_password')  # Get the session app password
+        self.user = user 
+        self.password = password 
         if not self.user or not self.password:
-            raise ValueError("Session email or app password not set.")
+            raise ValueError("Email or app password not set.")
         mail = imaplib.IMAP4_SSL('imap.gmail.com')
         mail.login(self.user, self.password)
         mail.select('"[Gmail]/All Mail"')
@@ -88,7 +89,7 @@ class EmailHandler:
                         "date": email_date
                     })
         emails.sort(key=lambda x: x['date'], reverse=True)
-        print(f"Fetched emails: {len(emails)}")  # Debug statement
+        logging.info(f"Fetched emails: {len(emails)}")  # Debug statement
         grouped_emails = self.group_emails_by_conversation(emails)
         keywords = self.extract_keywords(emails) if emails else []
         return emails, grouped_emails, keywords
@@ -156,15 +157,15 @@ class EmailHandler:
             conversations[conversation_key].append(email)
         return conversations
 
-    def send_email(self, to_address, content, references=None, message_id=None, subject=None):
+    def send_email(self, from_address, app_password, to_address, content, references=None, message_id=None, subject=None):
         """
         Send an email reply with threading information.
         """
-        #print('*'*50 + subject, references)
-        self.user = session.get('email')  # Get the session email
-        self.password = session.get('app_password')  # Get the session app password
+        #logging.info(f" '*'*50 {subject}, {references}")
+        self.user = from_address
+        self.password = app_password
         if not self.user or not self.password:
-            raise ValueError("Session email or app password not set.")
+            raise ValueError("Email or app password not set.")
         try:
             msg = MIMEMultipart()
             msg['From'] = self.user
@@ -181,7 +182,7 @@ class EmailHandler:
                 server.login(self.user, self.password)
                 server.send_message(msg)
         except Exception as e:
-            print("Failed to send email:", e)
+            logging.error(f"Failed to send email: {e}")
 
     def extract_keywords(self, emails):
         """

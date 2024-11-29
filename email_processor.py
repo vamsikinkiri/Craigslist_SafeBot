@@ -1,5 +1,6 @@
 import re
 import json
+import logging
 from flask import session, flash
 from knowledge_base import KnowledgeBase
 from datetime import datetime
@@ -18,7 +19,7 @@ knowledge_base = KnowledgeBase()
 
 class EmailProcessor:
 
-    def process_grouped_emails(self, grouped_emails):
+    def process_grouped_emails(self, grouped_emails, session_email, project_keywords):
         for thread_id, emails in grouped_emails.items():
             conversation_history = []
             for email in reversed(emails): # Process emails in the order they are received
@@ -26,7 +27,7 @@ class EmailProcessor:
                 match = re.search(r'<([^>]+)>', email['from'])
                 from_address = match.group(1) if match else email['from'].strip()
 
-                if from_address == session['email']:
+                if from_address == session_email:
                     conversation_history.append(f"We replied: {email['content']}")
                     continue  # Ignore the emails the chatbot sent
                 else:
@@ -42,7 +43,6 @@ class EmailProcessor:
 
                 # Start processing the email. Fist, extract content, date and project keywords.
                 content = email['content']
-                project_keywords = session.get('project_keywords', {})
                 last_active = email['date'].strftime('%Y-%m-%d %H:%M:%S')
 
                 # Perform the User Profiling
@@ -62,40 +62,45 @@ class EmailProcessor:
                 seen_keywords, score = interaction_profiling.calculate_cumulative_score(
                     content, project_keywords, seen_keywords
                 )
+                
+                project_success, project_details = knowledge_base.get_project_details(session_email)
+                if not project_success:
+                    logging.error(f"Error retrieving project information. Please check your inputs and try again.", "error")
+                    flash("Error retrieving project information. Please check your inputs and try again.", "error")
+                    return
+                #logging.info(f"PROJECT: {project_details}")
+                project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id = project_details
 
                 # Update or create the thread in the database
                 success, result = knowledge_base.update_email_thread(
-                    thread_id, email['message_id'], score, seen_keywords
+                    thread_id, 
+                    session_email=session_email, 
+                    session_project=project_name, 
+                    message_id=email['message_id'], 
+                    score=score, 
+                    seen_keywords=seen_keywords
                 )
                 if not success:
-                    flash(result, "error")
-                
+                    flash(result, "error")    
+        
                 # Check if the AI reponse function is enabled
                 ai_success, ai_state = knowledge_base.get_ai_response_state(thread_id=thread_id)
                 if not ai_success:
                     flash(ai_state, "error")
                     return
                 if ai_state == 'Manual':
-                    # Notify admin for manual intervention
+                    # Notify admin for continuing the manual conversation
                     pass
                 elif ai_state == 'Automated' and score > 0:
                     # AI is enabled and user is a potential criminal, we need to generate an AI response.
                     if score < 75:
                         # Continue the conversation by sending an AI generated response
-                        self.generate_and_send_response(email=email, conversation_history=conversation_history)
+                        self.generate_and_send_response(email=email, conversation_history=conversation_history, session_email=session_email, app_password=app_password)
                     else:
                         # The score crossed the threshold, notify the admin via email and update the current response state of the thread to Manual
-                        project_success, project_details = knowledge_base.get_project_details(session['email'])
-                        if not project_success:
-                            print("Error retrieving project information. Please check your inputs and try again.", "error")
-                            flash("Error retrieving project information. Please check your inputs and try again.", "error")
-                            return
-                        #print("PROJECT: ", project_details)
-                        project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id = project_details
-
                         admin_success, admin_email = knowledge_base.get_email_by_admin_id(admin_id=owner_admin_id)
                         if not admin_success:
-                            print(admin_email)
+                            logging.error(admin_email)
                             flash(admin_email)
                             return
 
@@ -113,17 +118,20 @@ class EmailProcessor:
                                 f"Please investigate further."
                             )
                             email_handler.send_email(
+                                from_address=session_email,
+                                app_password=app_password,
                                 to_address=admin_email,
                                 content=notification_content,
                                 subject=f"Manual Takeover Alert: Score Exceeded Threshold ({score}) - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
                             )
+                            logging.info('*'*50 + "SENT EMAIL TO ADMIN" + '*'*50)
                             knowledge_base.update_ai_response_state(thread_id=thread_id, new_state='Manual')
                         else:
                             flash("Failed to fetch user profile for notification.", "error")
-                            print("Failed to fetch user profile for notification.", "error")
+                            logging.error(f"Failed to fetch user profile for notification.", "error")
                     
 
-    def generate_and_send_response(self, email, conversation_history):
+    def generate_and_send_response(self, email, conversation_history, session_email, app_password):
         # Step 1: Combine conversation history into a single string
         previous_conversations = "\n".join(conversation_history)
 
@@ -131,11 +139,11 @@ class EmailProcessor:
         email_content = email['content']
 
         # Step 3: Generate response using the prompt
-        success, project_details = knowledge_base.get_project_details(session['email'])
+        success, project_details = knowledge_base.get_project_details(session_email)
         if not success:
-            print("ERROR HERE 3")
-            flash(admin_prompt, "error")
-        #print("PROJECT: ", project_details)
+            logging.error(project_details)
+            flash(project_details, "error")
+        #logging.info(f"PROJECT: {project_details}")
         _, _, _, _, admin_prompt, _, _, _ = project_details
         full_prompt = (
             f"{admin_prompt}\n\n"
@@ -145,11 +153,11 @@ class EmailProcessor:
             f"Please understand the entire context and generate a reply to the latest email in a way that seems human, and showing interest in the offer but not too eager. "
             f"Only reply the content of the reply and nothing else. Start the reponse with 'Hello', and then start the content of the email. End the email with Best, Jay. Make sure the response continues the facade that you are a human buyer interested in the watches."
         )
-        #print(full_prompt)
+        #logging.info(full_prompt)
         #prompt = "You are a police detective and posted an ad saying you are looking to buy watches at a cheap price in the hope of catching some criminals."
         response_text = response_generator.generate_response(full_prompt)
-        print(response_text)
-        print('*'*50)
+        logging.info(response_text)
+        logging.info('*'*50)
 
         # Step 4: Send the response as a reply and include the original email as quoted content
         quoted_conversation = ""
@@ -171,6 +179,8 @@ class EmailProcessor:
         subject = email['subject']
         references = email['references']
         email_handler.send_email(
+            from_address=session_email,
+            app_password=app_password,
             to_address=to_address,
             content=email_with_quote,
             references=references,
@@ -178,5 +188,5 @@ class EmailProcessor:
             subject="Re: " + subject
         )
 
-        #print("Response sent successfully.")
+        #logging.info(f"Response sent successfully.")
         return

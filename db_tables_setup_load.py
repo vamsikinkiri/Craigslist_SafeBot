@@ -1,6 +1,14 @@
+import logging
 from knowledge_base import KnowledgeBase
 
 knowledge_base = KnowledgeBase()
+
+# Configure logging centrally
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
 
 # Function to drop tables if they exist
 def drop_tables(cursor):
@@ -8,8 +16,8 @@ def drop_tables(cursor):
         "DROP TABLE IF EXISTS SCORED_EMAILS;",
         "DROP TABLE IF EXISTS EMAIL_THREADS;",
         "DROP TABLE IF EXISTS USER_PROFILES;",
-        "DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
-        "DROP TABLE IF EXISTS PROJECTS;"
+        #"DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
+        #"DROP TABLE IF EXISTS PROJECTS;"
     ]
     for query in drop_tables_queries:
         cursor.execute(query)
@@ -32,6 +40,7 @@ def create_tables(cursor):
         CREATE TABLE IF NOT EXISTS SCORED_EMAILS (
             MESSAGE_ID TEXT PRIMARY KEY,
             THREAD_ID TEXT NOT NULL,
+            PROJECT_NAME TEXT,
             LAST_UPDATED TIMESTAMP DEFAULT NOW()
         );
         """,
@@ -79,24 +88,24 @@ def setup_database():
         # Connect to database
         conn, conn_error = knowledge_base.get_db_connection()
         if conn is None:
-            print(conn_error)
+            logging.error(conn_error)
             exit
         cursor = conn.cursor()
 
         # Drop existing tables
         drop_tables(cursor)
-        print("Tables dropped successfully.")
+        logging.info(f"Tables dropped successfully.")
 
         # Create tables and insert data
         create_tables(cursor)
-        print("Tables created successfully.")
+        logging.info(f"Tables created successfully.")
 
         # Commit changes
         conn.commit()
 
 
     except Exception as e:
-        print("An error occurred:", e)
+        logging.error(f"An error occurred:", e)
 
     finally:
         cursor.close()

@@ -1,6 +1,9 @@
 import json
 import os
 import re
+import logging
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 from flask import Flask, flash, session, render_template, request, redirect, url_for, jsonify
 from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin
 from datetime import datetime
@@ -12,10 +15,19 @@ from interaction_profiling import InteractionProfiling
 from datetime import datetime, timedelta
 from user_profiling import UserProfiling
 from email_processor import EmailProcessor
+from project_scheduler import ProjectScheduler
 
 # Initialize the Flask application
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))  # Use environment variable or random key
+
+# Configure logging centrally
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+logging.info(f"Logging is configured.")
 
 # Initialize Login Manager for user authentication
 login_manager = LoginManager()
@@ -31,6 +43,23 @@ response_generator = ResponseGenerator()
 interaction_profiling = InteractionProfiling()
 email_processor = EmailProcessor()
 user_profiling = UserProfiling()
+project_scheduler = ProjectScheduler()
+
+logging.info(f"Starting the project!!")
+scheduler = BackgroundScheduler()
+scheduler.start()
+# Schedule the `process_emails` function to run every 15 seconds
+try:
+    scheduler.add_job(
+        func=project_scheduler.process_projects,
+        trigger=IntervalTrigger(seconds=120),
+        id='email_processing_job',  # Unique identifier for the job
+        replace_existing=True,
+        next_run_time=datetime.now()  # Schedule the first run to start immediately
+    )
+except Exception as e:
+    logging.error(f"Failed to add scheduler job: {e}")
+
 
 class User(UserMixin):
     def __init__(self, id):
@@ -115,7 +144,7 @@ def project_account_login():
         if not success:
             flash("Error retrieving project information. Please check your inputs and try again.", "error")
             return render_template('project_account_login.html')
-        #print("PROJECT: ", project_details)
+        #logging.info(f"PROJECT: {project_details}")
         project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id = project_details
 
         if success:
@@ -126,7 +155,7 @@ def project_account_login():
                 'project_keywords': keywords_data
             })
 
-            print("Session variables: ", session)
+            logging.info(f"Session variables: {session}")
             user = User(id=email)
             login_user(user)
             return redirect(url_for('index'))  # Redirect to the main dashboard or index
@@ -178,63 +207,6 @@ def project_creation():
 
     return render_template('project_creation.html')
 
-
-# Main route to display emails and conversations
-@app.route('/', methods=['GET'])
-@login_required
-def index():
-    search_initiated = 'search' in request.args
-    last_30_days = 'last_30_days' in request.args
-    last_60_days = 'last_60_days' in request.args
-
-    # Get search parameters
-    subject = request.args.get('subject')
-    content = request.args.get('content')
-    selected_keyword = request.args.get('keyword')
-    bidirectional_address = request.args.get('email')
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
-
-    # Set default dates to last 30 days if no date filter is applied
-    if not search_initiated and not last_30_days and not last_60_days:
-        end_date = datetime.now().strftime('%Y-%m-%d')
-        start_date = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
-        last_30_days = True  # Ensure the button state is correct for initial load
-
-    # Fetch, filter, and group emails
-    emails, grouped_emails, keywords = email_handler.fetch_emails_and_keywords(
-        subject=subject, content=content,
-        start_date=start_date, end_date=end_date,
-        bidirectional_address=bidirectional_address
-    ) if search_initiated or last_30_days or last_60_days else []
-    
-    # Process the grouped emails
-    email_processor.process_grouped_emails(grouped_emails)
-
-    # Add the score to each conversation
-    conversations_score = {}
-    for thread_id in grouped_emails:
-        score_success, score = knowledge_base.get_interaction_score(thread_id=thread_id)
-        if not score_success:
-            print(score_success)
-            continue
-        # conversations_score[thread_id] = score
-        conversations_score[thread_id] = score[0] if isinstance(score, (list, tuple)) else score
-        #grouped_emails[thread_id].append({'score': score[0]})
-
-    # Filter emails by selected keyword
-    if selected_keyword:
-        grouped_emails = {key: details for key, details in grouped_emails.items()
-                          if any(selected_keyword.lower() in email['subject'].lower() or
-                                 selected_keyword.lower() in email['content'].lower() for email in details)}
-
-    return render_template('index.html', emails=emails, keywords=keywords,
-                           search_initiated=search_initiated, last_30_days=last_30_days,
-                           last_60_days=last_60_days, conversations=grouped_emails,
-                           conversations_score=conversations_score,
-                           start_date=start_date, end_date=end_date)
-
-
 @app.route('/update_project', methods=['GET', 'POST'])
 @login_required
 def update_project():
@@ -273,17 +245,17 @@ def update_project():
 @app.route('/update_account_profile', methods=['GET', 'POST'])
 @login_required
 def update_account_profile():
-    #print("Session Data in update_account_profile:", session)  # Debug session data
+    #logging.info(f"Session Data in update_account_profile: {session}")  # Debug session data
 
     if 'admin_id' not in session:
-        print("admin_id not in session")
+        logging.error(f"admin_id not in session")
         flash("You need to be logged in to update your account profile.", "error")
         return redirect(url_for('project_account_login'))
 
     login_id = session['admin_id']
     email_id = session['admin_email']
 
-    #print("Session Data in update_account_profile:", session)  # Debug session data
+    #logging.info(f"Session Data in update_account_profile: {session}")  # Debug session data
     if request.method == 'GET':
         success, account_details = knowledge_base.get_admin_details(email_id)
         if not success:
@@ -299,7 +271,7 @@ def update_account_profile():
 
         success, message = knowledge_base.update_admin_profile(
             login_id, phone_number, affiliation, email_id)
-        print(f"Update status: {success}, message: {message}")
+        logging.info(f"Update status: {success}, message: {message}")
         if success:
             flash("Account profile updated successfully.", "success")
             return redirect(url_for('index'))
@@ -324,7 +296,7 @@ def user_profiles():
 @app.route('/user_profiles/active_users', methods=['GET'])
 def user_profiles_active_users():
     all_users = user_profiling.get_all_users()
-    print(all_users)
+    logging.info(all_users)
     if all_users:
         return render_template(
             "user_profiles.html",
@@ -337,7 +309,7 @@ def user_profiles_active_users():
 @app.route('/user_profiles/top_users', methods=['GET'])
 def user_profiles_top_users():
     success, user_scores = knowledge_base.fetch_scores_at_user_level()
-    #print("DEBUG App: User Scores:", user_scores)  # Add this line to check the data
+    #logging.info(f"DEBUG App: User Scores: {user_scores}")  # Add this line to check the data
     if not success:
         return jsonify({"error": "Error fetching user scores"}), 500
     return render_template(
@@ -354,5 +326,28 @@ def user_profiles_time_period_users():
 def email_view():
     return render_template('email_view.html')
 
+
+# Main route to display emails and conversations
+@app.route('/', methods=['GET'])
+@login_required
+def index():
+    filters = {
+        'search_initiated': 'search' in request.args,
+        'last_30_days': 'last_30_days' in request.args,
+        'last_60_days': 'last_60_days' in request.args,
+        'subject': request.args.get('subject'),
+        'content': request.args.get('content'),
+        'selected_keyword': request.args.get('keyword'),
+        'bidirectional_address': request.args.get('email'),
+        'start_date': request.args.get('start_date'),
+        'end_date': request.args.get('end_date')
+    }
+
+    # Call process_emails with parameters
+    data = project_scheduler.process_projects(filters, session['email'], session['app_password'])
+    return render_template('index.html', **data)
+
+
 if __name__ == '__main__':
     app.run(debug=True)
+
