@@ -386,6 +386,32 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
     
+    def update_email_score(self, thread_id, score):
+        """
+        Update a thread score in the email_threads table.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()            
+            # Update existing thread
+            cursor.execute("""
+                UPDATE email_threads
+                SET interaction_score = %s,
+                    last_updated = NOW()
+                WHERE thread_id = %s
+            """, (score, thread_id))
+            conn.commit()
+            return True, None
+        except Exception as error:
+            logging.error(f"Database error while updating email thread: {error}")
+            return False, f"Database error while updating email thread: {error}"
+        finally:
+            cursor.close()
+            conn.close()
+    
     def get_interaction_score(self, thread_id):
         """
         Retrieve the INTERACTION_SCORE value for a given thread from the EMAIL_THREADS table.

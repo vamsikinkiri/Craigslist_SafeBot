@@ -20,22 +20,58 @@ class EmailHandler:
         self.smtp_server = "smtp.gmail.com"
         self.smtp_port = 587
         project_root = os.path.dirname(os.path.abspath(__file__))
+    
+    def login_to_email(self, user, password):
+        """
+        Login to the IMAP email server.
+        Args:
+            user (str): Email address.
+            password (str): App password for the email.
+        Returns: imaplib.IMAP4_SSL: Authenticated IMAP connection.
+        Raises:
+            ValueError: If user or password is missing.
+            Exception: For any other IMAP login errors.
+        """
+        if not user or not password:
+            raise ValueError("Email or app password not provided.")
+        
+        try:
+            mail = imaplib.IMAP4_SSL('imap.gmail.com')  # Replace with appropriate IMAP server
+            mail.login(user, password)
+            return mail
+        except imaplib.IMAP4.error as e:
+            logging.error(f"IMAP login failed: {e}")
+            raise Exception("Failed to log in. Please check your email and app password.")
+
 
     def fetch_emails_and_keywords(self, user, password, **filters):
         """
-        Fetch emails based on various filters.
+        Fetch emails and keywords based on filters.
         """
-        self.user = user 
-        self.password = password 
-        if not self.user or not self.password:
-            raise ValueError("Email or app password not set.")
-        mail = imaplib.IMAP4_SSL('imap.gmail.com')
-        mail.login(self.user, self.password)
-        mail.select('"[Gmail]/All Mail"')
+        try:
+            mail = self.login_to_email(user, password)  # Reuse the login function
+            mail.select('"[Gmail]/All Mail"')  # Select the All Mail folder
 
-        search_criteria = self._build_search_criteria(filters)
-        _, data = mail.search(None, search_criteria)
-        return self._process_email_data(mail, data)
+            # Build search criteria and fetch emails
+            search_criteria = self._build_search_criteria(filters)
+            _, data = mail.search(None, search_criteria)
+            return self._process_email_data(mail, data)
+        
+        except imaplib.IMAP4.error as e:
+            logging.error(f"IMAP error during email fetching: {e}")
+            raise Exception("Failed to fetch emails. Please check your filters or email server settings.")
+
+        except Exception as e:
+            logging.error(f"Unexpected error during email fetching: {e}")
+            raise Exception("An unexpected error occurred while fetching emails.")
+
+        finally:
+            if mail:
+                try:
+                    mail.logout()
+                except Exception as e:
+                    logging.warning(f"Error during IMAP logout: {e}")
+
     
     def _build_search_criteria(self, filters):
         """
@@ -74,7 +110,7 @@ class EmailHandler:
                     msg = email.message_from_bytes(part[1])
                     email_body = self._get_text_from_email(msg)
                     raw_subject = msg['subject']
-                    subject = self._decode_subject(raw_subject)
+                    subject = self.decode_subject(raw_subject)
                     email_date = email.utils.parsedate_to_datetime(msg['Date'])
                     if email_date and email_date.tzinfo is None:
                         email_date = email_date.replace(tzinfo=timezone.utc)  # Make offset-aware
@@ -129,23 +165,24 @@ class EmailHandler:
             return email_body[:match.start()].strip()
         return email_body
     
-    def _decode_subject(self, raw_subject):
+    def decode_subject(self, subject):
         """
-        Decode email subject into a plain string.
+        Decode the subject into a plain string.
         """
-        if not raw_subject:
+        if not subject:
             return ""
-        decoded_parts = decode_header(raw_subject)
-        subject = ""
+        decoded_parts = decode_header(subject)
+        subject_str = ""
         for part, encoding in decoded_parts:
             try:
                 if isinstance(part, bytes):
-                    subject += part.decode(encoding or 'utf-8', errors='ignore')
+                    subject_str += part.decode(encoding or 'utf-8', errors='ignore')
                 else:
-                    subject += part
-            except Exception:
-                subject += "[Undecodable Subject]"
-        return subject
+                    subject_str += part
+            except (LookupError, UnicodeDecodeError):
+                subject_str += part.decode('utf-8', errors='ignore') if isinstance(part, bytes) else str(part)
+        return subject_str
+
 
     def group_emails_by_conversation(self, emails):
         """
@@ -189,31 +226,7 @@ class EmailHandler:
         Extract common keywords from email subjects.
         (Note: Consider moving to a different module if not used in Email Engagement)
         """
-        def decode_subject(subject):
-            """
-            Decode the subject into a plain string.
-            """
-            if subject:
-                decoded_parts = decode_header(subject)
-                subject_str = ""
-                for part, encoding in decoded_parts:
-                    try:
-                        # Handle bytes and decode them with the detected or default encoding
-                        if isinstance(part, bytes):
-                            if encoding in (None, 'unknown-8bit'):
-                                # Assume UTF-8 for unknown or missing encodings
-                                subject_str += part.decode('utf-8', errors='ignore')
-                            else:
-                                subject_str += part.decode(encoding, errors='ignore')
-                        else:
-                            # If part is already a string, append it directly
-                            subject_str += part
-                    except (LookupError, UnicodeDecodeError):
-                        # Fallback to UTF-8 if decoding fails
-                        subject_str += part.decode('utf-8', errors='ignore') if isinstance(part, bytes) else str(part)
-                return subject_str
-            return ""
-        subject_texts = [decode_subject(email['subject']) for email in emails]
+        subject_texts = [self.decode_subject(email['subject']) for email in emails]
         words = [word.lower() for subject in subject_texts for word in re.findall(r'\b\w+\b', subject)]
         return [word for word, _ in Counter(words).most_common(10) if len(word) > 3]
 

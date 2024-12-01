@@ -1,6 +1,5 @@
 import json
 import os
-import re
 import logging
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
@@ -52,7 +51,7 @@ scheduler.start()
 try:
     scheduler.add_job(
         func=project_scheduler.process_projects,
-        trigger=IntervalTrigger(seconds=120),
+        trigger=IntervalTrigger(minutes=20),
         id='email_processing_job',  # Unique identifier for the job
         replace_existing=True,
         next_run_time=datetime.now()  # Schedule the first run to start immediately
@@ -174,13 +173,25 @@ def project_creation():
         project_name = request.form['project_name']
         app_password = request.form['password']
         ai_prompt_text = request.form.get('ai_prompt_text', '')
-        response_frequency = int(request.form.get('response_frequency', 0))
+        response_frequency_raw = request.form.get('response_frequency', '10').strip()
+        response_frequency = 10 if not response_frequency_raw.isdigit() else int(response_frequency_raw)
         keywords_data_fetch = request.form['keywords_data']
         keywords_data = keywords_data_fetch.replace('""', '"')
 
         project_success, message = knowledge_base.is_email_unique_in_projects(email)
         if not project_success:
             flash(message, "error")
+            return redirect(url_for('project_creation'))
+
+        # Verify app password
+        try:
+            email_handler.login_to_email(email, app_password)
+        except ValueError:
+            flash("Email or app password is missing.", "error")
+            return redirect(url_for('project_creation'))
+        except Exception as e:
+            logging.error(f"Failed to verify app password: {e}")
+            flash("Invalid app password or unable to connect to the email server. Please try again.", "error")
             return redirect(url_for('project_creation'))
 
         try:
