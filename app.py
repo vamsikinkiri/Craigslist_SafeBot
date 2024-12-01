@@ -242,7 +242,8 @@ def update_project():
             "ai_prompt_text": project_info[4],
             "response_frequency": project_info[5],
             "keywords_data": project_info[6],
-            "owner_admin_id": project_info[7]
+            "owner_admin_id": project_info[7],
+            "last_updated": project_info[8]
         }
 
         return render_template('update_project.html', project_details=project_details)

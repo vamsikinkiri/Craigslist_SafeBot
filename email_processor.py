@@ -211,7 +211,7 @@ class EmailProcessor:
             logging.error(project_details)
             flash(project_details, "error")
         #logging.info(f"PROJECT: {project_details}")
-        _, _, _, _, admin_prompt, _, _, _ = project_details
+        _, _, _, _, admin_prompt, _, _, _, _ = project_details
         full_prompt = (
             f"{admin_prompt}\n\n"
             f"The following is a email conversation between a user (potential criminal) and an AI assistant (user doesn't know that he is having a conversation with an AI assistant):\n\n"
