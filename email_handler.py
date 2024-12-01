@@ -218,10 +218,7 @@ class EmailHandler:
         return [word for word, _ in Counter(words).most_common(10) if len(word) > 3]
 
     
-    
 
-    
-    
     
 
     

@@ -156,6 +156,7 @@
             transition: background-color 0.3s;
         }
 
+
         .dropdown-content a:hover {
             background-color: #f1f1f1;
         }
@@ -167,7 +168,7 @@
         /* Main container styling */
         .container {
             width: 500px;
-            padding: 40px;
+            padding: 50px;
             border-radius: 25px;
             background-color: #ffffff;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
@@ -183,12 +184,10 @@
             font-weight: 700;
         }
 
-        input[type="text"],
-        input[type="number"],
-        textarea {
-            padding: 12px 1px;
-            margin-top: 14px;
-            width: 100%;
+        .prompt-text{
+            padding: 60px 25px;
+            margin-top: 18px;
+            width: 90%;
             border: none;
             border-radius: 15px;
             background-color: #e7eef0;
@@ -198,7 +197,22 @@
             resize: None;
         }
 
-        .btn-primary {
+
+        .response-frequency{
+            padding: 12px 25px;
+            margin-top: 20px;
+            width: 90%;
+            border: none;
+            border-radius: 15px;
+            background-color: #e7eef0;
+            font-size: 16px;
+            outline: none;
+            transition: background-color 0.3s;
+            resize: None;
+        }
+
+
+        .btn-primary{
             padding: 12px 20px;
             margin-top: 20px;
             width: 100%;
@@ -213,9 +227,10 @@
         label {
             font-size: 14px;
             color: #666;
-            margin: 0 5px;
+            margin: 5px 5px;
             text-align: left;
             display: block;
+            margin-top: 15px;
         }
         /* Add margins to position Home and Logout */
         .left a {
@@ -248,41 +263,6 @@
             font-size: 20px;
         }
     </style>
-    <script>
-        // Toggle sidebar visibility
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-        }
-
-        // Redirect to different views
-        function redirectToView(view) {
-            switch (view) {
-                case 'active-users':
-                    window.location.href = '{{ url_for("user_profiles_active_users") }}';
-                    break;
-                case 'top-users':
-                    window.location.href = '{{ url_for("user_profiles_top_users") }}';
-                    break;
-                case 'time-period-users':
-                    window.location.href = '{{ url_for("user_profiles_time_period_users") }}';
-                    break;
-                case 'email-view':
-                    window.location.href = '{{ url_for("email_view") }}';
-                    break;
-                default:
-                    window.location.href = '{{ url_for("index") }}';
-                    break;
-            }
-        }
-        function handleLogout() {
-            window.location.href = "{{ url_for('logout') }}";  // Redirect to the logout route
-        }
-        // Toggle dropdown menus
-        function toggleDropdown(id) {
-            document.getElementById(id).classList.toggle('active');
-            document.getElementById(id).style.display = document.getElementById(id).style.display === 'block' ? 'none' : 'block';
-        }
-    </script>
 </head>
 <body>
 
@@ -295,10 +275,10 @@
     </div>
     <div class="header-title">Craigslist Safebot</div>
     <div class="settings-dropdown">
-        <button class="settings-button">
+        <button class="settings-button" onclick="toggleDropdown('settings-options')">
             <i class="fas fa-cog icon"></i> Settings
         </button>
-        <div class="dropdown-content">
+        <div id="settings-options" class="dropdown-content">
             <a href="{{ url_for('update_account_profile') }}">Account Profile</a>
             <a href="{{ url_for('update_project') }}">Update Projects</a>
         </div>
@@ -339,12 +319,13 @@
     <form action="{{ url_for('update_project') }}" method="POST">
         <div class="form-field">
             <label>Enter Prompt Text</label>
-            <textarea name="ai_prompt_text" placeholder="Enter Prompt Text">{{ project_details.get('ai_prompt_text', '') }}</textarea>
+            <textarea name="ai_prompt_text" class="prompt-text" placeholder="Enter Prompt Text">{{ project_details.get('ai_prompt_text', '') }}</textarea>
         </div>
         <div class="form-field">
             <label>Response Frequency</label>
-            <input type="number" name="response_frequency" placeholder="Response Frequency (mins)" value="{{ project_details.get('response_frequency', '') }}" required>
+            <input type="number" name="response_frequency" class="response-frequency" placeholder="Response Frequency (mins)" value="{{ project_details.get('response_frequency', '') }}" required>
         </div>
+
         <button type="submit" class="btn-primary">Update Project</button>
     </form>
     <div class="back-link">
@@ -352,5 +333,58 @@
     </div>
 </div>
 
+<script>
+    // Toggle sidebar visibility
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    // Redirect to different views
+    function redirectToView(view) {
+        switch (view) {
+            case 'active-users':
+                window.location.href = '{{ url_for("user_profiles_active_users") }}';
+                break;
+            case 'top-users':
+                window.location.href = '{{ url_for("user_profiles_top_users") }}';
+                break;
+            case 'time-period-users':
+                window.location.href = '{{ url_for("user_profiles_time_period_users") }}';
+                break;
+            case 'email-view':
+                window.location.href = '{{ url_for("email_view") }}';
+                break;
+            default:
+                window.location.href = '{{ url_for("index") }}';
+                break;
+        }
+    }
+    function handleLogout() {
+        window.location.href = "{{ url_for('logout') }}";  // Redirect to the logout route
+    }
+    function toggleDropdown(id) {
+        const dropdown = document.getElementById(id);
+        const isVisible = dropdown.style.display === 'block';
+
+        // Hide all dropdowns before toggling the current one
+        document.querySelectorAll('.dropdown-content').forEach(content => {
+            content.style.display = 'none';
+        });
+
+        // Toggle the current dropdown's visibility
+        dropdown.style.display = isVisible ? 'none' : 'block';
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const isClickInside = document.querySelector('.settings-dropdown').contains(event.target);
+        if (!isClickInside) {
+            document.querySelectorAll('.dropdown-content').forEach(content => {
+                content.style.display = 'none';
+            });
+        }
+    });
+
+</script>
 </body>
 </html>

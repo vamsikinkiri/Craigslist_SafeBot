@@ -193,7 +193,7 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
 
-    def create_project(self, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id):
+    def create_project(self, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, last_updated):
         conn, conn_error = self.get_db_connection()
         if not conn:
             return False, conn_error
@@ -205,8 +205,8 @@ class KnowledgeBase:
         try:
             cursor = conn.cursor()
             cursor.execute('''
-                INSERT INTO projects(project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO projects(project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, last_updated) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
             ''', (generated_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id))
             conn.commit()
             return True, "Project created successfully!"
@@ -243,7 +243,6 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
 
-    
     def get_project_details(self, email_id):
         """
         Retrieve project details by email.
@@ -266,7 +265,7 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
-    
+
 
     def fetch_all_projects(self):
         """
@@ -278,7 +277,7 @@ class KnowledgeBase:
 
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM projects")
+            cursor.execute("SELECT project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, date(last_updated) as Last_Updated FROM projects")
             projects = cursor.fetchall()
             return True, projects
         except Exception as error:
@@ -309,6 +308,7 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
+
 
     def is_email_processed(self, message_id):
         """
@@ -597,7 +597,6 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
-    
 
     def get_ai_response_state(self, thread_id):
         """

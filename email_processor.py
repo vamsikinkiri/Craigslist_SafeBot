@@ -69,7 +69,7 @@ class EmailProcessor:
                     flash("Error retrieving project information. Please check your inputs and try again.", "error")
                     return
                 #logging.info(f"PROJECT: {project_details}")
-                project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id = project_details
+                project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, last_updated = project_details
 
                 # Update or create the thread in the database
                 success, result = knowledge_base.update_email_thread(

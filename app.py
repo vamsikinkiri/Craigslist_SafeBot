@@ -84,7 +84,7 @@ def login():
             user = User(id=email_id)
             login_user(user)
             flash("Admin login successful!", "success")
-            return redirect(url_for('project_account_login'))
+            return redirect(url_for('all_projects_view'))
         else:
             # flash("Invalid credentials. Please try again.", "error")
             return redirect(url_for('login'))
@@ -132,38 +132,38 @@ def create_account():
             return redirect(url_for('login'))
     
     return render_template('create_account.html')
-
-
-# Route for project account login
-@app.route('/project_account_login', methods=['GET', 'POST'])
-@login_required
-def project_account_login():
-    if request.method == 'POST':
-        email = request.form['email']
-        success, project_details = knowledge_base.get_project_details(email)
-        if not success:
-            flash("Error retrieving project information. Please check your inputs and try again.", "error")
-            return render_template('project_account_login.html')
-        #logging.info(f"PROJECT: {project_details}")
-        project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id = project_details
-
-        if success:
-            session.update({
-                'email': email,
-                'app_password': app_password,
-                'project': project_name,
-                'project_keywords': keywords_data
-            })
-
-            logging.info(f"Session variables: {session}")
-            user = User(id=email)
-            login_user(user)
-            return redirect(url_for('index'))  # Redirect to the main dashboard or index
-        else:
-            flash("Error retrieving project information. Please check your inputs and try again.", "error")
-            return render_template('project_account_login.html')
-        
-    return render_template('project_account_login.html')
+#
+#
+# # Route for project account login
+# @app.route('/project_account_login', methods=['GET', 'POST'])
+# @login_required
+# def project_account_login():
+#     if request.method == 'POST':
+#         email = request.form['email']
+#         success, project_details = knowledge_base.get_project_details(email)
+#         if not success:
+#             flash("Error retrieving project information. Please check your inputs and try again.", "error")
+#             return render_template('project_account_login.html')
+#         #logging.info(f"PROJECT: {project_details}")
+#         project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id = project_details
+#
+#         if success:
+#             session.update({
+#                 'email': email,
+#                 'app_password': app_password,
+#                 'project': project_name,
+#                 'project_keywords': keywords_data
+#             })
+#
+#             logging.info(f"Session variables: {session}")
+#             user = User(id=email)
+#             login_user(user)
+#             return redirect(url_for('index'))  # Redirect to the main dashboard or index
+#         else:
+#             flash("Error retrieving project information. Please check your inputs and try again.", "error")
+#             return render_template('project_account_login.html')
+#
+#     return render_template('project_account_login.html')
 
 
 @app.route('/project_creation', methods=['GET', 'POST'])
@@ -196,12 +196,14 @@ def project_creation():
                                                          ai_prompt_text=ai_prompt_text,
                                                          response_frequency=response_frequency,
                                                          keywords_data=json.dumps(keywords_data_updated),
-                                                         owner_admin_id=session['admin_id']
-                                                         )
+                                                         owner_admin_id=session['admin_id'],
+                                                         last_updated=None
+        )
 
         flash(message, "success" if success else "error")
         if success:
-            return redirect(url_for('project_account_login'))
+            # return redirect(url_for('project_account_login'))
+            return redirect(url_for('all_projects_view'))
         else:
             flash(message, "error")
 
@@ -212,7 +214,8 @@ def project_creation():
 def update_project():
     if 'email' not in session or 'project' not in session:
         flash("You need to be logged in to update project details.", "error")
-        return redirect(url_for('project_account_login'))
+        # return redirect(url_for('project_account_login'))
+        return redirect(url_for('all_projects_view'))
     email = session['email']
     project_name = session['project']
     if request.method == 'GET':
@@ -250,8 +253,8 @@ def update_account_profile():
     if 'admin_id' not in session:
         logging.error(f"admin_id not in session")
         flash("You need to be logged in to update your account profile.", "error")
-        return redirect(url_for('project_account_login'))
-
+        # return redirect(url_for('project_account_login'))
+        return redirect(url_for('all_projects_view'))
     login_id = session['admin_id']
     email_id = session['admin_email']
 
@@ -281,6 +284,191 @@ def update_account_profile():
                 'phone_number': phone_number,
                 'affiliation': affiliation,
                 'email_id': email_id})
+
+# @app.route('/all_projects_view', methods=['GET', 'POST'])
+# @login_required
+# def all_projects_view():
+#     """
+#     Display all projects and allow the user to select or create a new project.
+#     """
+#     # Fetch all projects from the database
+#     success, projects = knowledge_base.fetch_all_projects()
+#     if not success:
+#         return render_template('error.html', message=projects), 500  # Display error if fetch fails
+#
+#
+#     # Get search query from the request
+#     search_query = request.args.get('search_query')
+#     if search_query:
+#     # Filter projects based on the query
+#         filtered_projects = [
+#             project for project in projects
+#             if search_query.lower() in project[2].lower() or search_query.lower() in project[1].lower()
+#         ]
+#         if not filtered_projects:
+#             flash("Project doesn't exist. Please try again!", "danger")
+#             filtered_projects = []
+#     else:
+#         filtered_projects = projects
+#
+#     # Format the filtered projects for rendering
+#     formatted_projects = [
+#         {
+#             "id": project[0],  # project_id
+#             "email": project[1],  # email_id
+#             "name": project[2],  # project_name
+#             "last_updated": project[8],  # last_updated as date
+#         }
+#         for project in filtered_projects
+#     ]
+#
+#     if request.method == 'POST':
+#         # Get selected project's email from the form
+#         email = request.form['email']
+#
+#         # Fetch project details by email
+#         success, project_details = knowledge_base.get_project_details(email)
+#         if not success:
+#             flash("Error retrieving project information. Please check your inputs and try again.", "danger")
+#             return redirect(url_for('all_projects_view'))
+#
+#         # Extract project details
+#         project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, last_updated= project_details
+#
+#         # Update session with selected project details
+#         session.update({
+#             'email': email_id,
+#             'app_password': app_password,
+#             'project': project_name,
+#             'project_keywords': keywords_data
+#         })
+#
+#         logging.info(f"Session variables updated: {session}")
+#         user = User(id=email_id)
+#         login_user(user)
+#
+#         # Redirect to the main dashboard (index)
+#         return redirect(url_for('index'))
+#
+#     return render_template('all_projects_view.html', projects=formatted_projects, search_query=search_query)
+
+
+@app.route('/all_projects_view', methods=['GET', 'POST'])
+@login_required
+def all_projects_view():
+    logging.info(f"Session Admin ID: {session.get('admin_id')}")
+    """
+    Display all projects and allow the user to select or create a new project.
+    """
+    # Fetch all projects from the database
+    success, projects = knowledge_base.fetch_all_projects()
+
+    if not success:
+        return render_template('error.html', message=projects), 500  # Display error if fetch fails
+
+    # Get search query from the request
+    search_query = request.args.get('search_query')
+    filtered_projects = projects
+
+    if search_query:
+        # Filter projects based on the query
+        filtered_projects = [
+            project for project in projects
+            if search_query.lower() in project[2].lower() or search_query.lower() in project[1].lower()
+        ]
+        # If no matching projects are found, flash an error message
+        if not filtered_projects:
+            flash("No projects found. Please create or view another project.", "danger")
+
+    # Format the filtered projects for rendering
+    formatted_projects = [
+        {
+            "id": project[0],  # project_id
+            "email": project[1],  # email_id
+            "name": project[2],  # project_name
+            "last_updated": project[8],  # last_updated as date,
+            "owner_admin_id": project[7],  # owner_admin_id
+        }
+        for project in filtered_projects
+    ]
+    if request.method == 'POST':
+        # Get selected project's email from the form
+        email = request.form['email']
+        # Fetch project details by email
+        success, project_details = knowledge_base.get_project_details(email)
+        if not success:
+            flash("Error retrieving project information. Please check your inputs and try again.", "danger")
+            return redirect(url_for('all_projects_view'))
+
+        # Extract project details
+        project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, last_updated = project_details
+        logging.info(f"Project Owner ID: {owner_admin_id}, Session Admin ID: {session.get('admin_id')}")
+
+        # Update session with selected project details
+        session.update({
+            'email': email_id,
+            'app_password': app_password,
+            'project': project_name,
+            'project_keywords': keywords_data
+        })
+
+        logging.info(f"Session variables updated: {session}")
+        user = User(id=email_id)
+        login_user(user)
+
+        # Redirect to the main dashboard (index)
+        return redirect(url_for('index'))
+
+    return render_template('all_projects_view.html', projects=formatted_projects, search_query=search_query)
+
+#
+# @app.route('/delete_project/<email>', methods=['POST'])
+# @login_required
+# def delete_project(email):
+#     """
+#     Deletes a project if the logged-in admin is the owner.
+#     """
+#     # Get the admin ID from the session
+#     current_admin_id = session.get('admin_id')
+#
+#     # Fetch project details by email
+#     success, project_details = knowledge_base.get_project_details(email)
+#     if not success:
+#         flash("Project not found or failed to retrieve project details.", "danger")
+#         return redirect(url_for('all_projects_view'))
+#
+#     # Extract project owner ID from the details
+#     owner_admin_id = project_details.get('owner_admin_id')
+#
+#     # Check if the logged-in admin is the owner
+#     if current_admin_id != owner_admin_id:
+#         flash("You are not authorized to delete this project.", "danger")
+#         return redirect(url_for('all_projects_view'))
+#
+#     # Perform deletion
+#     delete_success, message = knowledge_base.delete_project(email)
+#     if delete_success:
+#         flash("Project deleted successfully.", "success")
+#     else:
+#         flash(f"Failed to delete the project: {message}", "danger")
+#
+#     return redirect(url_for('all_projects_view'))
+
+@app.route('/update_thread_state', methods=['POST'])
+@login_required
+def update_thread_state():
+    data = request.get_json()
+    thread_id = data.get('thread_id')
+    new_state = data.get('new_state')
+
+    if not thread_id or not new_state:
+        return jsonify({"success": False, "message": "Thread ID and state are required."}), 400
+
+    success, message = knowledge_base.update_ai_response_state(thread_id, new_state)
+    if success:
+        return jsonify({"success": True, "message": message})
+    else:
+        return jsonify({"success": False, "message": message}), 500
 
 
 @app.route('/user_profiles', methods=['GET'])
@@ -325,9 +513,28 @@ def user_profiles_time_period_users():
 @app.route('/email_view', methods=['GET'])
 def email_view():
     return render_template('email_view.html')
+#
+#
+# # Main route to display emails and conversations
+# @app.route('/', methods=['GET'])
+# @login_required
+# def index():
+#     filters = {
+#         'search_initiated': 'search' in request.args,
+#         'last_30_days': 'last_30_days' in request.args,
+#         'last_60_days': 'last_60_days' in request.args,
+#         'subject': request.args.get('subject'),
+#         'content': request.args.get('content'),
+#         'selected_keyword': request.args.get('keyword'),
+#         'bidirectional_address': request.args.get('email'),
+#         'start_date': request.args.get('start_date'),
+#         'end_date': request.args.get('end_date')
+#     }
+#
+#     # Call process_emails with parameters
+#     data = project_scheduler.process_projects(filters, session['email'], session['app_password'])
+#     return render_template('index.html', **data)
 
-
-# Main route to display emails and conversations
 @app.route('/', methods=['GET'])
 @login_required
 def index():
@@ -343,7 +550,11 @@ def index():
         'end_date': request.args.get('end_date')
     }
 
-    # Call process_emails with parameters
+    # Use session variables to process the selected project
+    if 'email' not in session or 'app_password' not in session:
+        flash("No project selected. Please select a project.", "danger")
+        return redirect(url_for('all_projects_view'))
+
     data = project_scheduler.process_projects(filters, session['email'], session['app_password'])
     return render_template('index.html', **data)
 

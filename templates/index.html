@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <title>CRAIGSLIST SAFEBOT</title>
+
     <style>
         .email-score {
             font-size: 16px;
@@ -49,7 +50,7 @@
             flex: 1;
             text-align: center;
             font-size: 34px;
-            margin-left: 5%;
+            margin-right: 10%;
             text-decoration: none;
         }
         .header-content {
@@ -68,7 +69,7 @@
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             width: 90%;
             max-width: 900px;
-            margin-top: 120px; /* Reduced margin-top */
+            margin-top: 10px; /* Reduced margin-top */
             margin-bottom: 20px;
             display: flex;
             flex-direction: column;
@@ -181,20 +182,7 @@
         .email-chain:hover {
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
-        .email-chain-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            font-weight: bold;
-            gap: 10px;
-        }
-        .email-chain-header {
-            flex-grow: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+
         .subject-box {
             overflow: hidden;
             text-overflow: ellipsis;
@@ -218,7 +206,29 @@
         .email-chain-header .button-box {
             flex-shrink: 0;
         }
-        .email-chain-header .button-box button {
+        .email-chain-header {
+            background: none;
+            border: none;
+            color: #343d40;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+        }
+        .email-chain-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-weight: bold;
+            gap: 10px;
+        }
+        .email-chain-header {
+            flex-grow: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .button-box button {
             background: none;
             border: none;
             color: #0096c7;
@@ -358,6 +368,11 @@
             text-decoration: none;
         }
 
+        .left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
         .settings-button .icon, .logout-button .icon{
             margin-right: 10px;
             font-size: 20px;
@@ -425,15 +440,14 @@
             background-color: #eaeaea;
         }
 
+        .dropdown-content a:hover {
+            background-color: #eaeaea;
+        }
+
         .settings-dropdown:hover .dropdown-content {
             display: block;
         }
 
-        .left {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
         .header {
             display: flex;
             align-items: center;
@@ -537,13 +551,90 @@
             color: #eaeaea;
         }
         .filters-container {
-            display: block; /* Set to 'none' if you want filters hidden by default */
+            display: none; /* Set to 'none' if you want filters hidden by default */
             margin-bottom: 20px;
         }
 
         .email-list {
             margin-top: 20px;
         }
+        .project-title {
+            width: 100%;
+            text-align: center;
+            margin-top: 100px; /* Space below the header */
+            margin-bottom: 10px; /* Space above the container */
+            font-size: 30px;
+            font-weight: bold;
+            color: #134258; /* Match theme color */
+        }
+        .switch-projects-btn {
+            background-color: #134258;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            margin-left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .state-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .state-label {
+            font-size: 14px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .state-btn {
+            padding: 5px 10px;
+            font-size: 12px;
+            background-color: #007195;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .state-btn:hover {
+            background-color: #005f73;
+        }
+        .state-toggle-btn {
+            transition: all 0.3s ease-in-out;
+        }
+
+        .state-toggle-btn:hover {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transform: scale(1.1);
+        }
+
+        .manual-mode {
+            background-color: #007bff; /* Blue for Manual */
+        }
+
+        .automated-mode {
+            background-color: #28a745; /* Green for Automated */
+        }
+
+        .archive-mode {
+            background-color: #dc3545; /* Red for Archive */
+        }
+
+        .toggle-button:hover {
+            opacity: 0.8; /* Slight hover effect */
+        }
+
+
 
 
     </style>
@@ -557,16 +648,20 @@
         <a href="{{ url_for('index') }}" class="nav-item">
             <i class="fas fa-home icon"></i> Home
         </a>
+        <!-- Switch Projects Button -->
+        <a href="{{ url_for('all_projects_view') }}" class="btn switch-projects-btn">
+            <i class="fas fa-exchange-alt"></i> Switch Projects
+        </a>
     </div>
     <div class="header-title">Craigslist Safebot</div>
     <!-- Logout Button on the right -->
     <div class="right">
-        <!-- Settings Icon with Dropdown -->
+        <!-- Settings Dropdown -->
         <div class="settings-dropdown">
-            <button class="settings-button">
+            <button class="settings-button" onclick="toggleDropdown('settings-options')">
                 <i class="fas fa-cog icon"></i> Settings
             </button>
-            <div class="dropdown-content">
+            <div id="settings-options" class="dropdown-content">
                 <a href="{{ url_for('update_account_profile') }}">Account Profile</a>
                 <a href="{{ url_for('update_project') }}">Update Projects</a>
             </div>
@@ -591,10 +686,14 @@
         Email View
     </div>
 </div>
+<!-- Title for the Project Name -->
+<div class="project-title">
+    <h2>{{project_name }}</h2>
+</div>
 
 <div class="container">
     <button id="toggle-filters-btn" class="btn-primary">Hide Filters</button>
-    <div id="filters-container" class="filters-container">
+    <div id="filters-container"  style="display: none;" class="filters-container">
         <form method="get" action="/">
             <input type="text" name="email" placeholder="Email (From or To)" value="{{ request.args.get('email', '') }}">
             <input type="text" name="subject" placeholder="Subject" value="{{ request.args.get('subject', '') }}">
@@ -725,11 +824,28 @@
         document.getElementById('sidebar').classList.toggle('active');
     }
 
-    // Toggle dropdown menus
     function toggleDropdown(id) {
-        document.getElementById(id).classList.toggle('active');
-        document.getElementById(id).style.display = document.getElementById(id).style.display === 'block' ? 'none' : 'block';
+        const dropdown = document.getElementById(id);
+        const isVisible = dropdown.style.display === 'block';
+
+        // Hide all dropdowns before toggling the current one
+        document.querySelectorAll('.dropdown-content').forEach(content => {
+            content.style.display = 'none';
+        });
+
+        // Toggle the current dropdown's visibility
+        dropdown.style.display = isVisible ? 'none' : 'block';
     }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const isClickInside = document.querySelector('.settings-dropdown').contains(event.target);
+        if (!isClickInside) {
+            document.querySelectorAll('.dropdown-content').forEach(content => {
+                content.style.display = 'none';
+            });
+        }
+    });
 
     function redirectToView(view) {
         switch (view) {
@@ -751,16 +867,47 @@
         }
     }
 
-    document.getElementById('toggle-filters-btn').addEventListener('click', function () {
+    document.addEventListener('DOMContentLoaded', function () {
         const filtersContainer = document.getElementById('filters-container');
-        if (filtersContainer.style.display === 'none' || filtersContainer.style.display === '') {
-            filtersContainer.style.display = 'block'; // Show filters
-            this.textContent = 'Hide Filters';
-        } else {
-            filtersContainer.style.display = 'none'; // Hide filters
-            this.textContent = 'Show Filters';
-        }
+        const toggleFiltersButton = document.getElementById('toggle-filters-btn');
+
+        // Ensure filters are hidden on page load
+        filtersContainer.style.display = 'none';
+        toggleFiltersButton.textContent = 'Search'; // Set initial button text
+
+        // Add event listener to toggle visibility
+        toggleFiltersButton.addEventListener('click', function () {
+            if (filtersContainer.style.display === 'none' || filtersContainer.style.display === '') {
+                filtersContainer.style.display = 'block'; // Show filters
+                this.textContent = 'Hide Filters'; // Change button text
+            } else {
+                filtersContainer.style.display = 'none'; // Hide filters
+                this.textContent = 'Search'; // Change button text back
+            }
+        });
     });
+    function toggleMode() {
+        const button = document.getElementById('modeButton');
+
+        // Check the current mode and toggle to the next
+        if (button.classList.contains('manual-mode')) {
+            button.classList.remove('manual-mode');
+            button.classList.add('automated-mode');
+            button.textContent = 'Automated'; // Update button text
+        } else if (button.classList.contains('automated-mode')) {
+            button.classList.remove('automated-mode');
+            button.classList.add('archive-mode');
+            button.textContent = 'Archive'; // Update button text
+        } else {
+            button.classList.remove('archive-mode');
+            button.classList.add('manual-mode');
+            button.textContent = 'Manual'; // Update button text
+        }
+    }
+
+
+
+
 
 </script>
 

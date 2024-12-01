@@ -279,19 +279,18 @@
             align-items: center;
             padding: 0;
             margin-right: 20px;
-        }
-
+    }
         .dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            background-color: #ffffff;
-            min-width: 250px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-            z-index: 1;
-            font-size: 18px;
-        }
+                 display: none;
+                 position: absolute;
+                 right: 0;
+                 background-color: #ffffff;
+                 min-width: 250px;
+                 box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+                 border-radius: 10px;
+                 z-index: 1;
+                 font-size: 18px;
+             }
 
         .dropdown-content a {
             color: #333;
@@ -323,10 +322,10 @@
     <div class="right">
         <!-- Settings Icon with Dropdown -->
         <div class="settings-dropdown">
-            <button class="settings-button">
+            <button class="settings-button" onclick="toggleDropdown('settings-options')">
                 <i class="fas fa-cog icon"></i> Settings
             </button>
-            <div class="dropdown-content">
+            <div id="settings-options" class="dropdown-content">
                 <a href="{{ url_for('update_account_profile') }}">Account Profile</a>
                 <a href="{{ url_for('update_project') }}">Update Projects</a>
             </div>
@@ -400,11 +399,29 @@
         document.getElementById('sidebar').classList.toggle('active');
     }
 
-    // Toggle dropdown menus
     function toggleDropdown(id) {
-        document.getElementById(id).classList.toggle('active');
-        document.getElementById(id).style.display = document.getElementById(id).style.display === 'block' ? 'none' : 'block';
+        const dropdown = document.getElementById(id);
+        const isVisible = dropdown.style.display === 'block';
+
+        // Hide all dropdowns before toggling the current one
+        document.querySelectorAll('.dropdown-content').forEach(content => {
+            content.style.display = 'none';
+        });
+
+        // Toggle the current dropdown's visibility
+        dropdown.style.display = isVisible ? 'none' : 'block';
     }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const isClickInside = document.querySelector('.settings-dropdown').contains(event.target);
+        if (!isClickInside) {
+            document.querySelectorAll('.dropdown-content').forEach(content => {
+                content.style.display = 'none';
+            });
+        }
+    });
+
 
     // Show the selected chart and hide others
     function showChart(chartId) {
@@ -519,9 +536,6 @@
     } else {
         console.log("No user scores data available.");
     }
-
-
-
 
 </script>
 

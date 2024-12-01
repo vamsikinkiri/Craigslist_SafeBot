@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        /* Header styling */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #134258;
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-size: 18px;
+            color: #ffffff;
+        }
+        .header-title {
+            flex: 1;
+            text-align: center;
+            font-size: 34px;
+            margin-left: 3%;
+        }
+
+        .left a {
+            margin-left: 20px;
+        }
+
+        .right a {
+            margin-right: 20px; /* Push Logout button to the left */
+            text-align: right;
+        }
+        .header {
+            font-family: 'Arial', serif;
+        }
+
+
+        .btn {
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            background-color: #007195;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background-color: #134258;
+        }
+
+        .projects-header {
+            display: flex;
+            text-align: center;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 30px;
+            font-weight: bold;
+            margin: 70px 0;
+            color: #134258;
+        }
+        .projects-header h2 {
+            text-align: center;
+            font-size: 33px;
+            font-weight: bold;
+            color: #134258;
+            margin-left: 822px;
+        }
+
+        .projects-header .subtext {
+            font-size: 18px;
+            color: #666;
+            margin-top: 5px;
+            font-style: normal;
+            margin-left: 822px;
+        }
+
+
+        .search-bar {
+            margin: 10px auto 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .search-bar-container {
+            justify-content: center;
+            margin-bottom: 20px;
+            margin-left: 10px;
+        }
+
+        .search-bar-container input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 60%;
+            margin-right: 10px;
+            margin-left: 400px;
+        }
+
+        .search-bar-container button {
+            padding: 10px 20px;
+            font-size: 14px;
+            color: white;
+            background-color: #007195;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .search-bar-container button:hover {
+            background-color: #134258;
+        }
+
+         .project-card {
+             display: flex;
+             flex-direction: column;
+             justify-content: space-between;
+             align-items: flex-start;
+             background-color: #ffffff;
+             border: 1px solid #ddd;
+             border-radius: 10px;
+             padding: 22px;
+             margin: 10px 0;
+             text-align: left;
+             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+             transition: transform 0.3s, box-shadow 0.3s;
+             width: 100%;
+             max-width: 400px;
+         }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .project-header h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: bold;
+            color: #134258;
+        }
+
+        .project-body p {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .project-actions {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-top: 15px;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            background-color: #007195;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #134258;
+        }
+
+        .btn-danger {
+            background-color: #d9534f;
+        }
+
+        .btn-danger:hover {
+            background-color: #c9302c;
+        }
+
+         .projects-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 0 300px;
+            height: max-content;
+        }
+
+        .project-card p {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .project-card .btn {
+            margin-top: 15px;
+            background-color: #007195;
+            color: white;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .project-card .btn:hover {
+            background-color: #0a3460;
+        }
+
+        .create-project-btn {
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            background-color: #007195;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            margin-right: 432px;
+            text-decoration: none;
+        }
+
+        .create-project-btn:hover {
+            background-color: #134258;
+        }
+
+
+        .logout-button .icon {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .logout-button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            margin-right: 20px;
+        }
+
+         .flash-message {
+             position: relative;
+             padding: 10px;
+             margin-bottom: 20px;
+             border: 1px solid transparent;
+             border-radius: 4px;
+             font-size: 14px;
+             max-width: 600px; /* Limit the message width */
+             white-space: nowrap; /* Prevent text wrapping */
+             overflow: hidden; /* Hide overflowing text */
+             text-overflow: ellipsis; /* Show ellipsis for long messages */
+         }
+
+        .flash-message:hover .full-message {
+            display: block; /* Show the full message on hover */
+        }
+
+        .full-message {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #fff;
+            color: #333;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            z-index: 100;
+            width: 100%; /* Match the flash message width */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .flash-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+
+        .flash-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+
+    </style>
+</head>
+<body>
+<header class="header">
+    <div class="header">
+        <div class="header-title">Craigslist Safebot</div>
+        <!-- Logout Button on the right -->
+        <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
+            <button class="logout-button">
+                <i class="fas fa-sign-out-alt icon"></i> Logout
+            </button>
+        </form>
+    </div>
+</header>
+
+<div class="projects-header">
+    <div>
+        <h2>Currently Ongoing Projects</h2>
+        <p class="subtext">Click on the below projects to log in</p>
+    </div>
+</div>
+
+
+<div class="search-bar-container">
+    <form method="GET" action="{{ url_for('all_projects_view') }}" style="display: flex; gap: 10px; align-items: center;">
+        <input
+                type="text"
+                name="search_query"
+                placeholder="Search projects..."
+                value="{{ search_query or '' }}"
+                style="flex: 1; padding: 10px; border-radius: 5px; font-size: 16px; border: 1px solid #ccc;"
+        >
+        <button type="submit" class="btn" style="min-width: 120px;">Search</button>
+        <a href="{{ url_for('all_projects_view') }}" class="btn" style="min-width: 140px; background-color: #007195;">Display All Projects</a>
+        <a href="{{ url_for('project_creation') }}" class="create-project-btn" title="Please click here to create a new project." style="min-width: 160px;">
+            Create New Project
+        </a>
+    </form>
+</div>
+
+<div class="projects-container">
+    {% if projects %}
+        {% for project in projects %}
+            <form method="POST" action="{{ url_for('all_projects_view') }}">
+                <div class="project-card">
+                    <div class="project-header">
+                        <h3>{{ project.name }}</h3>
+                    </div>
+                    <div class="project-body">
+                        <p><strong>Email:</strong> {{ project.email }}</p>
+                        <p><strong>Last Updated:</strong> {{ project.last_updated }}</p>
+                    </div>
+
+                    <div class="project-actions">
+                        <form action="{{ url_for('all_projects_view') }}" method="POST">
+                            <input type="hidden" name="email" value="{{ project.email }}">
+                            <button type="submit" class="btn">Open Project</button>
+                        </form>
+
+                    </div>
+                </div>
+            </form>
+        {% endfor %}
+    {% else %}
+        <!-- Displayed only if no projects match -->
+    {% endif %}
+</div>
+
+<script>
+    function searchProjects() {
+        const searchQuery = document.getElementById("project-search").value.toLowerCase();
+        const projects = document.querySelectorAll(".project-card");
+
+        projects.forEach(project => {
+            const projectName = project.querySelector("h3").innerText.toLowerCase();
+            if (projectName.includes(searchQuery)) {
+                project.style.display = "block";
+            } else {
+                project.style.display = "none";
+            }
+        });
+    }
+
+    // Sample existing emails for demonstration
+    const existingEmails = ["example@example.com", "user@domain.com"];
+
+    // Function to simulate login and show error if email doesn't exist
+    function login() {
+        const email = document.getElementById("email").value;
+        const errorMessage = document.getElementById("error-message");
+
+        if (!existingEmails.includes(email)) {
+            // Show error message if email doesn't exist
+            errorMessage.style.display = "block";
+        } else {
+            // Hide error message if email exists (successful login)
+            errorMessage.style.display = "none";
+            alert("Login successful!");
+        }
+    }
+    function handleLogout() {
+        window.location.href = "{{ url_for('logout') }}";  // Redirect to the logout route
+    }
+
+    function confirmDelete() {
+        return confirm("Are you sure you want to delete this project?");
+    }
+
+</script>
+</body>
+</html>
+
+
+
+

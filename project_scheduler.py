@@ -11,7 +11,7 @@ email_processor = EmailProcessor()
 
 class ProjectScheduler:
 
-    def process_project(self, email_id, app_password, project_keywords, filters):
+    def process_project(self, email_id, app_password, project_keywords, filters,project_name=None):
         if not filters['search_initiated'] and not filters['last_30_days'] and not filters['last_60_days']:
             filters['end_date'] = datetime.now().strftime('%Y-%m-%d')
             filters['start_date'] = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
@@ -58,7 +58,8 @@ class ProjectScheduler:
             "conversations": grouped_emails,
             "conversations_score": conversations_score,
             "start_date": filters['start_date'], 
-            "end_date": filters['end_date']
+            "end_date": filters['end_date'],
+            "project_name": project_name
         }
 
 
@@ -84,16 +85,19 @@ class ProjectScheduler:
         if not session_email and not session_password:
             for project in projects:
                 logging.info(f"Currently processing project: {project}")
-                project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id = project
-                self.process_project(email_id=email_id, app_password=app_password, project_keywords=keywords_data, filters=filters)
+                if len(project) != 9:  # Expecting 9 fields now
+                    logging.error(f"Unexpected project tuple length: {len(project)}. Data: {project}")
+                    continue  # Skip processing this project
+                project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, last_updated = project
+                self.process_project(email_id=email_id, app_password=app_password, project_keywords=keywords_data, filters=filters,project_name=project_name)
         else:
             success, project_details = knowledge_base.get_project_details(session_email)
             if not success:
                 logging.error(f"Error retrieving project information. Please check your inputs and try again.")
                 return
-            project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id = project_details
+            project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, last_updated  = project_details
             logging.info(f"Currently processing project: {project_details}")
-            return self.process_project(email_id=session_email, app_password=app_password, project_keywords=keywords_data, filters=filters)
+            return self.process_project(email_id=session_email, app_password=app_password, project_keywords=keywords_data, filters=filters,project_name=project_name)
                 
 
         # return render_template('index.html', emails=emails, keywords=keywords,

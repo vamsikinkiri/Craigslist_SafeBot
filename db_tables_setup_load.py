@@ -9,7 +9,6 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-
 # Function to drop tables if they exist
 def drop_tables(cursor):
     drop_tables_queries = [
@@ -74,13 +73,13 @@ def create_tables(cursor):
             AI_PROMPT_TEXT TEXT,
             RESPONSE_FREQUENCY INTEGER,
             KEYWORDS_DATA JSONB,
-            OWNER_ADMIN_ID TEXT
+            OWNER_ADMIN_ID TEXT,
+            LAST_UPDATED TIMESTAMP
         );
         """
     ]
     for query in create_tables_queries:
         cursor.execute(query)
-
 
 # Main function to set up tables and insert data
 def setup_database():
