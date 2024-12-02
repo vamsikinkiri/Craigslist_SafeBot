@@ -42,6 +42,48 @@ class EmailHandler:
         except imaplib.IMAP4.error as e:
             logging.error(f"IMAP login failed: {e}")
             raise Exception("Failed to log in. Please check your email and app password.")
+    
+    def fetch_email_by_thread_id(self, user, password, current_thread_id):
+        """
+        Fetch conversation by a particular thread id.
+        """
+        filters = {
+            'search_initiated': False,
+            'last_30_days': True,
+            'last_60_days': False,
+            'subject': None,
+            'content': None,
+            'bidirectional_address': None,
+            'start_date': None,
+            'end_date': None,
+            'selected_keyword': None
+        }
+        try:
+            mail = self.login_to_email(user, password)  # Reuse the login function
+            mail.select('"[Gmail]/All Mail"')  # Select the All Mail folder
+
+            search_criteria = self._build_search_criteria(filters)
+            _, data = mail.search(None, search_criteria)
+            _, grouped_emails, _ = self._process_email_data(mail, data)
+            for thread_id, emails in grouped_emails.items():
+                if thread_id == current_thread_id:
+                    return True, emails
+            return False, f"No conversation found for the given thread id: {current_thread_id}"
+
+        except imaplib.IMAP4.error as e:
+            logging.error(f"IMAP error during email fetching: {e}")
+            raise Exception("Failed to fetch emails. Please check your filters or email server settings.")
+
+        except Exception as e:
+            logging.error(f"Unexpected error during email fetching: {e}")
+            raise Exception("An unexpected error occurred while fetching emails.")
+
+        finally:
+            if mail:
+                try:
+                    mail.logout()
+                except Exception as e:
+                    logging.warning(f"Error during IMAP logout: {e}")
 
 
     def fetch_emails_and_keywords(self, user, password, **filters):

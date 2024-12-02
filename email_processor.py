@@ -27,7 +27,8 @@ class EmailProcessor:
     def process_grouped_emails(self, grouped_emails, session_email, project_keywords):
         for thread_id, emails in grouped_emails.items():
             conversation_history = []
-            for email in reversed(emails): # Process emails in the order they are received
+            # Process each email in the thread
+            for email in reversed(emails):
                 # Extract sender's email for comparison
                 match = re.search(r'<([^>]+)>', email['from'])
                 from_address = match.group(1) if match else email['from'].strip()
@@ -38,128 +39,129 @@ class EmailProcessor:
                 else:
                     conversation_history.append(f"User sent: {email['content']}")
 
-                # Check if the email has already been processed (scored)
-                success, is_email_processed = knowledge_base.is_email_processed(email['message_id'])
-                if not success:
-                    flash(is_email_processed, "error")
-                    return
-                if is_email_processed:
-                    continue  # Skip since we already processed this email
-
-                # Start processing the email. Fist, extract content, date and project keywords.
-                content = email['content']
-                last_active = email['date'].strftime('%Y-%m-%d %H:%M:%S')
-
-                # Perform the User Profiling
-                user_profiling.process_user_profile(thread_id=thread_id, user_email=from_address, email_content=content, last_active=last_active)
-
-                # Determine seen_keywords for the thread
-                if len(emails) == 1:
-                    # New conversation. So seen_keywords so far will be empty.
-                    seen_keywords = {}
-                else:
-                    # This email is a reply to an AI response and so seen_keywords so far needs to be extracted.
-                    keywords_success, seen_keywords = knowledge_base.get_seen_keywords(thread_id)
-                    if not keywords_success:
-                        flash(seen_keywords, "error")
-                        return
-                    
-                # Calculate the cumulative score using the project keywords and seen_keywords
-                seen_keywords, score = interaction_profiling.calculate_cumulative_score(content, project_keywords, seen_keywords)
-                
-                project_success, project_details = knowledge_base.get_project_details(session_email)
-                if not project_success:
-                    logging.error(f"Error retrieving project information. Please check your inputs and try again.", "error")
-                    flash("Error retrieving project information. Please check your inputs and try again.", "error")
-                    return
-                #logging.info(f"PROJECT: {project_details}")
-                project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, last_updated = project_details
-
-                # Update or create the thread in the database
-                success, result = knowledge_base.update_email_thread(
-                    thread_id, 
-                    session_email=session_email, 
-                    session_project=project_name, 
-                    message_id=email['message_id'], 
-                    score=score, 
-                    seen_keywords=seen_keywords
+                self._process_single_email(
+                    email, from_address, thread_id, session_email, project_keywords, conversation_history, len(emails)
                 )
-                if not success:
-                    flash(result, "error")    
+
+    def _process_single_email(self, email, from_address, thread_id, session_email, project_keywords, conversation_history, email_count):
+        # Check if the email is already processed
+        success, is_email_processed = knowledge_base.is_email_processed(email['message_id'])
+        if not success:
+            flash(is_email_processed, "error")
+            return
+        if is_email_processed:
+            return  # Skip already processed emails
+
+        # Extract email content and perform profiling
+        content = email['content']
+        last_active = email['date'].strftime('%Y-%m-%d %H:%M:%S')
+        user_profiling.process_user_profile(
+            thread_id=thread_id, 
+            user_email=from_address, 
+            email_content=content, 
+            last_active=last_active
+        )
+
+        # Get seen keywords and calculate the cumulative score
+        seen_keywords = self._get_seen_keywords(thread_id, email_count)
+        seen_keywords, score = interaction_profiling.calculate_cumulative_score(content, project_keywords, seen_keywords)
+
+        # Handle project details and thread update
+        project_success, project_details = knowledge_base.get_project_details(session_email)
+        if not project_success:
+            logging.error(f"Error retrieving project information. Please check your inputs and try again.", "error")
+            flash("Error retrieving project information. Please check your inputs and try again.", "error")
+            return
         
-                # Extract the admin email and user profile
-                admin_success, admin_email = knowledge_base.get_email_by_admin_id(admin_id=owner_admin_id)
-                if not admin_success:
-                    logging.error(admin_email)
-                    flash(admin_email)
-                    return
-                
-                user_success, user_profile = knowledge_base.get_user_profile(from_address)
-                if not user_success:
-                    flash("Failed to fetch user profile for notification.", "error")
-                    logging.error("Failed to fetch user profile for notification.")
-                    return
-                user_id, primary_email, thread_ids, email_list, contact_numbers, last_active_db, last_updated = user_profile
-                user_details = f"""User primary Email: {primary_email}\nEmail List: {email_list if email_list else 'N/A'}\nContact Numbers: {', '.join(contact_numbers) if contact_numbers else 'N/A'}\nLast Active: {last_active_db}"""
+        # logging.info(f"PROJECT: {project_details}")
+        # project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, last_updated = project_details
 
-                # Check which state the conversation is and act accordingly
-                ai_success, ai_state = knowledge_base.get_ai_response_state(thread_id=thread_id)
-                if not ai_success:
-                    flash(ai_state, "error")
-                    return
-                
-                if ai_state == 'Manual':
-                    # Notify admin for continuing the manual conversation
-                    notification_content = (
-                        f"Attention Required: Manual continuation for project {project_name}.\n\n"
-                        f"User Profile:\n{user_details}\n"
-                        f"Interaction Score: {score}\n"
-                        #f"Thread ID: {str(thread_id)}\n\n"
-                        f"Please login to the email account associated with {session_email} and continue the manual conversation with the subject: \"{email['subject']}\".\n\n"
-                    )
+        self._update_email_thread(email, thread_id, session_email, project_details, score, seen_keywords)
+        # Determine and act on the AI response state
+        self._handle_ai_response_state(email, thread_id, session_email, project_details, score, conversation_history, from_address)
 
-                    # Send notification email to admin
-                    email_handler.send_email(
-                        from_address=session_email,
-                        app_password=app_password,
-                        to_address=admin_email,
-                        content=notification_content,
-                        subject=f"Manual Continuation Alert - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-                    )
-                    logging.info('*'*50 + "SENT EMAIL TO ADMIN FOR MANUAL CONTINUATION" + '*'*50)
+    def _get_seen_keywords(self, thread_id, email_count):
+        if email_count == 1:
+            return {}
+        success, seen_keywords = knowledge_base.get_seen_keywords(thread_id)
+        if not success:
+            flash(seen_keywords, "error")
+            return {}
+        return seen_keywords
 
-                elif ai_state == 'Automated' and score > 0:
-                    # AI is enabled and user is a potential criminal, need to generate an AI response.
-                    if score < 75:
-                        # Continue the conversation by sending an AI generated response
-                        self.schedule_or_send_reply(
-                            email=email, 
-                            conversation_history=conversation_history, 
-                            session_email=session_email, 
-                            app_password=app_password, 
-                            response_frequency=response_frequency)
-                    else:
-                        # The score crossed the threshold, notify the admin via email and update the current response state of the thread to Manual
-                        notification_content = (
-                            f"Attention Required: Manual takeover for project {project_name}.\n\n"
-                            f"User Profile:\n{user_details}\n"
-                            f"Interaction Score: {score}\n"
-                            #f"Thread ID: {str(thread_id)}\n\n"
-                            f"Please login to the email account associated with {session_email} and takeover the conversation with the subject: \"{email['subject']}\".\n\n"
-                        )
+    def _update_email_thread(self, email, thread_id, session_email, project_details, score, seen_keywords):
+        success, result = knowledge_base.update_email_thread(
+            thread_id=thread_id,
+            session_email=session_email,
+            session_project=project_details[2],
+            message_id=email['message_id'],
+            score=score,
+            seen_keywords=seen_keywords
+        )
+        if not success:
+            flash(result, "error")
 
-                        email_handler.send_email(
-                            from_address=session_email,
-                            app_password=app_password,
-                            to_address=admin_email,
-                            content=notification_content,
-                            subject=f"Manual Takeover Alert: Score Exceeded Threshold ({score}) - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-                        )
-                        logging.info('*'*50 + "SENT EMAIL TO ADMIN" + '*'*50)
-                        knowledge_base.update_ai_response_state(thread_id=thread_id, new_state='Manual')
-                        
+    def _handle_ai_response_state(self, email, thread_id, session_email, project_details, score, conversation_history, from_address):
+        # Extract the admin email
+        admin_success, admin_email = knowledge_base.get_email_by_admin_id(admin_id=project_details[7])
+        if not admin_success:
+            logging.error(admin_email)
+            flash(admin_email)
+            return
+        
+        # Extract the user profile
+        user_success, user_profile = knowledge_base.get_user_profile(from_address)
+        if not user_success:
+            flash("Failed to fetch user profile for notification.", "error")
+            logging.error("Failed to fetch user profile for notification.")
+            return
+        user_id, primary_email, thread_ids, email_list, contact_numbers, last_active_db, last_updated = user_profile
+        user_details = f"""User primary Email: {primary_email}\nEmail List: {email_list if email_list else 'N/A'}\nContact Numbers: {', '.join(contact_numbers) if contact_numbers else 'N/A'}\nLast Active: {last_active_db}"""
 
-    def schedule_or_send_reply(self, email, conversation_history, session_email, app_password, response_frequency):
+        # Extract the AI response state
+        ai_success, ai_state = knowledge_base.get_ai_response_state(thread_id)
+        if not ai_success:
+            flash(ai_state, "error")
+            return
+
+        app_password = project_details[3]
+        admin_prompt = project_details[4] 
+        response_frequency = project_details[5]
+
+        if ai_state == 'Manual':
+            self._notify_admin(project_details[2], admin_email, session_email, app_password, email, user_details, score, thread_id)
+        elif ai_state == 'Automated' and score > 0:
+            if score < 75:
+                self.schedule_or_send_reply(email, conversation_history, session_email, app_password, response_frequency, admin_prompt)
+            else:
+                self._notify_admin(project_details[2], admin_email, session_email, app_password, email, user_details, score, thread_id, threshold_exceeded=True)
+                knowledge_base.update_ai_response_state(thread_id, 'Manual')
+
+    def _notify_admin(self, project_name, admin_email, session_email, app_password, email, user_details, score, thread_id, threshold_exceeded=False):
+        if threshold_exceeded:
+            action = "Manual takeover" 
+            subject = f"Manual Takeover Alert: Score Exceeded Threshold ({score}) - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        else:
+            action = "Manual continuation"
+            subject=f"Manual Continuation Alert - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+
+        notification_content = (
+            f"Attention Required: {action} for project {project_name}.\n\n"
+            f"User Profile:\n{user_details}\n"
+            f"Interaction Score: {score}\n"
+            f"Please login to the email account associated with {session_email} and continue the conversation with the subject: \"{email['subject']}\".\n"
+        )
+
+        email_handler.send_email(
+            from_address=session_email,
+            app_password=app_password,
+            to_address=admin_email,
+            content=notification_content,
+            subject=subject
+        )
+        logging.info('*'*10 + "Email sent to Admin" + "*"*10)               
+
+    def schedule_or_send_reply(self, email, conversation_history, session_email, app_password, response_frequency, admin_prompt):
         """
         Schedule or send an email reply based on response frequency, ensuring emails are sent during normal hours.
         """
@@ -185,7 +187,7 @@ class EmailProcessor:
 
         if (send_time - current_time).total_seconds() <= 0:
             # If delay is negative or zero, send the reply immediately
-            self.generate_and_send_response(email, conversation_history, session_email, app_password)
+            self.generate_and_send_response(email, conversation_history, session_email, app_password, admin_prompt)
         else:
             # Schedule the email to be sent later
             scheduler.add_job(
@@ -198,7 +200,7 @@ class EmailProcessor:
             logging.info(f"Scheduled reply for email {email['message_id']} at {send_time}")
 
 
-    def generate_and_send_response(self, email, conversation_history, session_email, app_password):
+    def generate_and_send_response(self, email, conversation_history, session_email, app_password, admin_prompt):
         # Step 1: Combine conversation history into a single string
         previous_conversations = "\n".join(conversation_history)
 
@@ -206,12 +208,6 @@ class EmailProcessor:
         email_content = email['content']
 
         # Step 3: Generate response using the prompt
-        success, project_details = knowledge_base.get_project_details(session_email)
-        if not success:
-            logging.error(project_details)
-            flash(project_details, "error")
-        #logging.info(f"PROJECT: {project_details}")
-        _, _, _, _, admin_prompt, _, _, _, _ = project_details
         full_prompt = (
             f"{admin_prompt}\n\n"
             f"The following is a email conversation between a user (potential criminal) and an AI assistant (user doesn't know that he is having a conversation with an AI assistant):\n\n"
@@ -257,3 +253,65 @@ class EmailProcessor:
 
         #logging.info(f"Response sent successfully.")
         return
+    
+    def switch_to_automated(self, thread_id, session_email, app_password, response_frequency, admin_prompt):
+        """
+        Switch a conversation's state from Manual to Automated, reset its score,
+        and reschedule a response if necessary.
+        """
+        # Step 1: Update the AI response state to 'Automated'
+        success, message = knowledge_base.update_ai_response_state(thread_id, 'Automated')
+        if not success:
+            logging.error(f"Failed to switch AI state: {message}")
+            return False, message
+
+        # Step 2: Reset the interaction score (e.g., set it to 0)
+        reset_score = 0  # We can also reduce the score by a percentage if needed
+        success, message = knowledge_base.update_email_score(thread_id, reset_score)
+        if not success:
+            logging.error(f"Failed to reset email score: {message}")
+            return False, message
+
+        logging.info(f"Successfully switched thread {thread_id} to Automated and reset its score.")
+
+        # Step 3: Fetch the latest email in the thread and reschedule
+        success, grouped_emails = email_handler.fetch_email_by_thread_id(
+            user=session_email, 
+            password=app_password, 
+            current_thread_id=thread_id
+        )
+        if not success:
+            logging.error(grouped_emails)
+            return False, grouped_emails
+        
+        grouped_email = grouped_emails[1]
+        conversation_history = []
+        for email in reversed(grouped_email): # Process emails in the order they are received
+            # Extract sender's email for comparison
+            match = re.search(r'<([^>]+)>', email['from'])
+            from_address = match.group(1) if match else email['from'].strip()
+
+            if from_address == session_email:
+                conversation_history.append(f"We replied: {email['content']}")
+                continue  # Ignore the emails the chatbot sent
+            else:
+                conversation_history.append(f"User sent: {email['content']}")
+
+        # Process the most recent email in the conversation
+        latest_email = grouped_email[0]
+        self.schedule_or_send_reply(
+            email=latest_email,
+            conversation_history=conversation_history,
+            session_email=session_email,
+            app_password=app_password,
+            response_frequency=response_frequency,
+            admin_prompt=admin_prompt
+        )
+
+        return True, "Successfully switched to Automated and rescheduled the response."
+    
+    def switch_to_manual(self, thread_id):
+        knowledge_base.update_ai_response_state(thread_id, 'Manual')
+    
+    def switch_to_archive(self, thread_id):
+        knowledge_base.update_ai_response_state(thread_id, 'Archive')
