@@ -219,8 +219,7 @@ class EmailProcessor:
         #logging.info(full_prompt)
         #prompt = "You are a police detective and posted an ad saying you are looking to buy watches at a cheap price in the hope of catching some criminals."
         response_text = response_generator.generate_response(full_prompt)
-        logging.info(response_text)
-        logging.info('*'*50)
+        # logging.info(response_text)
 
         # Step 4: Send the response as a reply and include the original email as quoted content
         quoted_conversation = ""
@@ -250,8 +249,7 @@ class EmailProcessor:
             message_id=email['message_id'],
             subject="Re: " + subject
         )
-
-        #logging.info(f"Response sent successfully.")
+        logging.info(f'*'*10 + f"Response successfully sent to {to_address}" + "*"*10)
         return
     
     def switch_to_automated(self, thread_id, session_email, app_password, response_frequency, admin_prompt):
@@ -280,17 +278,16 @@ class EmailProcessor:
             password=app_password, 
             current_thread_id=thread_id
         )
+        # logging.info(f"Debugging the grouped emails: {grouped_emails}")
         if not success:
             # logging.error(grouped_emails)
             logging.error(f"Error fetching email by thread ID: {grouped_emails}")
             return False, grouped_emails
         
-        grouped_email = grouped_emails[1]
         conversation_history = []
-        for email in reversed(grouped_email): # Process emails in the order they are received
+        for email in reversed(grouped_emails): # Process emails in the order they are received
             # Extract sender's email for comparison
             match = re.search(r'<([^>]+)>', email['from'])
-            logging.error(f"Unexpected data structure for email: {type(email)}")
             from_address = match.group(1) if match else email['from'].strip()
 
             if from_address == session_email:
@@ -298,9 +295,10 @@ class EmailProcessor:
                 continue  # Ignore the emails the chatbot sent
             else:
                 conversation_history.append(f"User sent: {email['content']}")
-
+        
+        # logging.info(f"Debugging the conversation: {conversation_history}")
         # Process the most recent email in the conversation
-        latest_email = grouped_email[0]
+        latest_email = grouped_emails[0]
         self.schedule_or_send_reply(
             email=latest_email,
             conversation_history=conversation_history,
