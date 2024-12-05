@@ -281,7 +281,8 @@ class EmailProcessor:
             current_thread_id=thread_id
         )
         if not success:
-            logging.error(grouped_emails)
+            # logging.error(grouped_emails)
+            logging.error(f"Error fetching email by thread ID: {grouped_emails}")
             return False, grouped_emails
         
         grouped_email = grouped_emails[1]
@@ -289,6 +290,7 @@ class EmailProcessor:
         for email in reversed(grouped_email): # Process emails in the order they are received
             # Extract sender's email for comparison
             match = re.search(r'<([^>]+)>', email['from'])
+            logging.error(f"Unexpected data structure for email: {type(email)}")
             from_address = match.group(1) if match else email['from'].strip()
 
             if from_address == session_email:
@@ -311,7 +313,19 @@ class EmailProcessor:
         return True, "Successfully switched to Automated and rescheduled the response."
     
     def switch_to_manual(self, thread_id):
-        knowledge_base.update_ai_response_state(thread_id, 'Manual')
-    
+        success, message  = knowledge_base.update_ai_response_state(thread_id, 'Manual')
+        if success:
+            return True, "Email thread switched to manual successfully."
+        else:
+            return False, message
+
     def switch_to_archive(self, thread_id):
-        knowledge_base.update_ai_response_state(thread_id, 'Archive')
+        # First, verify the thread ID exists in the database
+        success, ai_state = knowledge_base.get_ai_response_state(thread_id)
+
+        if not success:
+            logging.error(f"Thread ID not found: {thread_id}. Cannot archive non-existing thread.")
+            return False, f"No thread found with the given thread ID."
+
+        # Proceed to archive if it exists
+        return knowledge_base.update_ai_response_state(thread_id, 'Archive')

@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
     <title>CRAIGSLIST SAFEBOT</title>
 
     <style>
@@ -68,7 +66,7 @@
             border-radius: 10px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             width: 90%;
-            max-width: 900px;
+            max-width: 950px;
             margin-top: 10px; /* Reduced margin-top */
             margin-bottom: 20px;
             display: flex;
@@ -130,6 +128,9 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 14px;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            width:270px;
         }
         .date-range-button:hover {
             background-color: #134258;
@@ -141,13 +142,20 @@
         .date-range-button.active-60 {
             background-color: #007195;
         }
-        input[type="text"], select, button {
+        input[type="text"], select {
             padding: 15px;
             border: 2px solid #023e8a;
             border-radius: 5px;
             width: 100%;
             box-sizing: border-box;
             margin-bottom: 10px;
+        }
+
+        input[type="text"], button {
+            padding: 15px;
+            border: 2px solid #023e8a;
+            border-radius: 5px;
+            box-sizing: border-box;
         }
         .title {
             flex-grow: 1;
@@ -172,7 +180,7 @@
         .email-chain {
             background: #fff;
             padding: 15px;
-            margin-top: 10px 0;
+            margin-top: 10px;
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             transition: box-shadow 0.3s ease;
@@ -242,6 +250,23 @@
             align-items: center;
             gap: 10px;
         }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between; /* Spread buttons evenly across the container */
+            width: 100%; /* Make sure the buttons use the whole row */
+            padding: 5px 0;
+        }
+
+        .button-container button {
+            flex: 1; /* Each button takes equal space */
+            margin-right: 10px; /* Optional: spacing between buttons */
+        }
+
+        .button-container button:last-child {
+            margin-right: 0; /* Remove the right margin from the last button */
+        }
+
         .email-chain-content {
             display: none; /* Hidden by default */
             margin-top: 10px;
@@ -303,7 +328,7 @@
         }
         .toggle-switch {
             position: relative;
-            width: 40px;
+            width: 30px;
             height: 20px;
         }
         .toggle-switch input {
@@ -318,10 +343,11 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: red;
+            background-color: #b31524; /* Default Red for manual */
             transition: .4s;
-            border-radius: 20px;
+            border-radius: 20px; /* Rounded corners for the slider */
         }
+
         .slider:before {
             position: absolute;
             content: "";
@@ -329,20 +355,34 @@
             width: 16px;
             left: 2px;
             bottom: 2px;
-            background-color: white;
+            background-color: white; /* Circle color */
             transition: .4s;
-            border-radius: 50%;
+            border-radius: 50%; /* Circle shape */
         }
-        input:checked + .slider {
-            background-color: green;
+
+        /* Toggle switch - checked state (automated - green) */
+        .toggle-switch input:checked + .slider {
+            background-color: #0c600c; /* Green for automated */
         }
-        input:checked + .slider:before {
-            transform: translateX(20px);
+
+        .toggle-switch input:checked + .slider:before {
+            transform: translateX(20px); /* Move the circle to the right */
         }
+
+        /* Default state - unchecked (manual - red) */
+        .toggle-switch input + .slider {
+            background-color: #b31524; /* Red for manual */
+        }
+
+        .toggle-switch input + .slider:before {
+            transform: translateX(0); /* Reset the position for the unchecked state */
+        }
+
+
         .toggle-button {
             background: none;
             border: none;
-            color: #0096c7;
+            color: #106f8d;
             font-size: 20px;
             cursor: pointer;
             padding: 0;
@@ -528,6 +568,7 @@
             font-size: 20px;
             font-weight: 600;
             margin-top: 10px;
+            text-decoration: none;
         }
         .sidebar-item:hover {
             background-color: #eaeaea;
@@ -634,6 +675,120 @@
             opacity: 0.8; /* Slight hover effect */
         }
 
+        /* Style for Top K input container to match other fields */
+        .top-k-container {
+            margin-bottom: 10px;
+        }
+
+        .top-k-container label {
+            font-size: 14px;
+            color: #333;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            cursor: help;  /* Indicates that there is more information on hover */
+        }
+
+        .top-k-container input[type="number"] {
+            padding: 15px;
+            border: 2px solid #023e8a;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Optional - add a hover effect for the label to indicate there's more info */
+        .top-k-container label:hover {
+            color: #007195;
+        }
+
+        /* Info icon styling for the top K container */
+        .top-k-container {
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .top-k-container .info-icon {
+            font-size: 18px;
+            color: #007195;
+            position: absolute;
+            right: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: help;
+        }
+
+        .top-k-container .info-icon:hover {
+            color: #134258;
+        }
+
+        /* Styling for the archive button */
+        .archive-button {
+            background: None;
+            color: #106f8d;
+            padding: 0px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background-color 0.3s;
+            margin-left: 10px;                  /* Add some space between toggle button and archive button */
+            display: flex;                      /* Flex to align icon and text */
+            align-items: center;
+            gap: 5px;                           /* Space between icon and text */
+        }
+
+        .archive-button:hover {
+            background-color: #c3ccd0;
+            padding: 3px;
+        }
+        .tooltip-text {
+            visibility: hidden; /* Hidden by default */
+            background-color: #333; /* Dark background for tooltip */
+            color: #fff; /* White text */
+            text-align: center;
+            border-radius: 5px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Position above the icon */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        .email-timestamp {
+            font-size: small;
+            color: #666;
+        }
+        .flash-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #323232;
+            color: black;
+            padding: 16px;
+            border-radius: 5px;
+            z-index: 1000;
+            opacity: 0.95;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.5);
+            font-size: 16px;
+            text-align: center;
+        }
+        .flash-message.success {
+            background-color: #d1ecf1;  /* Green for success */
+        }
+        .flash-message.error {
+            background-color: #f8d7da;  /* Red for error */
+        }
 
 
 
@@ -685,6 +840,11 @@
     <div class="sidebar-item" onclick="redirectToView('email-view')">
         Email View
     </div>
+    <a href="{{ url_for('view_archived_emails') }}" class="sidebar-item">
+        Archived Emails
+    </a>
+
+
 </div>
 <!-- Title for the Project Name -->
 <div class="project-title">
@@ -698,6 +858,18 @@
             <input type="text" name="email" placeholder="Email (From or To)" value="{{ request.args.get('email', '') }}">
             <input type="text" name="subject" placeholder="Subject" value="{{ request.args.get('subject', '') }}">
             <input type="text" name="content" placeholder="Content" value="{{ request.args.get('content', '') }}">
+            <div class="top-k-container">
+                <input type="number"
+                       id="top_k_value"
+                       name="top_k_value"
+                       value="{{ request.args.get('top_k_value', '') }}"
+                       placeholder="Enter value of K to display top K email threads based on score"
+                       min="1"
+                       title="Please type top K email threads based on score">
+                <i class="fas fa-info-circle info-icon"
+                   title="The score represents the interaction level of email threads, computed based on factors like engagement frequency and content relevance."></i>
+            </div>
+
             <div class="date-container">
                 <label>
                     <input type="date" name="start_date" id="start_date" value="{{ request.args.get('start_date', '') }}" placeholder="Start Date">
@@ -712,6 +884,7 @@
                 <button type="button" id="last-30-days-button" class="date-range-button" onclick="setDateRange(30); setButtonState(this, 'active-30');">Last 30 Days</button>
                 <button type="button" id="last-60-days-button" class="date-range-button" onclick="setDateRange(60); setButtonState(this, 'active-60');">Last 60 Days</button>
             </div>
+
             <select name="keyword">
                 <option value="">Relevant Keywords</option>
                 {% for keyword in keywords %}
@@ -726,22 +899,43 @@
 
         </form>
     </div>
+
+
     <div class="results-container">
         {% if conversations %}
             <div>
                 {% for key, details in conversations.items() %}
-                    <div class="email-chain">
+                    <div class="email-chain" data-thread-id="{{ key }}">
                         <div class="email-chain-header">
                             <div class="subject-box" style="width: 70%;">{{ details[0]['subject'].replace('Re: ', '') }}</div>
                             <div class="email-score" style="width: 20%; text-align: right;">
                                 Score: {{ conversations_score.get(key, '0') }}
                             </div>
                             <div class="button-box">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="toggleChatGPT1" onclick="toggleChatGPT(this)">
+                                <label class="toggle-switch" title="Click on this to toggle AI response state between automated and manual. (Automated: Green | Manual: Red)">
+                                    <input type="checkbox" id="toggleChatGPT{{ loop.index }}"
+                                           onclick="toggleChatGPT(this)"
+                                            {% if ai_response_state.get(key) == 'Automated' %} checked {% endif %}>
                                     <span class="slider"></span>
                                 </label>
-                                <button class="toggle-button" onclick="toggleEmailChain('chain-{{ loop.index }}', this)">+</button>
+                            </div>
+                            <button class="archive-button" title="Click on this to archive this email conversation."  onclick="archiveEmail(this)">
+                                <i class="fas fa-archive"></i>
+                            </button>
+                            <button class="toggle-button" onclick="toggleEmailChain('chain-{{ loop.index }}', this)">+</button>
+
+                            <!-- Conditional timestamp display -->
+                            <div class="email-timestamp" style="width: 6%; text-align: right; ">
+                                {% set email_date = latest_timestamp.get(key) %}
+                                {% if email_date %}
+                                    {% if email_date.date() == current_date %}
+                                        {{ email_date.strftime('%I:%M %p') }}
+                                    {% else %}
+                                        {{ email_date.strftime('%b %d') }}
+                                    {% endif %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
                             </div>
                         </div>
 
@@ -767,8 +961,41 @@
 
 <script>
     function toggleChatGPT(toggle) {
-        console.log(`ChatGPT is now ${toggle.checked ? 'Enabled' : 'Disabled'}`);
+        // Get the parent element of the toggle switch
+        const emailChain = toggle.closest('.email-chain');
+
+        // Extract the thread ID from the 'data-thread-id' attribute
+        if (!emailChain) {
+            console.error('Could not find the email chain container');
+            return;
+        }
+
+        const threadId = emailChain.getAttribute('data-thread-id');
+
+        // Determine the new AI response state based on the toggle button's checked state
+        const newState = toggle.checked ? 'Automated' : 'Manual';
+
+        // Make an AJAX request to update the state
+        fetch('/update_ai_response_state', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ thread_id: threadId, new_state: newState })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log(`AI response state updated to ${newState} successfully.`);
+                } else {
+                    console.error('Error updating AI response state:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     }
+
 
     function toggleEmailChain(chainId, button) {
         const content = document.getElementById(chainId);
@@ -861,6 +1088,9 @@
             case 'email-view':
                 window.location.href = '{{ url_for("email_view") }}';
                 break;
+            case 'archived_emails':
+                window.location.href = '{{ url_for("view_archived_emails") }}';
+                break;
             default:
                 window.location.href = '{{ url_for("index") }}';
                 break;
@@ -904,7 +1134,56 @@
             button.textContent = 'Manual'; // Update button text
         }
     }
+    function archiveEmail(button) {
+        // Extract the thread ID from the button's parent email chain
+        const emailChain = button.closest('.email-chain');
+        const threadId = emailChain.getAttribute('data-thread-id');
 
+        // Make AJAX request to archive the email thread
+        fetch('/archive_email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ key: threadId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the email from the active list
+                    emailChain.remove();
+
+
+                    // Display a flash message indicating successful archiving
+                    showFlashMessage(data.message, "success");
+
+                    // Optionally update the archived section if displayed
+                    console.log(`Archived email thread with ID ${threadId} successfully.`);
+                } else {
+                    console.error("Failed to archive thread:", data.message);
+                    showFlashMessage(data.message, "error");
+                }
+            })
+            .catch(error => {
+                console.error("Error in archiving thread:", error);
+                showFlashMessage("An error occurred while archiving the email.", "error");
+            });
+    }
+
+    function showFlashMessage(message, type) {
+        // Create a new div element for the flash message
+        const flashMessageDiv = document.createElement('div');
+        flashMessageDiv.className = `flash-message ${type}`;
+        flashMessageDiv.textContent = message;
+
+        // Append the flash message to the body or a specific container
+        document.body.appendChild(flashMessageDiv);
+
+        // Automatically remove the flash message after a few seconds
+        setTimeout(() => {
+            flashMessageDiv.remove();
+        }, 3000);  // 3 seconds duration, you can adjust this as needed
+    }
 
 
 

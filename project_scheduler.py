@@ -59,6 +59,7 @@ class ProjectScheduler:
         # Filter emails by selected keyword
         if filters['selected_keyword']:
             grouped_emails = {key: details for key, details in grouped_emails.items()
+                                ## Key
                             if any(filters['selected_keyword'].lower() in email['subject'].lower() or
                                     filters['selected_keyword'].lower() in email['content'].lower() for email in details)}
         
@@ -70,6 +71,7 @@ class ProjectScheduler:
             "last_60_days": filters['last_60_days'], 
             "conversations": grouped_emails,
             "conversations_score": conversations_score,
+            "latest_timestamp": latest_timestamp,  # Include latest timestamp
             "start_date": filters['start_date'], 
             "end_date": filters['end_date'],
             "project_name": project_name
@@ -111,24 +113,37 @@ class ProjectScheduler:
             project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, last_updated  = project_details
             logging.info(f"Currently processing project: {project_details}")
             data = self.process_project(email_id=session_email, app_password=app_password, project_keywords=keywords_data, filters=filters, project_name=project_name)
+
+
             # Divide grouped emails by AI state
             manual_and_automated_emails = {}
             archived_emails = {}
+            ai_response_states = {}
+            latest_timestamp = data['latest_timestamp']
+
 
             for thread_id, email_list in data['conversations'].items():
                 state_success, ai_state = knowledge_base.get_ai_response_state(thread_id)
                 if not state_success:
-                    manual_and_automated_emails[thread_id] = email_list
+                    # manual_and_automated_emails[thread_id] = email_list
                     logging.info(f"This is a manually sent alert to an admin {thread_id}: {email_list}")
                     continue
 
+                ai_response_states[thread_id] = ai_state
                 if ai_state == "Archive":
                     archived_emails[thread_id] = email_list
                 else:
                     manual_and_automated_emails[thread_id] = email_list
-            
+            # Extract latest timestamp for archived emails
+            archived_timestamps = {thread_id: latest_timestamp[thread_id] for thread_id in archived_emails.keys() if thread_id in latest_timestamp}
+
+
             data['conversations'] = manual_and_automated_emails
+            data['archived_emails'] = archived_emails  # Add archived emails to the data dictionary
+            data['ai_response_state'] = ai_response_states
+            session['archived_latest_timestamp'] = archived_timestamps
             session['current_project_archived_emails'] = archived_emails
+
             
             #logging.info(f"The manual and automated conversations are \n: {data['conversations']}")
             #logging.info(f"The archived conversations are \n: {session['current_project_archived_emails']}")

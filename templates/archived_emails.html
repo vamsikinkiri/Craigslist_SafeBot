@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Archived Emails</title>
+
+    <style>
+        .email-score {
+            font-size: 16px;
+            font-weight: bold;
+            color: #134258; /* Match theme */
+            padding: 5px 10px;
+            border-radius: 5px;
+            white-space: nowrap;
+            margin-right: 0px;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #eaeaea;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header {
+            background-color: #134258;
+            color: white;
+            padding: 20px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 28px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            text-decoration: none;
+        }
+        .header-title {
+            flex: 1;
+            text-align: center;
+            font-size: 34px;
+            margin-right: 10%;
+            text-decoration: none;
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 40px 50px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 950px;
+            margin-top: 10px; /* Reduced margin-top */
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .chatgpt-button {
+            background-color: #989898;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 10px 0;
+            align-self: flex-end;
+        }
+        .chatgpt-button:hover {
+            background-color: #505050;
+        }
+        .date-container {
+            display: flex;
+            gap: 10px;
+        }
+        .date-container label {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+        .date-container input {
+            padding: 15px;
+            border: 2px solid #023e8a;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .date-container label span {
+            position: absolute;
+            right: 10px;
+            top: -10px;
+            background: white;
+            padding: 0 5px;
+            font-size: 12px;
+            color: #666;
+        }
+        .date-range-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .date-range-button {
+            background-color: #007195;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            width:270px;
+        }
+        .date-range-button:hover {
+            background-color: #134258;
+        }
+
+        .date-range-button.active-30 {
+            background-color: #007195;
+        }
+        .date-range-button.active-60 {
+            background-color: #007195;
+        }
+        input[type="text"], select {
+            padding: 15px;
+            border: 2px solid #023e8a;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"], button {
+            padding: 15px;
+            border: 2px solid #023e8a;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .title {
+            flex-grow: 1;
+            text-align: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        button {
+            background-color: #007195;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #134258;
+        }
+        .email-chain {
+            background: #fff;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .email-chain:hover {
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .subject-box {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .score-box {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #134258; /* Match with theme color */
+            background-color: #e0f7fa; /* Light background for better visibility */
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin: 0 10px;
+        }
+
+
+        .email-chain-header .button-box {
+            flex-shrink: 0;
+        }
+        .email-chain-header {
+            background: none;
+            border: none;
+            color: #343d40;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+        }
+        .email-chain-header {
+            display: flex;
+            justify-content: right;
+            align-items: center;
+            cursor: pointer;
+            font-weight: bold;
+            gap: 50px;
+        }
+        .email-chain-header {
+            flex-grow: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .button-box button {
+            background: none;
+            border: none;
+            color: #0096c7;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+        }
+        /* Adjustments to the button container */
+        .button-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between; /* Spread buttons evenly across the container */
+            width: 100%; /* Make sure the buttons use the whole row */
+            padding: 5px 0;
+        }
+
+        .button-container button {
+            flex: 1; /* Each button takes equal space */
+            margin-right: 10px; /* Optional: spacing between buttons */
+        }
+
+        .button-container button:last-child {
+            margin-right: 0; /* Remove the right margin from the last button */
+        }
+
+        .email-chain-content {
+            display: none; /* Hidden by default */
+            margin-top: 10px;
+            transition: none; /* Ensure no transition on display change */
+        }
+
+        /* Content styling */
+        .content {
+            margin-left: 220px; /* Ensure it starts after the sidebar */
+            padding: 20px;
+            flex-grow: 1; /* Takes the remaining space */
+            background-color: #f4f4f4;
+            box-sizing: border-box;
+        }
+
+        .email {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            max-height: 150px; /* Set a maximum height */
+            overflow-y: auto; /* Enable vertical scrolling */
+            word-wrap: break-word; /* Break words if they are too long */
+        }
+        .button-container {
+            display: flex;
+            justify-content: flex-end; /* Aligns buttons to the right */
+            gap: 10px; /* Spacing between buttons */
+        }
+
+        .email:nth-child(odd) {
+            background-color: #e0e0e0;
+        }
+        .email:nth-child(even) {
+            background-color: #ffffff;
+        }
+        .email p {
+            margin: 5px 0;
+        }
+        .email p strong {
+            display: inline;
+        }
+        .results-container {
+            width: 100%;
+            margin-top: 20px;
+        }
+        .results-container p {
+            margin: 0 0 10px;
+        }
+        .toggle-chatgpt-button {
+            padding: 5px 10px;
+            font-size: 12px;
+            border: 1px solid #0096c7;
+            background-color: #fff;
+            color: #0096c7;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+            margin-left: 10px;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 30px;
+            height: 20px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #b60e0e;
+            transition: .4s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #0c600c;
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        .toggle-button {
+            background: none;
+            border: none;
+            color: #106f8d;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+        }
+        .logout-button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            margin-right: 30px;
+        }
+        /* Add margins to position Home and Logout */
+        .left a {
+            margin-left: 20px; /* Push Home button to the right */
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .settings-button .icon, .logout-button .icon{
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .header .settings:hover .dropdown {
+            display: block;
+        }
+
+        .header .settings .dropdown a {
+            display: block;
+            padding: 8px 15px;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .header .settings .dropdown a:hover {
+            background-color: #eaeaea;
+            text-decoration: none;
+        }
+        .settings-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .settings-button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            margin-right: 20px;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #ffffff;
+            min-width: 250px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            z-index: 1;
+            font-size: 18px;
+        }
+
+        .dropdown-content a {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.3s;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #eaeaea;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #eaeaea;
+        }
+
+        .settings-dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            background-color: #0096c7;
+            padding: 15px;
+            font-size: 20px;
+            color: #ffffff;
+        }
+
+        .nav-item {
+            margin-right: 20px;
+            position: relative;
+        }
+
+        .nav-item a {
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: bold;
+            padding: 10px;
+        }
+
+        .nav-item .icon {
+            margin-right: 8px;
+            font-size: 20px;
+        }
+
+        .user-profiles-button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+        }
+
+        .user-profiles-button .icon {
+            margin-right: 8px;
+        }
+
+        /* Sidebar styling with a complementary color */
+        .sidebar {
+            width: 250px;
+            background-color: #ffffff; /* Light complementary color */
+            color: #333;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 80px;
+            left: -250px;
+            height: 100%;
+            transition: left 0.3s ease;
+            z-index: 999;
+            border-right: 1px solid #e0e0e0;
+        }
+        .sidebar.active {
+            left: 0;
+        }
+        .sidebar h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            font-weight: 700;
+            color: #0a597e; /* Matching color to the header for branding consistency */
+            text-align: center;
+        }
+        .sidebar-item {
+            color: #333;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s;
+            margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .sidebar-item:hover {
+            background-color: #eaeaea;
+        }
+        .dropdown-menu {
+            display: none;
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+        .menu-icon {
+            font-size: 24px;
+            cursor: pointer;
+            margin-right: auto;
+        }
+        .dropdown-item {
+            color: #555;
+            padding: 8px 0;
+            cursor: pointer;
+        }
+        .dropdown-item:hover {
+            color: #eaeaea;
+        }
+        .filters-container {
+            display: none; /* Set to 'none' if you want filters hidden by default */
+            margin-bottom: 20px;
+        }
+
+        .email-list {
+            margin-top: 20px;
+        }
+        .project-title {
+            width: 100%;
+            text-align: center;
+            margin-top: 100px; /* Space below the header */
+            margin-bottom: 10px; /* Space above the container */
+            font-size: 30px;
+            font-weight: bold;
+            color: #134258; /* Match theme color */
+        }
+        .switch-projects-btn {
+            background-color: #134258;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            margin-left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .state-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .state-label {
+            font-size: 14px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .state-btn {
+            padding: 5px 10px;
+            font-size: 12px;
+            background-color: #007195;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .state-btn:hover {
+            background-color: #005f73;
+        }
+        .state-toggle-btn {
+            transition: all 0.3s ease-in-out;
+        }
+
+        .state-toggle-btn:hover {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transform: scale(1.1);
+        }
+
+        .manual-mode {
+            background-color: #007bff; /* Blue for Manual */
+        }
+
+        .automated-mode {
+            background-color: #28a745; /* Green for Automated */
+        }
+
+        .archive-mode {
+            background-color: #dc3545; /* Red for Archive */
+        }
+
+        .toggle-button:hover {
+            opacity: 0.8; /* Slight hover effect */
+        }
+
+        /* Style for Top K input container to match other fields */
+        .top-k-container {
+            margin-bottom: 10px;
+        }
+
+        .top-k-container label {
+            font-size: 14px;
+            color: #333;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            cursor: help;  /* Indicates that there is more information on hover */
+        }
+
+        .top-k-container input[type="number"] {
+            padding: 15px;
+            border: 2px solid #023e8a;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Optional - add a hover effect for the label to indicate there's more info */
+        .top-k-container label:hover {
+            color: #007195;
+        }
+
+        /* Info icon styling for the top K container */
+        .top-k-container {
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .top-k-container .info-icon {
+            font-size: 18px;
+            color: #007195;
+            position: absolute;
+            right: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: help;
+        }
+
+        .top-k-container .info-icon:hover {
+            color: #134258;
+        }
+
+        /* Styling for the archive button */
+        .archive-button {
+            background: None;
+            color: #106f8d;
+            padding: 0px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background-color 0.3s;
+            margin-left: 10px;                  /* Add some space between toggle button and archive button */
+            display: flex;                      /* Flex to align icon and text */
+            align-items: center;
+            gap: 5px;                           /* Space between icon and text */
+        }
+
+        .archive-button:hover {
+            background-color: #c3ccd0;
+            padding: 3px;
+        }
+        .tooltip-text {
+            visibility: hidden; /* Hidden by default */
+            background-color: #333; /* Dark background for tooltip */
+            color: #fff; /* White text */
+            text-align: center;
+            border-radius: 5px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Position above the icon */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body>
+<header>
+    <i class="fas fa-bars menu-icon" onclick="toggleSidebar()"></i>
+    <div class="left">
+        <a href="{{ url_for('index') }}" class="nav-item">
+            <i class="fas fa-home icon"></i> Home
+        </a>
+        <!-- Switch Projects Button -->
+        <a href="{{ url_for('all_projects_view') }}" class="btn switch-projects-btn">
+            <i class="fas fa-exchange-alt"></i> Switch Projects
+        </a>
+    </div>
+    <div class="header-title">Craigslist Safebot</div>
+    <!-- Logout Button on the right -->
+    <div class="right">
+        <!-- Settings Dropdown -->
+        <div class="settings-dropdown">
+            <button class="settings-button" onclick="toggleDropdown('settings-options')">
+                <i class="fas fa-cog icon"></i> Settings
+            </button>
+            <div id="settings-options" class="dropdown-content">
+                <a href="{{ url_for('update_account_profile') }}">Account Profile</a>
+                <a href="{{ url_for('update_project') }}">Update Projects</a>
+            </div>
+        </div>
+        <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
+            <button class="logout-button">
+                <i class="fas fa-sign-out-alt icon"></i> Logout
+            </button>
+        </form>
+    </div>
+</header>
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-item" onclick="window.location.href='{{ url_for('user_profiles') }}'">
+        User Profiles
+    </div>
+    <div id="user-level-view" class="dropdown-menu">
+        <div class="dropdown-item" onclick="redirectToView('active-users')">Active Users (Last 30 Days)</div>
+        <div class="dropdown-item" onclick="redirectToView('top-users')">Top K Users</div>
+        <div class="dropdown-item" onclick="redirectToView('time-period-users')">Users by Time Period</div>
+    </div>
+    <div class="sidebar-item" onclick="redirectToView('email-view')">
+        Email View
+    </div>
+    <div class="sidebar-item" onclick="redirectToView('archived-emails-view')">
+        Archived Emails
+    </div>
+
+
+</div>
+<!-- Title for the Project Name -->
+<div class="project-title">
+    <h2>Archived Emails</h2>
+</div>
+
+<div class="container">
+    <button id="toggle-filters-btn" class="btn-primary">Hide Filters</button>
+    <div id="filters-container"  style="display: none;" class="filters-container">
+        <form method="get" action="/">
+            <input type="text" name="email" placeholder="Email (From or To)" value="{{ request.args.get('email', '') }}">
+            <input type="text" name="subject" placeholder="Subject" value="{{ request.args.get('subject', '') }}">
+            <input type="text" name="content" placeholder="Content" value="{{ request.args.get('content', '') }}">
+
+            <div class="date-container">
+                <label>
+                    <input type="date" name="start_date" id="start_date" value="{{ request.args.get('start_date', '') }}" placeholder="Start Date">
+                    <span>Start Date</span>
+                </label>
+                <label>
+                    <input type="date" name="end_date" id="end_date" value="{{ request.args.get('end_date', '') }}" placeholder="End Date">
+                    <span>End Date</span>
+                </label>
+            </div>
+            <div class="date-range-buttons">
+                <button type="button" id="last-30-days-button" class="date-range-button" onclick="setDateRange(30); setButtonState(this, 'active-30');">Last 30 Days</button>
+                <button type="button" id="last-60-days-button" class="date-range-button" onclick="setDateRange(60); setButtonState(this, 'active-60');">Last 60 Days</button>
+            </div>
+
+            <select name="keyword">
+                <option value="">Relevant Keywords</option>
+                {% for keyword in keywords %}
+                    <option value="{{ keyword }}">{{ keyword }}</option>
+                {% endfor %}
+            </select>
+            <div class="button-container">
+                <button type="submit" name="search">Search</button>
+                <button type="button" onclick="clearFilters()">Clear Filters</button>
+                <button type="button" onclick="handleLogout()">Logout</button>
+            </div>
+
+        </form>
+    </div>
+    <div class="results-container">
+        {% if archived_emails %}
+            <div>
+                {% for thread_id, email_list in archived_emails.items() %}
+                    <div class="email-chain" data-thread-id="{{ thread_id }}">
+                        <div class="email-chain-header">
+                            <div class="subject-box" style="width: 70%;">{{ email_list[0]['subject'] }}
+                            </div>
+                            <div class="button-box">
+                            </div>
+                            <button class="toggle-button" onclick="toggleEmailChain('chain-{{ loop.index }}', this)">+</button>
+                            <div class="latest-timestamp" style="width: 10%; font-size: small; color: #333;">
+                                {% set email_date = latest_timestamp.get(thread_id) %}
+                                {% if email_date %}
+                                    {% if email_date.__class__.__name__ == 'str' %}
+                                        {% set email_date = datetime.strptime(email_date, '%Y-%m-%d %H:%M:%S') %}
+                                    {% endif %}
+                                    {% if email_date.date() == current_date %}
+                                        {{ email_date.strftime('%I:%M %p') }}
+                                    {% else %}
+                                        {{ email_date.strftime('%b %d') }}
+                                    {% endif %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="email-chain-content" id="chain-{{ loop.index }}" style="display: none;">
+                            {% for email in email_list %}
+                                <div class="email">
+                                    <p><strong>From:</strong> {{ email['from'] }}</p>
+                                    <p><strong>To:</strong> {{ email['to'] }}</p>
+                                    <p><strong>Subject:</strong> {{ email['subject'] }}</p>
+                                    <p><strong>Date:</strong> {{ email['formatted_date'] }}</p>
+                                    <p><strong>Content:</strong> {{ email['content'] }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No emails found.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function toggleChatGPT(toggle) {
+            // Get the parent element of the toggle switch
+            const emailChain = toggle.closest('.email-chain');
+
+            // Extract the thread ID from the 'data-thread-id' attribute
+            if (!emailChain) {
+                console.error('Could not find the email chain container');
+                return;
+            }
+
+            const threadId = emailChain.getAttribute('data-thread-id');
+
+            // Determine the new AI response state based on the toggle button's checked state
+            const newState = toggle.checked ? 'Automated' : 'Manual';
+
+            // Make an AJAX request to update the state
+            fetch('/update_ai_response_state', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ thread_id: threadId, new_state: newState })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log(`AI response state updated to ${newState} successfully.`);
+                    } else {
+                        console.error('Error updating AI response state:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+
+        function toggleEmailChain(chainId, button) {
+            const content = document.getElementById(chainId);
+            const isHidden = content.style.display === 'none' || !content.style.display;
+
+            // Toggle display immediately
+            content.style.display = isHidden ? 'block' : 'none';
+
+            // Change the button symbol without delay
+            button.textContent = isHidden ? '-' : '+';
+        }
+
+
+        function setDateRange(days) {
+            var endDate = new Date();
+            var startDate = new Date();
+            startDate.setDate(endDate.getDate() - days);
+
+            document.getElementById('start_date').value = startDate.toISOString().split('T')[0];
+            document.getElementById('end_date').value = endDate.toISOString().split('T')[0];
+        }
+
+        function setButtonState(button, state) {
+            var buttons = document.querySelectorAll('.date-range-button');
+            buttons.forEach(function(btn) {
+                btn.classList.remove('active-30', 'active-60');
+            });
+            if (state) {
+                button.classList.add(state);
+            }
+        }
+
+        function clearFilters() {
+            debugger;
+            document.querySelectorAll('input[type="text"], input[type="date"]').forEach(input => input.value = '');
+            document.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+        }
+
+        function handleLogout() {
+            window.location.href = "{{ url_for('logout') }}";  // Redirect to the logout route
+        }
+
+
+        document.addEventListener("DOMContentLoaded", function() {
+            var urlParams = new URLSearchParams(window.location.search);
+            if (!urlParams.has('start_date') && !urlParams.has('end_date')) {
+                setDateRange(30); // Default to last 30 days
+                setButtonState(document.getElementById('last-30-days-button'), 'active-30');
+            }
+        }        );
+
+        // Toggle sidebar visibility
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        function toggleDropdown(id) {
+            const dropdown = document.getElementById(id);
+            const isVisible = dropdown.style.display === 'block';
+
+            // Hide all dropdowns before toggling the current one
+            document.querySelectorAll('.dropdown-content').forEach(content => {
+                content.style.display = 'none';
+            });
+
+            // Toggle the current dropdown's visibility
+            dropdown.style.display = isVisible ? 'none' : 'block';
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const isClickInside = document.querySelector('.settings-dropdown').contains(event.target);
+            if (!isClickInside) {
+                document.querySelectorAll('.dropdown-content').forEach(content => {
+                    content.style.display = 'none';
+                });
+            }
+        });
+
+        function redirectToView(view) {
+            switch (view) {
+                case 'active-users':
+                    window.location.href = '{{ url_for("user_profiles_active_users") }}';
+                    break;
+                case 'top-users':
+                    window.location.href = '{{ url_for("user_profiles_top_users") }}';
+                    break;
+                case 'time-period-users':
+                    window.location.href = '{{ url_for("user_profiles_time_period_users") }}';
+                    break;
+                case 'email-view':
+                    window.location.href = '{{ url_for("email_view") }}';
+                    break;
+                case 'archived-emails-view':
+                    window.location.href = '{{ url_for("view_archived_emails") }}';  // Use the correct function name
+                    break;
+                default:
+                    window.location.href = '{{ url_for("index") }}';
+                    break;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const filtersContainer = document.getElementById('filters-container');
+            const toggleFiltersButton = document.getElementById('toggle-filters-btn');
+
+            // Ensure filters are hidden on page load
+            filtersContainer.style.display = 'none';
+            toggleFiltersButton.textContent = 'Search'; // Set initial button text
+
+            // Add event listener to toggle visibility
+            toggleFiltersButton.addEventListener('click', function () {
+                if (filtersContainer.style.display === 'none' || filtersContainer.style.display === '') {
+                    filtersContainer.style.display = 'block'; // Show filters
+                    this.textContent = 'Hide Filters'; // Change button text
+                } else {
+                    filtersContainer.style.display = 'none'; // Hide filters
+                    this.textContent = 'Search'; // Change button text back
+                }
+            });
+        });
+        function toggleMode() {
+            const button = document.getElementById('modeButton');
+
+            // Check the current mode and toggle to the next
+            if (button.classList.contains('manual-mode')) {
+                button.classList.remove('manual-mode');
+                button.classList.add('automated-mode');
+                button.textContent = 'Automated'; // Update button text
+            } else if (button.classList.contains('automated-mode')) {
+                button.classList.remove('automated-mode');
+                button.classList.add('archive-mode');
+                button.textContent = 'Archive'; // Update button text
+            } else {
+                button.classList.remove('archive-mode');
+                button.classList.add('manual-mode');
+                button.textContent = 'Manual'; // Update button text
+            }
+        }
+
+        function archiveEmail(buttonElement) {
+            // Find the parent div of the clicked button that contains the thread information
+            const emailChain = buttonElement.closest('.email-chain');
+
+            // Extract the thread ID from the 'data-thread-id' attribute
+            if (!emailChain) {
+                console.error('Could not find the email chain container');
+                return;
+            }
+
+            const threadId = emailChain.getAttribute('data-thread-id');
+
+            // Check if the threadId was found
+            if (!threadId) {
+                console.error('Thread ID not found for archiving');
+                return;
+            }
+
+            // Now make the fetch request with the thread ID
+            fetch('/archive_email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ thread_id: threadId })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Thread archived successfully');
+                        // Optionally remove the email chain from the UI
+                        emailChain.remove(); // Example: Remove the email thread from the page
+                    } else {
+                        console.error('Error archiving the email:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });}
+
+    </script>
+</body>
+</html>
+
+
+

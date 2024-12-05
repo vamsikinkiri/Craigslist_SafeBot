@@ -186,7 +186,7 @@
 
         .prompt-text{
             padding: 60px 25px;
-            margin-top: 18px;
+            margin-top: 10px;
             width: 90%;
             border: none;
             border-radius: 15px;
@@ -200,12 +200,11 @@
 
         .response-frequency{
             padding: 12px 25px;
-            margin-top: 20px;
-            width: 90%;
+            width: 80%;
             border: none;
             border-radius: 15px;
             background-color: #e7eef0;
-            font-size: 16px;
+            font-size: 14px;
             outline: none;
             transition: background-color 0.3s;
             resize: None;
@@ -262,6 +261,50 @@
             margin-right: 10px;
             font-size: 20px;
         }
+
+        /* Style the dropdown elements to match the rest of the form */
+        .dropdown {
+            padding: 12px 20px;
+            width: 100%;
+            margin-top: -10px;;
+            border: none;
+            border-radius: 15px;
+            background-color: #e7eef0; /* Same as input field background */
+            font-size: 14px;
+            outline: none;
+            transition: background-color 0.3s;
+            appearance: none; /* Remove default arrow */
+            -webkit-appearance: none; /* Remove default arrow for Safari */
+            -moz-appearance: none; /* Remove default arrow for Firefox */
+        }
+
+        /* Add a custom arrow for the dropdown */
+        .dropdown-container {
+            position: relative;
+            width: 90%;
+            margin: 20px auto;
+        }
+
+        .dropdown:focus {
+            background-color: #d5e4e9; /* Change background on focus to match other form elements */
+        }
+
+        .dropdown-container::after {
+            content: '▼'; /* Arrow symbol */
+            font-size: 12px;
+            color: #666;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        /* Optional hover effect for better interactivity */
+        .dropdown:hover {
+            background-color: #d5e4e9; /* Same as focus to create visual consistency */
+        }
+
     </style>
 </head>
 <body>
@@ -318,20 +361,86 @@
 
     <form action="{{ url_for('update_project') }}" method="POST">
         <div class="form-field">
-            <label>Enter Prompt Text</label>
-            <textarea name="ai_prompt_text" class="prompt-text" placeholder="Enter Prompt Text">{{ project_details.get('ai_prompt_text', '') }}</textarea>
-        </div>
-        <div class="form-field">
-            <label>Response Frequency</label>
-            <input type="number" name="response_frequency" class="response-frequency" placeholder="Response Frequency (mins)" value="{{ project_details.get('response_frequency', '') }}" required>
+            <!-- Mode Selection -->
+            <label>Choose Mode</label>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <input
+                        type="radio"
+                        id="editPromptText"
+                        name="mode"
+                        value="edit"
+                        onchange="toggleInputMode('edit')"
+                        checked
+                >
+                <label for="editPromptText">Edit Prompt Text</label>
+
+                <input
+                        type="radio"
+                        id="useSamplePrompt"
+                        name="mode"
+                        value="dropdown"
+                        onchange="toggleInputMode('dropdown')"
+                >
+                <label for="useSamplePrompt">Use Existing Sample Prompt</label>
+            </div>
         </div>
 
+        <!-- Dropdown for Projects -->
+        <div class="form-field" id="projectDropdownContainer" style="display: none;">
+            <label for="project_dropdown">Select a Project</label>
+            <div class="dropdown-container">
+                <select id="project_dropdown" name="project_dropdown" class="dropdown" onchange="updatePromptDropdown()">
+                    <option value="" disabled selected>Select a Project</option>
+                    {% for project in projects %}
+                        <option value="{{ project['project_id'] }}">{{ project['project_name'] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Dropdown for Prompts -->
+        <div class="form-field" id="promptDropdownContainer" style="display: none;">
+            <label for="prompt_dropdown">Select a Prompt</label>
+            <div class="dropdown-container">
+                <select id="prompt_dropdown" name="sample_prompt" class="dropdown" onchange="updatePromptText()">
+                    <option value="" disabled selected>Select a Prompt</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Textarea for Manual Input -->
+        <div class="form-field" id="textContainer">
+            <label for="ai_prompt_text">Enter or Edit Prompt Text</label>
+            <textarea
+                    id="ai_prompt_text"
+                    name="ai_prompt_text"
+                    class="prompt-text"
+                    placeholder="Enter Prompt Text"
+                    required
+            >{{ project_details.get('ai_prompt_text', '') }}</textarea>
+        </div>
+
+        <!-- Response Frequency -->
+        <div class="form-field">
+            <label>Response Frequency</label>
+            <input
+                    type="number"
+                    name="response_frequency"
+                    class="response-frequency"
+                    placeholder="Response Frequency (mins)"
+                    value="{{ project_details.get('response_frequency', '') }}"
+                    required
+            >
+        </div>
+
+        <!-- Submit Button -->
         <button type="submit" class="btn-primary">Update Project</button>
     </form>
+
     <div class="back-link">
         <p><a href="{{ url_for('index') }}">Back to Dashboard</a></p>
     </div>
-</div>
+
 
 <script>
     // Toggle sidebar visibility
@@ -375,9 +484,110 @@
         dropdown.style.display = isVisible ? 'none' : 'block';
     }
 
+
+    // Fetch all projects and populate project dropdown
+    function fetchAllProjects() {
+        fetch(`/api/update_projects`)  // Make an API call to fetch all projects
+            .then(response => response.json())  // Parse the JSON response
+            .then(data => {
+                if (data.success) {
+                    const projectDropdown = document.getElementById('project_dropdown');
+                    projectDropdown.innerHTML = '<option value="" disabled selected>Select a Project</option>';
+
+                    // Store all projects in a global variable to filter prompts later
+                    window.allProjects = data.projects;
+
+                    data.projects.forEach(project => {
+                        const option = document.createElement('option');
+                        option.value = project.project_id; // Use project_id as the value to keep it unique
+                        option.textContent = project.project_name; // Display the project name to the user
+                        projectDropdown.appendChild(option);
+                    });
+                } else {
+                    console.error('Error fetching projects:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching projects:', error);
+            });
+    }
+
+    // Call this function once the document is ready to load the projects
+    document.addEventListener('DOMContentLoaded', fetchAllProjects);
+
+
+
+    // Toggle between editing prompt text and selecting from dropdown
+    function toggleInputMode(mode) {
+        const textContainer = document.getElementById('textContainer');
+        const projectDropdownContainer = document.getElementById('projectDropdownContainer');
+
+        if (mode === 'edit') {
+            textContainer.style.display = 'block';
+            projectDropdownContainer.style.display = 'none';
+            promptDropdownContainer.style.display = 'none'; //
+            document.getElementById("ai_prompt_text").required = true;
+        } else if (mode === 'dropdown') {
+            textContainer.style.display = 'none';
+            projectDropdownContainer.style.display = 'block';
+            promptDropdownContainer.style.display = 'block'; //
+            document.getElementById("ai_prompt_text").required = false;
+        }
+    }
+
+    // Update prompt dropdown based on the selected project
+    function updatePromptDropdown() {
+        const projectDropdown = document.getElementById('project_dropdown');
+        const selectedProjectId = projectDropdown.value;
+
+        // Filter projects by selected project ID
+        const filteredProjects = window.allProjects.filter(project => project.project_id === selectedProjectId);
+
+        const promptDropdown = document.getElementById('prompt_dropdown');
+        promptDropdown.innerHTML = '<option value="" disabled selected>Select a Prompt</option>';
+
+        // Since project_id is unique, we should have exactly one project match
+        if (filteredProjects.length > 0) {
+            const project = filteredProjects[0];
+            const option = document.createElement('option');
+            option.value = project.ai_prompt_text;
+            option.textContent = project.ai_prompt_text;
+            promptDropdown.appendChild(option);
+            document.getElementById('promptDropdownContainer').style.display = 'block';
+        }
+    }
+    // Update prompt dropdown based on the selected project
+    function updatePromptOptions() {
+        const projectDropdown = document.getElementById('project_dropdown');
+        const selectedProjectName = projectDropdown.value;
+
+        // Filter all projects to get the prompts related to the selected project name
+        const filteredProjects = window.allProjects.filter(project => project.project_name === selectedProjectName);
+
+        const promptDropdown = document.getElementById('prompt_dropdown');
+        promptDropdown.innerHTML = '<option value="" disabled selected>Select a Prompt</option>';
+
+        filteredProjects.forEach(project => {
+            const option = document.createElement('option');
+            option.value = project.ai_prompt_text;
+            option.textContent = project.ai_prompt_text;
+            promptDropdown.appendChild(option);
+        });
+
+        document.getElementById('promptDropdownContainer').style.display = 'block';
+    }
+
+
+    // Update prompt text based on the selected dropdown prompt
+    function updatePromptText() {
+        const selectedPrompt = document.getElementById('prompt_dropdown').value;
+        document.getElementById('ai_prompt_text').value = selectedPrompt;
+    }
+
+
     // Close dropdown when clicking outside
     document.addEventListener('click', function(event) {
-        const isClickInside = document.querySelector('.settings-dropdown').contains(event.target);
+        const isClickInside = document.querySelector('.settings-dropdown')?.contains(event.target);
         if (!isClickInside) {
             document.querySelectorAll('.dropdown-content').forEach(content => {
                 content.style.display = 'none';

@@ -274,7 +274,6 @@ class KnowledgeBase:
         conn, conn_error = self.get_db_connection()
         if conn is None:
             return False, conn_error
-
         try:
             cursor = conn.cursor()
             cursor.execute("SELECT project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, date(last_updated) as Last_Updated FROM projects")
@@ -286,28 +285,46 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
 
-    
-    def update_project(self,email, project_name, ai_prompt_text, response_frequency):
+
+    def update_project(self, email, project_name, ai_prompt_text, response_frequency):
+        # Get database connection
         conn, conn_error = self.get_db_connection()
         if conn is None:
             return False, conn_error
+
+        cursor = None
         try:
             cursor = conn.cursor()
+
+            logging.info(f"Executing update query with email={email}, project_name={project_name}, "
+                         f"ai_prompt_text={ai_prompt_text}, response_frequency={response_frequency}")
+
+            # Update the project details in the database
             cursor.execute("""
                 UPDATE projects SET ai_prompt_text = %s, response_frequency = %s
                 WHERE email_id = %s AND project_name = %s
             """, (ai_prompt_text, response_frequency, email, project_name))
 
             if cursor.rowcount == 0:
+                logging.warning(f"No matching project found for email={email} and project_name={project_name}.")
                 return False, "No matching project found for the provided email and project name."
+
+            # Commit changes to the database
             conn.commit()
+            logging.info(f"Project details updated successfully for email={email}, project_name={project_name}.")
             return True, "Project details updated successfully."
+
         except Exception as error:
-            logging.error(f"Database error: {error}")
+            logging.error(f"Database error while updating project: {error}")
             return False, f"Database error: {error}"
+
         finally:
-            cursor.close()
-            conn.close()
+            # Close cursor and connection if they were successfully created
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+
 
 
     def is_email_processed(self, message_id):
@@ -435,6 +452,101 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
+    def fetch_all_archived_emails(self, project_email):
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            # Fetch archived emails for the specified project email
+            project_email_clean = project_email.strip().lower() if project_email else None
+            logging.info(f"Fetching archived emails for project email: {project_email_clean}")
+
+            cursor.execute("""
+                SELECT thread_id, project_email, project_name, interaction_score, ai_response_state, seen_keywords_data, last_updated
+                FROM email_threads
+                WHERE lower(ai_response_state) like '%archive%'
+                AND lower(project_email) = %s
+            """, (project_email_clean,))
+
+            rows = cursor.fetchall()
+
+            # Check if no rows are returned
+            if not rows:
+                logging.warning(f"No archived emails found for project email: {project_email_clean}")
+                return True, {}
+
+            archived_emails = {}
+            for row in rows:
+                # Ensure the row has the expected length
+                if len(row) != 7:
+                    logging.error(f"Unexpected tuple length: {len(row)}, expected 7. Tuple: {row}")
+                    continue
+
+                thread_id = row[0]
+                if thread_id not in archived_emails:
+                    archived_emails[thread_id] = []
+                archived_emails[thread_id].append({
+                    "thread_id": row[0],
+                    "project_email": row[1],
+                    "project_name": row[2],
+                    "interaction_score": row[3],
+                    "ai_response_state": row[4],
+                    "seen_keywords_data": row[5],
+                    "last_updated": row[6]
+                })
+
+            return True, archived_emails
+
+        except Exception as error:
+            logging.error(f"Database error while fetching archived emails: {error}")
+            return False, f"Database error: {error}"
+
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+
+
+    def fetch_top_k_threads(self, k_value):
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            # Fetch the top K threads based on their interaction score
+            cursor.execute("""
+                SELECT thread_id, project_email, project_name, interaction_score, ai_response_state, seen_keywords_data, last_updated
+                FROM email_threads
+                ORDER BY interaction_score DESC
+                LIMIT %s
+            """, (k_value,))
+
+            threads = []
+            for row in cursor.fetchall():
+                threads.append({
+                    "thread_id": row[0],
+                    "project_email": row[1],
+                    "project_name": row[2],
+                    "interaction_score": row[3],
+                    "ai_response_state": row[4],
+                    "seen_keywords_data": row[5],
+                    "last_updated": row[6]
+                })
+
+            return True, threads
+
+        except Exception as error:
+            logging.error(f"Database error while fetching top K threads: {error}")
+            return False, f"Database error: {error}"
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     def fetch_all_email_threads(self):
         conn, conn_error = self.get_db_connection()
@@ -456,7 +568,6 @@ class KnowledgeBase:
                     "thread_id": row[0],
                     "interaction_score": row[1]
                 })
-
             return email_threads
 
         except Exception as error:
@@ -750,3 +861,65 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
+
+    def delete_project(self, project_id):
+        try:
+            # Get the database connection
+            conn, conn_error = self.get_db_connection()
+            if not conn:
+                return False, conn_error
+
+            cursor = conn.cursor()
+
+            # SQL Query to delete the project by ID
+            delete_query = """
+                DELETE FROM projects
+                WHERE project_id = %s
+            """
+            cursor.execute(delete_query, (project_id,))
+            conn.commit()
+
+            # Check if any row was deleted
+            if cursor.rowcount == 0:
+                return False, "Project not found or could not be deleted."
+            return True, "Project deleted successfully."
+        except Exception as e:
+            logging.error(f"Error deleting project: {e}")
+            return False, str(e)
+
+        finally:
+            cursor.close()
+            if conn:
+                conn.close()
+
+
+    def get_project_details_by_id(self, project_id):
+        try:
+            # Get the database connection
+            conn, conn_error = self.get_db_connection()
+            if not conn:
+                return False, conn_error
+            cursor = conn.cursor()
+            # SQL Query to get the project details by ID
+            query = """
+                SELECT project_id, email_id, project_name, app_password, ai_prompt_text,
+                       response_frequency, keywords_data, owner_admin_id, last_updated
+                FROM projects
+                WHERE project_id = %s
+            """
+            cursor.execute(query, (project_id,))
+            project_details = cursor.fetchone()
+
+            if not project_details:
+                return False, "Project not found."
+
+            return True, project_details
+
+        except Exception as e:
+            logging.error(f"Error fetching project details by ID: {e}")
+            return False, str(e)
+
+        finally:
+            cursor.close()
+            if conn:
+                conn.close()

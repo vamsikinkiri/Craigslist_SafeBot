@@ -15,8 +15,8 @@ def drop_tables(cursor):
         "DROP TABLE IF EXISTS SCORED_EMAILS;",
         "DROP TABLE IF EXISTS EMAIL_THREADS;",
         "DROP TABLE IF EXISTS USER_PROFILES;",
-        #"DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
-        #"DROP TABLE IF EXISTS PROJECTS;"
+        # "DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
+        # "DROP TABLE IF EXISTS PROJECTS;"
     ]
     for query in drop_tables_queries:
         cursor.execute(query)
