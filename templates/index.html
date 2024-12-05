@@ -922,7 +922,7 @@
                             <button class="toggle-button" onclick="toggleEmailChain('chain-{{ loop.index }}', this)">+</button>
 
                             <!-- Conditional timestamp display -->
-                            <div class="email-timestamp" style="width: 6%; text-align: right; ">
+                            <div class="email-timestamp" style="width: 11%; text-align: center; ">
                                 {% set email_date = latest_timestamp.get(key) %}
                                 {% if email_date %}
                                     {% if email_date.date() == current_date %}
