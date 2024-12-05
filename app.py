@@ -478,9 +478,9 @@ def user_profiles_top_users():
 def user_profiles_time_period_users():
     return render_template('user_profiles.html', chart='time_period_users')
 
-@app.route('/email_view', methods=['GET'])
-def email_view():
-    return render_template('email_view.html')
+# @app.route('/email_view', methods=['GET'])
+# def email_view():
+#     return render_template('email_view.html')
 
 @app.route('/update_ai_response_state', methods=['POST'])
 @login_required

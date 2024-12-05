@@ -200,7 +200,7 @@
 
         .response-frequency{
             padding: 12px 25px;
-            width: 80%;
+            width: 90%;
             border: none;
             border-radius: 15px;
             background-color: #e7eef0;
@@ -281,7 +281,7 @@
         /* Add a custom arrow for the dropdown */
         .dropdown-container {
             position: relative;
-            width: 90%;
+            width: 100%;
             margin: 20px auto;
         }
 
@@ -342,7 +342,6 @@
         <div class="dropdown-item" onclick="redirectToView('top-users')">Top K Users</div>
         <div class="dropdown-item" onclick="redirectToView('time-period-users')">Users by Time Period</div>
     </div>
-    <div class="sidebar-item" onclick="redirectToView('email-view')">Email View</div>
 </div>
 
 <div class="container">
@@ -387,10 +386,10 @@
 
         <!-- Dropdown for Projects -->
         <div class="form-field" id="projectDropdownContainer" style="display: none;">
-            <label for="project_dropdown">Select a Project</label>
+            <label for="project_dropdown">Select an existing Project</label>
             <div class="dropdown-container">
                 <select id="project_dropdown" name="project_dropdown" class="dropdown" onchange="updatePromptDropdown()">
-                    <option value="" disabled selected>Select a Project</option>
+                    <option value="" disabled selected>Select an existing Project</option>
                     {% for project in projects %}
                         <option value="{{ project['project_id'] }}">{{ project['project_name'] }}</option>
                     {% endfor %}
@@ -400,10 +399,10 @@
 
         <!-- Dropdown for Prompts -->
         <div class="form-field" id="promptDropdownContainer" style="display: none;">
-            <label for="prompt_dropdown">Select a Prompt</label>
+            <label for="prompt_dropdown">Select an existing Prompt</label>
             <div class="dropdown-container">
                 <select id="prompt_dropdown" name="sample_prompt" class="dropdown" onchange="updatePromptText()">
-                    <option value="" disabled selected>Select a Prompt</option>
+                    <option value="" disabled selected>Select an existing Prompt</option>
                 </select>
             </div>
         </div>
@@ -460,9 +459,6 @@
             case 'time-period-users':
                 window.location.href = '{{ url_for("user_profiles_time_period_users") }}';
                 break;
-            case 'email-view':
-                window.location.href = '{{ url_for("email_view") }}';
-                break;
             default:
                 window.location.href = '{{ url_for("index") }}';
                 break;
@@ -492,7 +488,7 @@
             .then(data => {
                 if (data.success) {
                     const projectDropdown = document.getElementById('project_dropdown');
-                    projectDropdown.innerHTML = '<option value="" disabled selected>Select a Project</option>';
+                    projectDropdown.innerHTML = '<option value="" disabled selected>Select an existing Project</option>';
 
                     // Store all projects in a global variable to filter prompts later
                     window.allProjects = data.projects;

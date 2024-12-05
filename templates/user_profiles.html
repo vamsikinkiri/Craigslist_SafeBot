@@ -124,17 +124,18 @@
             background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
+            padding: 75px;
             min-height: 300px;
             text-align: center;
+            width: 1200px;
         }
         .chart-container h3 {
-            margin-bottom: 20px;
-            font-size: 30px;
+            margin-bottom: 50px;
+            font-size: 38px;
             font-weight: 600;
             color: #0a597e;
             margin-right: 130px;
-            margin-top: 100px;
+
         }
         /* Placeholder for charts */
         .chart-placeholder {
@@ -191,7 +192,7 @@
         }
 
         .user-table th, .user-table td {
-            padding: 12px 2px;
+            padding: 12px 8px;
             border: 1px solid #ddd;
         }
 
@@ -217,7 +218,7 @@
         }
 
         .user-table td {
-            color: #333;
+            color: #6d6a6a;
             vertical-align: middle;
         }
 
@@ -347,9 +348,6 @@
         <div class="dropdown-item" onclick="showChart('top-users')">Top K Users Score Level</div>
         <div class="dropdown-item" onclick="showChart('time-period-users')">Users by Time Period</div>
     </div>
-        <div class="sidebar-item" onclick="showChart('email-view')">
-        Email Level Views
-    </div>
 </div>
 
 <div class="main-content" id="main-content">
@@ -358,6 +356,7 @@
         <table class="user-table">
             <thead>
             <tr>
+                <th>User ID</th>
                 <th>Primary Email</th>
                 <th>Thread IDs</th>
                 <th>Last Active</th>
@@ -367,6 +366,7 @@
             <tbody>
             {% for user in active_users %}
                 <tr>
+                    <td>{{ user.user_id}}</td>
                     <td>{{ user.primary_email }}</td>
                     <td>{{ user.thread_ids }}</td>
                     <td>{{user.last_active}}</td>
@@ -385,10 +385,6 @@
     <div id="time-period-users" class="chart-container">
         <h3>Users by Time Period</h3>
         <div class="chart-placeholder">Line Chart or Table for Users by Time Period</div>
-    </div>
-    <div id="email-view" class="chart-container">
-        <h3>Email Level Views</h3>
-        <div class="chart-placeholder">Content or Table for Email View</div>
     </div>
 
 </div>

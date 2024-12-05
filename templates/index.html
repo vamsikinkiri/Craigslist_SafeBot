@@ -228,7 +228,7 @@
             align-items: center;
             cursor: pointer;
             font-weight: bold;
-            gap: 10px;
+            gap: 15px;
         }
         .email-chain-header {
             flex-grow: 1;
@@ -383,7 +383,7 @@
             background: none;
             border: none;
             color: #106f8d;
-            font-size: 20px;
+            font-size: 32px;
             cursor: pointer;
             padding: 0;
         }
@@ -686,7 +686,7 @@
             font-weight: bold;
             display: block;
             margin-bottom: 5px;
-            cursor: help;  /* Indicates that there is more information on hover */
+            cursor: pointer;  /* Indicates that there is more information on hover */
         }
 
         .top-k-container input[type="number"] {
@@ -730,7 +730,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 15px;
+            font-size: 18px;
             transition: background-color 0.3s;
             margin-left: 10px;                  /* Add some space between toggle button and archive button */
             display: flex;                      /* Flex to align icon and text */
@@ -836,9 +836,6 @@
         <div class="dropdown-item" onclick="redirectToView('active-users')">Active Users (Last 30 Days)</div>
         <div class="dropdown-item" onclick="redirectToView('top-users')">Top K Users</div>
         <div class="dropdown-item" onclick="redirectToView('time-period-users')">Users by Time Period</div>
-    </div>
-    <div class="sidebar-item" onclick="redirectToView('email-view')">
-        Email View
     </div>
     <a href="{{ url_for('view_archived_emails') }}" class="sidebar-item">
         Archived Emails
@@ -1084,9 +1081,6 @@
                 break;
             case 'time-period-users':
                 window.location.href = '{{ url_for("user_profiles_time_period_users") }}';
-                break;
-            case 'email-view':
-                window.location.href = '{{ url_for("email_view") }}';
                 break;
             case 'archived_emails':
                 window.location.href = '{{ url_for("view_archived_emails") }}';

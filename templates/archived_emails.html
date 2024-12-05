@@ -368,7 +368,7 @@
             background: none;
             border: none;
             color: #106f8d;
-            font-size: 20px;
+            font-size: 30px;
             cursor: pointer;
             padding: 0;
         }
@@ -792,9 +792,6 @@
         <div class="dropdown-item" onclick="redirectToView('top-users')">Top K Users</div>
         <div class="dropdown-item" onclick="redirectToView('time-period-users')">Users by Time Period</div>
     </div>
-    <div class="sidebar-item" onclick="redirectToView('email-view')">
-        Email View
-    </div>
     <div class="sidebar-item" onclick="redirectToView('archived-emails-view')">
         Archived Emails
     </div>
@@ -1015,9 +1012,6 @@
                     break;
                 case 'time-period-users':
                     window.location.href = '{{ url_for("user_profiles_time_period_users") }}';
-                    break;
-                case 'email-view':
-                    window.location.href = '{{ url_for("email_view") }}';
                     break;
                 case 'archived-emails-view':
                     window.location.href = '{{ url_for("view_archived_emails") }}';  // Use the correct function name

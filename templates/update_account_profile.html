@@ -280,7 +280,6 @@
         <div class="dropdown-item" onclick="redirectToView('user_profiles_top_users')">Top K Users</div>
         <div class="dropdown-item" onclick="redirectToView('user_profiles_time_period_users')">Users by Time Period</div>
     </div>
-    <div class="sidebar-item" onclick="redirectToView('email_view')">Email View</div>
 </div>
 
 
@@ -330,8 +329,7 @@
             user_profiles: "{{ url_for('user_profiles') }}",
             user_profiles_active_users: "{{ url_for('user_profiles_active_users') }}",
             user_profiles_top_users: "{{ url_for('user_profiles_top_users') }}",
-            user_profiles_time_period_users: "{{ url_for('user_profiles_time_period_users') }}",
-            email_view: "{{ url_for('email_view') }}"
+            user_profiles_time_period_users: "{{ url_for('user_profiles_time_period_users') }}"
         };
 
         if (routes[view]) {
