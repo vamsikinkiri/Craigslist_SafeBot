@@ -126,7 +126,7 @@ class ProjectScheduler:
                 state_success, ai_state = knowledge_base.get_ai_response_state(thread_id)
                 if not state_success:
                     # manual_and_automated_emails[thread_id] = email_list
-                    logging.info(f"This is a manually sent alert to an admin {thread_id}: {email_list}")
+                    # logging.info(f"This is a manually sent alert to an admin {thread_id}: {email_list}")
                     continue
 
                 ai_response_states[thread_id] = ai_state

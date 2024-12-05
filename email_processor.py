@@ -193,7 +193,7 @@ class EmailProcessor:
             scheduler.add_job(
                 func=self.generate_and_send_response,
                 trigger=DateTrigger(run_date=send_time),
-                args=[email, conversation_history, session_email, app_password],
+                args=[email, conversation_history, session_email, app_password, admin_prompt],
                 id=f"send_reply_{email['message_id']}",
                 replace_existing=True
             )
