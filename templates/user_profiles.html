@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
     <title>User Profiles Dashboard</title>
     <style>
         /* General Styling */
@@ -89,6 +90,7 @@
             font-size: 20px;
             font-weight: 600;
             margin-top: 10px;
+            text-decoration: none;
         }
         label {
             font-size: 14px;
@@ -120,35 +122,7 @@
             padding: 20px;
             margin-right: 280px;
         }
-        .chart-container {
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 75px;
-            min-height: 300px;
-            text-align: center;
-            width: 1200px;
-        }
-        .chart-container h3 {
-            margin-bottom: 50px;
-            font-size: 38px;
-            font-weight: 600;
-            color: #0a597e;
-            margin-right: 130px;
 
-        }
-        /* Placeholder for charts */
-        .chart-placeholder {
-            background-color: #e6e9ef;
-            height: 200px;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            color: #666;
-            margin-top: 10px;
-        }
         .header .settings {
             position: relative;
         }
@@ -182,18 +156,21 @@
 
         /* Active Users Table */
         .user-table {
-            width: 102%;
+            width: 68%;
             border-collapse: collapse;
-            margin: 20px 0;
             font-size: 16px;
             font-family: Arial, sans-serif;
             text-align: left;
-            margin-left: -11px;
+            margin: auto;
+            margin-top: 60px;
+            color: #ffffff;
+            padding-top: 15px;
         }
 
         .user-table th, .user-table td {
-            padding: 12px 8px;
+            padding: 15px 8px;
             border: 1px solid #ddd;
+            text-align: left;
         }
 
         .user-table th {
@@ -280,18 +257,19 @@
             align-items: center;
             padding: 0;
             margin-right: 20px;
-    }
+            text-decoration: none;
+        }
         .dropdown-content {
-                 display: none;
-                 position: absolute;
-                 right: 0;
-                 background-color: #ffffff;
-                 min-width: 250px;
-                 box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-                 border-radius: 10px;
-                 z-index: 1;
-                 font-size: 18px;
-             }
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #ffffff;
+            min-width: 250px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            z-index: 1;
+            font-size: 18px;
+        }
 
         .dropdown-content a {
             color: #333;
@@ -308,6 +286,110 @@
         .settings-dropdown:hover .dropdown-content {
             display: block;
         }
+
+        h1 {
+            font-size: 40px; /* Adjust as needed */
+            color: #134258; /* A visible color for the title */
+            text-align: center;
+            padding-right: 110px;
+        }
+        th a {
+            color: white; /* Default color for inactive arrows */
+            font-weight: normal; /* Default weight */
+            text-decoration: none;
+        }
+
+        th a.active {
+            color: grey; /* Active arrow color */
+            font-weight: bold; /* Highlight active arrow */
+        }
+
+
+        /* Default arrow color */
+        .fa-arrow-up, .fa-arrow-down {
+            margin-left: 5px; /* Space between text and arrow */
+            font-size: 14px;
+            vertical-align: middle;
+            color: white; /* Default color */
+            transition: color 0.3s ease; /* Smooth transition */
+        }
+
+        /* Highlight active arrow */
+        .fa-arrow-up[style*="grey"], .fa-arrow-down[style*="grey"] {
+            color: grey;
+        }
+
+        /* Optional hover effect */
+        .fa-arrow-up:hover, .fa-arrow-down:hover {
+            color: lightgrey;
+        }
+        .filters-container {
+            text-align: center;
+            margin: 20px auto;
+            width: 50%;
+            padding-right: 80px;
+            padding-bottom: 25px;
+            padding-top: 25px;
+        }
+        .filters-container label {
+            font-size: 20px;
+            color: #134258;
+            font-weight: bold;
+            text-align: center;
+        }
+        .filters-container select {
+            padding: 12px 36px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            font-size: 16px;
+            color: #134258;
+        }
+        /* Toolbar styles */
+        .toolbar {
+            background-color: #f5f5f5; /* Light background color */
+            border-bottom: 1px solid #ccc; /* Subtle border */
+            padding-top: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Slight shadow for separation */
+        }
+
+        .toolbar-content {
+            max-width: 1200px;
+            margin-left: auto; /* Push the content to the extreme right */
+            margin-right: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .toolbar-link {
+            color: #134258; /* Theme color for links */
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px; /* Space between icon and text */
+            padding-right: 5px;
+            padding-bottom: 12px;
+        }
+
+        .toolbar-link:hover {
+            color: #007195; /* Slightly lighter theme color on hover */
+            text-decoration: none;
+        }
+
+        .toolbar-link i {
+            font-size: 20px;
+
+        }
+
+
+
     </style>
 </head>
 <body>
@@ -322,14 +404,10 @@
     <!-- Logout Button on the right -->
     <div class="right">
         <!-- Settings Icon with Dropdown -->
-        <div class="settings-dropdown">
-            <button class="settings-button" onclick="toggleDropdown('settings-options')">
-                <i class="fas fa-cog icon"></i> Settings
-            </button>
-            <div id="settings-options" class="dropdown-content">
-                <a href="{{ url_for('update_account_profile') }}">Account Profile</a>
-                <a href="{{ url_for('update_project') }}">Update Projects</a>
-            </div>
+        <div class="settings-button">
+            <a href="{{ url_for('update_account_profile') }}" class="settings-button">
+                <i class="fas fa-cog icon"></i> Manage Account
+            </a>
         </div>
         <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
             <button class="logout-button">
@@ -339,61 +417,114 @@
     </div>
 </header>
 
-<div class="sidebar" id="sidebar">
-    <div class="sidebar-item" onclick="toggleDropdown('user-level-view')">
-        User Profiles <i class="fas fa-chevron-down"></i>
-    </div>
-    <div id="user-level-view" class="dropdown-menu">
-        <div class="dropdown-item" onclick="showChart('active-users')">Active Users</div>
-        <div class="dropdown-item" onclick="showChart('top-users')">Top K Users Score Level</div>
-        <div class="dropdown-item" onclick="showChart('time-period-users')">Users by Time Period</div>
+<div class="toolbar">
+    <div class="toolbar-content">
+        <a href="{{ url_for('update_project') }}" class="toolbar-link">
+            <i class="fas fa-cog"></i> Project Settings
+        </a>
     </div>
 </div>
 
-<div class="main-content" id="main-content">
-    <div id="active-users" class="chart-container" style="display: block;">
-        <h3>Active Users</h3>
-        <table class="user-table">
-            <thead>
-            <tr>
-                <th>User ID</th>
-                <th>Primary Email</th>
-                <th>Thread IDs</th>
-                <th>Last Active</th>
-                <th>Contact Numbers</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for user in active_users %}
-                <tr>
-                    <td>{{ user.user_id}}</td>
-                    <td>{{ user.primary_email }}</td>
-                    <td>{{ user.thread_ids }}</td>
-                    <td>{{user.last_active}}</td>
-                    <td>{{ ", ".join(user.contact_numbers) }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-item" onclick="window.location.href='{{ url_for('user_profiles') }}'">
+        User Profiles
     </div>
+    <a href="{{ url_for('view_archived_emails') }}" class="sidebar-item">
+        Archived Emails
+    </a>
+</div>
 
-    <div id="top-users" class="chart-container" style="display: {{ 'block' if chart == 'top_users' else 'none' }};">
-        <h3>Top K Users at Score Level</h3>
-        <canvas id="userScoresChart" width="400" height="200"></canvas>
-    </div>
 
-    <div id="time-period-users" class="chart-container">
-        <h3>Users by Time Period</h3>
-        <div class="chart-placeholder">Line Chart or Table for Users by Time Period</div>
-    </div>
+
+<h1>User Profiles</h1>
+
+<div class="filters-container" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+    <label for="last-active-filter" style="font-size: 16px; color: #134258; font-weight: bold;">Filter by Last Active:</label>
+    <select id="last-active-filter" name="last_active_filter" onchange="applyLastActiveFilter()" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 5px;">
+        <option value="all" {% if last_active_filter == 'all' %}selected{% endif %}>All</option>
+        <option value="10" {% if last_active_filter == '10' %}selected{% endif %}>Last 10 Days</option>
+        <option value="30" {% if last_active_filter == '30' %}selected{% endif %}>Last 30 Days</option>
+        <option value="90" {% if last_active_filter == '90' %}selected{% endif %}>Last 90 Days</option>
+    </select>
+</div>
+
+
+<table class="user-table" style="margin: 0 auto;">
+    <thead>
+    <tr>
+        <th>
+            PRIMARY EMAIL
+            <a href="?sort=primary_email&order=asc" style="text-decoration: none; color: inherit;">
+                <i class="fas fa-arrow-up"
+                   style="color: {% if sort_key == 'primary_email' and order == 'asc' %}grey{% else %}white{% endif %};"></i>
+            </a>
+            <a href="?sort=primary_email&order=desc" style="text-decoration: none; color: inherit;">
+                <i class="fas fa-arrow-down"
+                   style="color: {% if sort_key == 'primary_email' and order == 'desc' %}grey{% else %}white{% endif %};"></i>
+            </a>
+        </th>
+        <th>
+            SCORE
+            <a href="?sort=score&order=asc" style="text-decoration: none; color: inherit;">
+                <i class="fas fa-arrow-up"
+                   style="color: {% if sort_key == 'score' and order == 'asc' %}grey{% else %}white{% endif %};"></i>
+            </a>
+            <a href="?sort=score&order=desc" style="text-decoration: none; color: inherit;">
+                <i class="fas fa-arrow-down"
+                   style="color: {% if sort_key == 'score' and order == 'desc' %}grey{% else %}white{% endif %};"></i>
+            </a>
+        </th>
+        <th>
+            LAST ACTIVE
+            <a href="?sort=last_active&order=asc" style="text-decoration: none; color: inherit;">
+                <i class="fas fa-arrow-up"
+                   style="color: {% if sort_key == 'last_active' and order == 'asc' %}grey{% else %}white{% endif %};"></i>
+            </a>
+            <a href="?sort=last_active&order=desc" style="text-decoration: none; color: inherit;">
+                <i class="fas fa-arrow-down"
+                   style="color: {% if sort_key == 'last_active' and order == 'desc' %}grey{% else %}white{% endif %};"></i>
+            </a>
+        </th>
+        <th>CONTACT NUMBERS</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    {% for user in user_data %}
+        <tr>
+            <td>{{ user.primary_email }}</td>
+            <td>{{ user.score }}</td>
+            <td>{{ user.last_active }}</td>
+            <td>{{ user.contact_numbers }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</body>
+</html>
 
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     // Toggle sidebar visibility
     function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('active');
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('active');
+
+        if (sidebar.classList.contains('active')) {
+            sidebar.style.left = "0";
+        } else {
+            sidebar.style.left = "-250px";
+        }
     }
+
+    function applyLastActiveFilter() {
+        const filter = document.getElementById("last-active-filter").value;
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set("last_active_filter", filter);  // Update the last_active_filter param
+        window.location.href = currentUrl;  // Reload the page with the updated URL
+    }
+
 
     function toggleDropdown(id) {
         const dropdown = document.getElementById(id);
@@ -418,121 +549,9 @@
         }
     });
 
-
-    // Show the selected chart and hide others
-    function showChart(chartId) {
-        document.querySelectorAll('.chart-container').forEach(chart => {
-            chart.style.display = 'none';
-        });
-        document.getElementById(chartId).style.display = 'block';
-    }
-    // Initialize with the first chart visible
-    showChart('active-users');
     function handleLogout() {
         window.location.href = "{{ url_for('logout') }}";  // Redirect to the logout route
     }
-
-    const userScoresData = {{ user_scores | default({}) | tojson | safe }};
-    console.log("User Scores Data:", userScoresData);
-
-    if (Object.keys(userScoresData).length > 0) {
-        const userEmails = Object.keys(userScoresData);
-        const userScores = userEmails.map(email => userScoresData[email].total_score);
-
-        // Use a dynamic color palette
-        const colors = [
-            'rgba(13, 71, 161, 0.9)',  // Deep Blue
-            'rgba(41, 121, 255, 0.9)', // Light Blue
-            'rgba(96, 125, 139, 0.9)', // Steel Gray
-            'rgba(0, 150, 136, 0.9)',  // Teal
-            'rgba(255, 193, 7, 0.9)'   // Golden Yellow
-        ];
-        const borderColors = [
-            'rgba(13, 71, 161, 0.9)',  // Deep Blue
-            'rgba(41, 121, 255, 0.9)', // Light Blue
-            'rgba(96, 125, 139, 0.9)', // Steel Gray
-            'rgba(0, 150, 136, 0.9)',  // Teal
-            'rgba(255, 193, 7, 0.9)'   // Golden Yellow
-        ];
-
-        // Render the bar chart
-        const ctx = document.getElementById('userScoresChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: userEmails,
-                datasets: [{
-                    data: userScores,
-                    backgroundColor: 'rgba(112, 132, 141, 0.9)',
-                    borderColor: 'rgba(112, 132, 141, 1)',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        font: {
-                            size: 18,
-                            weight: 'bold'
-                        },
-                        padding: {
-                            top: 10,
-                            bottom: 30
-                        }
-                    },
-                    legend: {
-                        display: false,
-                        position: 'top',
-                        labels: {
-                            font: {
-                                size: 14
-                            },
-                        }
-                    },
-                    tooltip: {
-                        enabled: true,
-                        backgroundColor: '#333',
-                        titleColor: '#fff',
-                        bodyColor: '#fff'
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            font: {
-                                size: 12,
-                                weight: 'bold'
-                            },
-                            color: '#555'
-                        },
-                        barPercentage: 0.3,
-                        categoryPercentage: 0.8 //
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(200, 200, 200, 0.2)'
-                        },
-                        ticks: {
-                            font: {
-                                size: 12,
-                                weight: 'bold'
-                            },
-                            color: '#555'
-                        }
-                    }
-                }
-            }
-        });
-    } else {
-        console.log("No user scores data available.");
-    }
-
 </script>
 
 </body>

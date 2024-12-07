@@ -65,6 +65,7 @@
             transition: left 0.3s ease;
             z-index: 999;
             border-right: 1px solid #e0e0e0;
+            text-decoration: none;
 
         }
 
@@ -132,6 +133,7 @@
             align-items: center;
             padding: 0;
             margin-right: 20px;
+            text-decoration: none;
         }
 
 
@@ -304,6 +306,50 @@
         .dropdown:hover {
             background-color: #d5e4e9; /* Same as focus to create visual consistency */
         }
+        /* Toolbar styles */
+        .toolbar {
+            background-color: #f5f5f5; /* Light background color */
+            border-bottom: 1px solid #ccc; /* Subtle border */
+            padding-top: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Slight shadow for separation */
+        }
+
+        .toolbar-content {
+            max-width: 1200px;
+            margin-left: auto; /* Push the content to the extreme right */
+            margin-right: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .toolbar-link {
+            color: #134258; /* Theme color for links */
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px; /* Space between icon and text */
+            padding-right: 5px;
+            padding-bottom: 12px;
+        }
+
+        .toolbar-link:hover {
+            color: #007195; /* Slightly lighter theme color on hover */
+            text-decoration: none;
+        }
+
+        .toolbar-link i {
+            font-size: 20px;
+
+        }
+
+
 
     </style>
 </head>
@@ -317,14 +363,10 @@
         </a>
     </div>
     <div class="header-title">Craigslist Safebot</div>
-    <div class="settings-dropdown">
-        <button class="settings-button" onclick="toggleDropdown('settings-options')">
-            <i class="fas fa-cog icon"></i> Settings
-        </button>
-        <div id="settings-options" class="dropdown-content">
-            <a href="{{ url_for('update_account_profile') }}">Account Profile</a>
-            <a href="{{ url_for('update_project') }}">Update Projects</a>
-        </div>
+    <div class="settings-button">
+        <a href="{{ url_for('update_account_profile') }}" class="settings-button">
+            <i class="fas fa-cog icon"></i> Manage Account
+        </a>
     </div>
     <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
         <button class="logout-button">
@@ -333,29 +375,35 @@
     </form>
 </header>
 
+<div class="toolbar">
+    <div class="toolbar-content">
+        <a href="{{ url_for('update_project') }}" class="toolbar-link">
+            <i class="fas fa-cog"></i> Project Settings
+        </a>
+    </div>
+</div>
+
 <div class="sidebar" id="sidebar">
     <div class="sidebar-item" onclick="window.location.href='{{ url_for('user_profiles') }}'">
         User Profiles
     </div>
-    <div id="user-level-view" class="dropdown-menu">
-        <div class="dropdown-item" onclick="redirectToView('active-users')">Active Users (Last 30 Days)</div>
-        <div class="dropdown-item" onclick="redirectToView('top-users')">Top K Users</div>
-        <div class="dropdown-item" onclick="redirectToView('time-period-users')">Users by Time Period</div>
-    </div>
+    <a href="{{ url_for('view_archived_emails') }}" class="sidebar-item">
+        Archived Emails
+    </a>
 </div>
 
 <div class="container">
-    <h1>Update Project</h1>
+    <h1>Project Settings</h1>
     {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div>
-        {% for category, message in messages %}
-            <div class="alert alert-{{ category }}" role="alert">
-            {{ message }}
+        {% if messages %}
+            <div>
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
             </div>
-        {% endfor %}
-        </div>
-    {% endif %}
+        {% endif %}
     {% endwith %}
 
     <form action="{{ url_for('update_project') }}" method="POST">
@@ -386,7 +434,7 @@
 
         <!-- Dropdown for Projects -->
         <div class="form-field" id="projectDropdownContainer" style="display: none;">
-            <label for="project_dropdown">Select an existing Project</label>
+            <label for="project_dropdown">Use the existing prompt to import the prompt from the projects below</label>
             <div class="dropdown-container">
                 <select id="project_dropdown" name="project_dropdown" class="dropdown" onchange="updatePromptDropdown()">
                     <option value="" disabled selected>Select an existing Project</option>
@@ -399,7 +447,7 @@
 
         <!-- Dropdown for Prompts -->
         <div class="form-field" id="promptDropdownContainer" style="display: none;">
-            <label for="prompt_dropdown">Select an existing Prompt</label>
+            <label for="prompt_dropdown">Import the prompt </label>
             <div class="dropdown-container">
                 <select id="prompt_dropdown" name="sample_prompt" class="dropdown" onchange="updatePromptText()">
                     <option value="" disabled selected>Select an existing Prompt</option>
@@ -414,7 +462,7 @@
                     id="ai_prompt_text"
                     name="ai_prompt_text"
                     class="prompt-text"
-                    placeholder="Enter Prompt Text"
+                    placeholder="Enter the instructions to Safe Bot"
                     required
             >{{ project_details.get('ai_prompt_text', '') }}</textarea>
         </div>
@@ -426,14 +474,14 @@
                     type="number"
                     name="response_frequency"
                     class="response-frequency"
-                    placeholder="Response Frequency (mins)"
+                    placeholder="Response Frequency (Minutes)"
                     value="{{ project_details.get('response_frequency', '') }}"
                     required
             >
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" class="btn-primary">Update Project</button>
+        <button type="submit" class="btn-primary">Project Settings</button>
     </form>
 
     <div class="back-link">
@@ -441,156 +489,153 @@
     </div>
 
 
-<script>
-    // Toggle sidebar visibility
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('active');
-    }
-
-    // Redirect to different views
-    function redirectToView(view) {
-        switch (view) {
-            case 'active-users':
-                window.location.href = '{{ url_for("user_profiles_active_users") }}';
-                break;
-            case 'top-users':
-                window.location.href = '{{ url_for("user_profiles_top_users") }}';
-                break;
-            case 'time-period-users':
-                window.location.href = '{{ url_for("user_profiles_time_period_users") }}';
-                break;
-            default:
-                window.location.href = '{{ url_for("index") }}';
-                break;
+    <script>
+        // Toggle sidebar visibility
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
         }
-    }
-    function handleLogout() {
-        window.location.href = "{{ url_for('logout') }}";  // Redirect to the logout route
-    }
-    function toggleDropdown(id) {
-        const dropdown = document.getElementById(id);
-        const isVisible = dropdown.style.display === 'block';
 
-        // Hide all dropdowns before toggling the current one
-        document.querySelectorAll('.dropdown-content').forEach(content => {
-            content.style.display = 'none';
-        });
-
-        // Toggle the current dropdown's visibility
-        dropdown.style.display = isVisible ? 'none' : 'block';
-    }
-
-
-    // Fetch all projects and populate project dropdown
-    function fetchAllProjects() {
-        fetch(`/api/update_projects`)  // Make an API call to fetch all projects
-            .then(response => response.json())  // Parse the JSON response
-            .then(data => {
-                if (data.success) {
-                    const projectDropdown = document.getElementById('project_dropdown');
-                    projectDropdown.innerHTML = '<option value="" disabled selected>Select an existing Project</option>';
-
-                    // Store all projects in a global variable to filter prompts later
-                    window.allProjects = data.projects;
-
-                    data.projects.forEach(project => {
-                        const option = document.createElement('option');
-                        option.value = project.project_id; // Use project_id as the value to keep it unique
-                        option.textContent = project.project_name; // Display the project name to the user
-                        projectDropdown.appendChild(option);
-                    });
-                } else {
-                    console.error('Error fetching projects:', data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching projects:', error);
-            });
-    }
-
-    // Call this function once the document is ready to load the projects
-    document.addEventListener('DOMContentLoaded', fetchAllProjects);
-
-
-
-    // Toggle between editing prompt text and selecting from dropdown
-    function toggleInputMode(mode) {
-        const textContainer = document.getElementById('textContainer');
-        const projectDropdownContainer = document.getElementById('projectDropdownContainer');
-
-        if (mode === 'edit') {
-            textContainer.style.display = 'block';
-            projectDropdownContainer.style.display = 'none';
-            promptDropdownContainer.style.display = 'none'; //
-            document.getElementById("ai_prompt_text").required = true;
-        } else if (mode === 'dropdown') {
-            textContainer.style.display = 'none';
-            projectDropdownContainer.style.display = 'block';
-            promptDropdownContainer.style.display = 'block'; //
-            document.getElementById("ai_prompt_text").required = false;
+        function redirectToView(view) {
+            switch (view) {
+                case 'user_profiles':
+                    window.location.href = '{{ url_for("user_profiles") }}';
+                    break;
+                case 'archived_emails':
+                    window.location.href = '{{ url_for("view_archived_emails") }}';
+                    break;
+                default:
+                    window.location.href = '{{ url_for("index") }}';
+                    break;
+            }
         }
-    }
 
-    // Update prompt dropdown based on the selected project
-    function updatePromptDropdown() {
-        const projectDropdown = document.getElementById('project_dropdown');
-        const selectedProjectId = projectDropdown.value;
-
-        // Filter projects by selected project ID
-        const filteredProjects = window.allProjects.filter(project => project.project_id === selectedProjectId);
-
-        const promptDropdown = document.getElementById('prompt_dropdown');
-        promptDropdown.innerHTML = '<option value="" disabled selected>Select a Prompt</option>';
-
-        // Since project_id is unique, we should have exactly one project match
-        if (filteredProjects.length > 0) {
-            const project = filteredProjects[0];
-            const option = document.createElement('option');
-            option.value = project.ai_prompt_text;
-            option.textContent = project.ai_prompt_text;
-            promptDropdown.appendChild(option);
-            document.getElementById('promptDropdownContainer').style.display = 'block';
+        function handleLogout() {
+            window.location.href = "{{ url_for('logout') }}";  // Redirect to the logout route
         }
-    }
-    // Update prompt dropdown based on the selected project
-    function updatePromptOptions() {
-        const projectDropdown = document.getElementById('project_dropdown');
-        const selectedProjectName = projectDropdown.value;
+        function toggleDropdown(id) {
+            const dropdown = document.getElementById(id);
+            const isVisible = dropdown.style.display === 'block';
 
-        // Filter all projects to get the prompts related to the selected project name
-        const filteredProjects = window.allProjects.filter(project => project.project_name === selectedProjectName);
-
-        const promptDropdown = document.getElementById('prompt_dropdown');
-        promptDropdown.innerHTML = '<option value="" disabled selected>Select a Prompt</option>';
-
-        filteredProjects.forEach(project => {
-            const option = document.createElement('option');
-            option.value = project.ai_prompt_text;
-            option.textContent = project.ai_prompt_text;
-            promptDropdown.appendChild(option);
-        });
-
-        document.getElementById('promptDropdownContainer').style.display = 'block';
-    }
-
-
-    // Update prompt text based on the selected dropdown prompt
-    function updatePromptText() {
-        const selectedPrompt = document.getElementById('prompt_dropdown').value;
-        document.getElementById('ai_prompt_text').value = selectedPrompt;
-    }
-
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(event) {
-        const isClickInside = document.querySelector('.settings-dropdown')?.contains(event.target);
-        if (!isClickInside) {
+            // Hide all dropdowns before toggling the current one
             document.querySelectorAll('.dropdown-content').forEach(content => {
                 content.style.display = 'none';
             });
-        }
-    });
 
-</script>
+            // Toggle the current dropdown's visibility
+            dropdown.style.display = isVisible ? 'none' : 'block';
+        }
+
+
+        // Fetch all projects and populate project dropdown
+        function fetchAllProjects() {
+            fetch(`/api/update_projects`)  // Make an API call to fetch all projects
+                .then(response => response.json())  // Parse the JSON response
+                .then(data => {
+                    if (data.success) {
+                        const projectDropdown = document.getElementById('project_dropdown');
+                        projectDropdown.innerHTML = '<option value="" disabled selected>Select an existing Project</option>';
+
+                        // Store all projects in a global variable to filter prompts later
+                        window.allProjects = data.projects;
+
+                        data.projects.forEach(project => {
+                            const option = document.createElement('option');
+                            option.value = project.project_id; // Use project_id as the value to keep it unique
+                            option.textContent = project.project_name; // Display the project name to the user
+                            projectDropdown.appendChild(option);
+                        });
+                    } else {
+                        console.error('Error fetching projects:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching projects:', error);
+                });
+        }
+
+        // Call this function once the document is ready to load the projects
+        document.addEventListener('DOMContentLoaded', fetchAllProjects);
+
+
+
+        // Toggle between editing prompt text and selecting from dropdown
+        function toggleInputMode(mode) {
+            const textContainer = document.getElementById('textContainer');
+            const projectDropdownContainer = document.getElementById('projectDropdownContainer');
+
+            if (mode === 'edit') {
+                textContainer.style.display = 'block';
+                projectDropdownContainer.style.display = 'none';
+                promptDropdownContainer.style.display = 'none'; //
+                document.getElementById("ai_prompt_text").required = true;
+            } else if (mode === 'dropdown') {
+                textContainer.style.display = 'none';
+                projectDropdownContainer.style.display = 'block';
+                promptDropdownContainer.style.display = 'block'; //
+                document.getElementById("ai_prompt_text").required = false;
+            }
+        }
+
+        // Update prompt dropdown based on the selected project
+        function updatePromptDropdown() {
+            const projectDropdown = document.getElementById('project_dropdown');
+            const selectedProjectId = projectDropdown.value;
+
+            // Filter projects by selected project ID
+            const filteredProjects = window.allProjects.filter(project => project.project_id === selectedProjectId);
+
+            const promptDropdown = document.getElementById('prompt_dropdown');
+            promptDropdown.innerHTML = '<option value="" disabled selected>Select a Prompt</option>';
+
+            // Since project_id is unique, we should have exactly one project match
+            if (filteredProjects.length > 0) {
+                const project = filteredProjects[0];
+                const option = document.createElement('option');
+                option.value = project.ai_prompt_text;
+                option.textContent = project.ai_prompt_text;
+                promptDropdown.appendChild(option);
+                document.getElementById('promptDropdownContainer').style.display = 'block';
+            }
+        }
+        // Update prompt dropdown based on the selected project
+        function updatePromptOptions() {
+            const projectDropdown = document.getElementById('project_dropdown');
+            const selectedProjectName = projectDropdown.value;
+
+            // Filter all projects to get the prompts related to the selected project name
+            const filteredProjects = window.allProjects.filter(project => project.project_name === selectedProjectName);
+
+            const promptDropdown = document.getElementById('prompt_dropdown');
+            promptDropdown.innerHTML = '<option value="" disabled selected>Select a Prompt</option>';
+
+            filteredProjects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.ai_prompt_text;
+                option.textContent = project.ai_prompt_text;
+                promptDropdown.appendChild(option);
+            });
+
+            document.getElementById('promptDropdownContainer').style.display = 'block';
+        }
+
+
+        // Update prompt text based on the selected dropdown prompt
+        function updatePromptText() {
+            const selectedPrompt = document.getElementById('prompt_dropdown').value;
+            document.getElementById('ai_prompt_text').value = selectedPrompt;
+        }
+
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const isClickInside = document.querySelector('.settings-dropdown')?.contains(event.target);
+            if (!isClickInside) {
+                document.querySelectorAll('.dropdown-content').forEach(content => {
+                    content.style.display = 'none';
+                });
+            }
+        });
+
+    </script>
 </body>
 </html>

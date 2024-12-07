@@ -66,7 +66,7 @@
             border-radius: 10px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             width: 90%;
-            max-width: 950px;
+            max-width: 1020px;
             margin-top: 10px; /* Reduced margin-top */
             margin-bottom: 20px;
             display: flex;
@@ -182,13 +182,13 @@
             padding: 15px;
             margin-top: 10px;
             border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            transition: box-shadow 0.3s ease;
+            {#box-shadow: 0 2px 5px rgba(0,0,0,0.1);#}
+            {#transition: box-shadow 0.3s ease;#}
             display: flex;
             flex-direction: column;
         }
         .email-chain:hover {
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.15);
         }
 
         .subject-box {
@@ -221,20 +221,22 @@
             font-size: 24px;
             cursor: pointer;
             padding: 0;
-        }
-        .email-chain-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: pointer;
             font-weight: bold;
             gap: 15px;
-        }
-        .email-chain-header {
             flex-grow: 1;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        .email-chain-header:hover {
+            background-color: #eaeaea; /* Highlight on hover */
+            padding: 7px;
+            border-radius: 10px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+
         }
         .button-box button {
             background: none;
@@ -328,7 +330,7 @@
         }
         .toggle-switch {
             position: relative;
-            width: 30px;
+            width: 40px;
             height: 20px;
         }
         .toggle-switch input {
@@ -454,6 +456,7 @@
             align-items: center;
             padding: 0;
             margin-right: 20px;
+            text-decoration: none;
         }
 
         .dropdown-content {
@@ -602,7 +605,6 @@
         .project-title {
             width: 100%;
             text-align: center;
-            margin-top: 100px; /* Space below the header */
             margin-bottom: 10px; /* Space above the container */
             font-size: 30px;
             font-weight: bold;
@@ -789,6 +791,128 @@
         .flash-message.error {
             background-color: #f8d7da;  /* Red for error */
         }
+        /* Bot Icon Styling */
+        .bot-icon-container {
+            display: inline-block;
+            margin-left: 8px;
+            position: relative;
+            cursor: help;
+        }
+
+        .bot-icon {
+            font-size: 16px;
+            color: #007195; /* Blue color matching the theme */
+            margin-left: 5px; /* Space between the icon and the text */
+            cursor: help; /* Show a help cursor when hovered */
+        }
+        .bot-icon:hover {
+            color: #134258; /* Darker shade on hover */
+        }
+
+
+        .bot-icon-container:hover .bot-icon {
+            color: #007bff; /* Highlight on hover */
+        }
+
+        /* Tooltip Styling */
+        .bot-icon-container[title] {
+            position: relative;
+        }
+
+        .bot-icon-container[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            left: 50%;
+            top: 120%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            white-space: nowrap;
+            font-size: 12px;
+            z-index: 1000;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        /* Toolbar styles */
+        .toolbar {
+            background-color: #f5f5f5; /* Light background color */
+            border-bottom: 1px solid #ccc; /* Subtle border */
+            padding-top: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Slight shadow for separation */
+        }
+
+        .toolbar-content {
+            max-width: 1200px;
+            margin-left: auto; /* Push the content to the extreme right */
+            margin-right: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .toolbar-link {
+            color: #134258; /* Theme color for links */
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px; /* Space between icon and text */
+            padding-right: 5px;
+            padding-bottom: 12px;
+        }
+
+        .toolbar-link:hover {
+            color: #007195; /* Slightly lighter theme color on hover */
+            text-decoration: none;
+        }
+
+        .toolbar-link i {
+            font-size: 20px;
+
+        }
+        .sort-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 90px;
+            margin: -18px 7px;
+            font-size: 16px;
+            color: #134258; /* Match theme color */
+            margin-top: 10px;
+        }
+
+        .sort-button {
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            color: #134258;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .sort-button:hover {
+            color: #007195;
+            background-color: #e4e9eb;
+        }
+
+        .sort-button i {
+            font-size: 12px;
+            color: inherit;
+            margin-left: 5px;
+        }
+
+
+
+
 
 
 
@@ -811,15 +935,10 @@
     <div class="header-title">Craigslist Safebot</div>
     <!-- Logout Button on the right -->
     <div class="right">
-        <!-- Settings Dropdown -->
-        <div class="settings-dropdown">
-            <button class="settings-button" onclick="toggleDropdown('settings-options')">
-                <i class="fas fa-cog icon"></i> Settings
-            </button>
-            <div id="settings-options" class="dropdown-content">
-                <a href="{{ url_for('update_account_profile') }}">Account Profile</a>
-                <a href="{{ url_for('update_project') }}">Update Projects</a>
-            </div>
+        <div class="settings-button">
+            <a href="{{ url_for('update_account_profile') }}" class="settings-button">
+                <i class="fas fa-cog icon"></i> Manage Account
+            </a>
         </div>
         <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
             <button class="logout-button">
@@ -828,20 +947,22 @@
         </form>
     </div>
 </header>
+
+<div class="toolbar">
+    <div class="toolbar-content">
+        <a href="{{ url_for('update_project') }}" class="toolbar-link">
+            <i class="fas fa-cog"></i> Project Settings
+        </a>
+    </div>
+</div>
+
 <div class="sidebar" id="sidebar">
     <div class="sidebar-item" onclick="window.location.href='{{ url_for('user_profiles') }}'">
         User Profiles
     </div>
-    <div id="user-level-view" class="dropdown-menu">
-        <div class="dropdown-item" onclick="redirectToView('active-users')">Active Users (Last 30 Days)</div>
-        <div class="dropdown-item" onclick="redirectToView('top-users')">Top K Users</div>
-        <div class="dropdown-item" onclick="redirectToView('time-period-users')">Users by Time Period</div>
-    </div>
     <a href="{{ url_for('view_archived_emails') }}" class="sidebar-item">
         Archived Emails
     </a>
-
-
 </div>
 <!-- Title for the Project Name -->
 <div class="project-title">
@@ -864,7 +985,7 @@
                        min="1"
                        title="Please type top K email threads based on score">
                 <i class="fas fa-info-circle info-icon"
-                   title="The score represents the interaction level of email threads, computed based on factors like engagement frequency and content relevance."></i>
+                   title="The score represents how suspicious that user is or how much the user matches the target profile out of 100. "></i>
             </div>
 
             <div class="date-container">
@@ -891,21 +1012,33 @@
             <div class="button-container">
                 <button type="submit" name="search">Search</button>
                 <button type="button" onclick="clearFilters()">Clear Filters</button>
-                <button type="button" onclick="handleLogout()">Logout</button>
             </div>
 
         </form>
     </div>
-
+    <!-- Sorting Options -->
+    <div class="sort-container">
+        <button class="sort-button" onclick="sortBy('score')">
+            Score
+            <i class="fas fa-arrow-up" id="score-asc" style="display: none;"></i>
+            <i class="fas fa-arrow-down" id="score-desc"></i>
+        </button>
+        <button class="sort-button" onclick="sortBy('time')">
+            Time
+            <i class="fas fa-arrow-up" id="time-asc" style="display: none;"></i>
+            <i class="fas fa-arrow-down" id="time-desc"></i>
+        </button>
+    </div>
 
     <div class="results-container">
         {% if conversations %}
             <div>
                 {% for key, details in conversations.items() %}
                     <div class="email-chain" data-thread-id="{{ key }}">
-                        <div class="email-chain-header">
-                            <div class="subject-box" style="width: 70%;">{{ details[0]['subject'].replace('Re: ', '') }}</div>
-                            <div class="email-score" style="width: 20%; text-align: right;">
+                        <div class="email-chain-header" onclick="toggleEmailChain('chain-{{ loop.index }}', this)">
+                            <div class="subject-box" style="width: 70%;">{{ details[0]['subject'].replace('Re: ', '') }}
+                            </div>
+                            <div class="email-score"  title="The score represents how suspicious that user is or how much the user matches the target profile out of 100" style="width: 20%; text-align: right;">
                                 Score: {{ conversations_score.get(key, '0') }}
                             </div>
                             <div class="button-box">
@@ -919,8 +1052,6 @@
                             <button class="archive-button" title="Click on this to archive this email conversation."  onclick="archiveEmail(this)">
                                 <i class="fas fa-archive"></i>
                             </button>
-                            <button class="toggle-button" onclick="toggleEmailChain('chain-{{ loop.index }}', this)">+</button>
-
                             <!-- Conditional timestamp display -->
                             <div class="email-timestamp" style="width: 11%; text-align: center; ">
                                 {% set email_date = latest_timestamp.get(key) %}
@@ -936,10 +1067,15 @@
                             </div>
                         </div>
 
-                        <div class="email-chain-content" id="chain-{{ loop.index }}">
+                        <div class="email-chain-content" id="chain-{{ loop.index }}" style="display: none;">
                             {% for email in details %}
                                 <div class="email">
-                                    <p><strong>From:</strong> {{ email['from'] }}</p>
+                                    <p>
+                                        <strong>From:</strong> {{ email['from'] }}
+                                        {% if email['from'] == session['email'] %}
+                                            <i class="fas fa-robot bot-icon" title="This email was sent by the SafeBot"></i>
+                                        {% endif %}
+                                    </p>
                                     <p><strong>To:</strong> {{ email['to'] }}</p>
                                     <p class="subject"><strong>Subject:</strong> {{ email['subject'] }}</p>
                                     <p><strong>Date:</strong> {{ email['date'].strftime('%Y-%m-%d %H:%M:%S %Z') }}</p>
@@ -993,17 +1129,22 @@
             });
     }
 
-
-    function toggleEmailChain(chainId, button) {
+    function toggleEmailChain(chainId, element) {
+        console.log("Toggling email chain:", chainId); // Debugging
         const content = document.getElementById(chainId);
-        const isHidden = content.style.display === 'none' || !content.style.display;
 
-        // Toggle display immediately
+        if (!content) {
+            console.error("No content element found with id:", chainId);
+            return;
+        }
+
+        // Toggle visibility
+        const isHidden = content.style.display === 'none' || !content.style.display;
         content.style.display = isHidden ? 'block' : 'none';
 
-        // Change the button symbol without delay
-        button.textContent = isHidden ? '-' : '+';
+        console.log(`Content for ${chainId} is now ${isHidden ? 'visible' : 'hidden'}`);
     }
+
 
     function setDateRange(days) {
         var endDate = new Date();
@@ -1073,14 +1214,8 @@
 
     function redirectToView(view) {
         switch (view) {
-            case 'active-users':
-                window.location.href = '{{ url_for("user_profiles_active_users") }}';
-                break;
-            case 'top-users':
-                window.location.href = '{{ url_for("user_profiles_top_users") }}';
-                break;
-            case 'time-period-users':
-                window.location.href = '{{ url_for("user_profiles_time_period_users") }}';
+            case 'user_profiles':
+                window.location.href = '{{ url_for("user_profiles") }}';
                 break;
             case 'archived_emails':
                 window.location.href = '{{ url_for("view_archived_emails") }}';
@@ -1090,6 +1225,7 @@
                 break;
         }
     }
+
 
     document.addEventListener('DOMContentLoaded', function () {
         const filtersContainer = document.getElementById('filters-container');
@@ -1163,6 +1299,21 @@
                 showFlashMessage("An error occurred while archiving the email.", "error");
             });
     }
+    let currentSort = { field: '', direction: 'desc' };
+
+    function sortBy(field) {
+        const isAscending = currentSort.field === field && currentSort.direction === 'asc';
+        currentSort = { field, direction: isAscending ? 'desc' : 'asc' };
+
+        // Toggle visibility of icons
+        document.getElementById(`${field}-asc`).style.display = isAscending ? 'none' : 'inline';
+        document.getElementById(`${field}-desc`).style.display = isAscending ? 'inline' : 'none';
+
+        // Call a backend API or re-sort the DOM elements as needed
+        console.log(`Sorting by ${field} in ${currentSort.direction} order`);
+        // Add your sorting logic here, e.g., AJAX request or client-side sorting
+    }
+
 
     function showFlashMessage(message, type) {
         // Create a new div element for the flash message
@@ -1178,6 +1329,36 @@
             flashMessageDiv.remove();
         }, 3000);  // 3 seconds duration, you can adjust this as needed
     }
+
+    function sortBy(field) {
+        // Determine sort direction
+        const isAscending = currentSort.field === field && currentSort.direction === 'asc';
+        currentSort = { field, direction: isAscending ? 'desc' : 'asc' };
+
+        // Toggle arrow icons
+        document.getElementById(`${field}-asc`).style.display = isAscending ? 'none' : 'inline';
+        document.getElementById(`${field}-desc`).style.display = isAscending ? 'inline' : 'none';
+
+        // Get the email chain container and all email chains
+        const container = document.querySelector('.results-container > div');
+        const emailChains = Array.from(container.querySelectorAll('.email-chain'));
+
+        // Sort the email chains based on the selected field
+        emailChains.sort((a, b) => {
+            const aValue = field === 'score'
+                ? parseFloat(a.querySelector('.email-score').textContent.split(': ')[1]) || 0
+                : new Date(a.querySelector('.email-timestamp').textContent.trim());
+            const bValue = field === 'score'
+                ? parseFloat(b.querySelector('.email-score').textContent.split(': ')[1]) || 0
+                : new Date(b.querySelector('.email-timestamp').textContent.trim());
+
+            return isAscending ? (aValue > bValue ? 1 : -1) : (aValue < bValue ? 1 : -1);
+        });
+
+        // Append the sorted email chains back to the container
+        emailChains.forEach(chain => container.appendChild(chain));
+    }
+
 
 
 

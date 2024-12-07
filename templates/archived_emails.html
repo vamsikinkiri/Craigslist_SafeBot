@@ -439,6 +439,7 @@
             align-items: center;
             padding: 0;
             margin-right: 20px;
+            text-decoration: none;
         }
 
         .dropdown-content {
@@ -748,6 +749,50 @@
             visibility: visible;
             opacity: 1;
         }
+        /* Toolbar styles */
+        .toolbar {
+            background-color: #f5f5f5; /* Light background color */
+            border-bottom: 1px solid #ccc; /* Subtle border */
+            padding-top: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Slight shadow for separation */
+        }
+
+        .toolbar-content {
+            max-width: 1200px;
+            margin-left: auto; /* Push the content to the extreme right */
+            margin-right: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .toolbar-link {
+            color: #134258; /* Theme color for links */
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px; /* Space between icon and text */
+            padding-right: 5px;
+            padding-bottom: 12px;
+        }
+
+        .toolbar-link:hover {
+            color: #007195; /* Slightly lighter theme color on hover */
+            text-decoration: none;
+        }
+
+        .toolbar-link i {
+            font-size: 20px;
+
+        }
+
+
 
     </style>
 </head>
@@ -767,14 +812,10 @@
     <!-- Logout Button on the right -->
     <div class="right">
         <!-- Settings Dropdown -->
-        <div class="settings-dropdown">
-            <button class="settings-button" onclick="toggleDropdown('settings-options')">
-                <i class="fas fa-cog icon"></i> Settings
-            </button>
-            <div id="settings-options" class="dropdown-content">
-                <a href="{{ url_for('update_account_profile') }}">Account Profile</a>
-                <a href="{{ url_for('update_project') }}">Update Projects</a>
-            </div>
+        <div class="settings-button">
+            <a href="{{ url_for('update_account_profile') }}" class="settings-button">
+                <i class="fas fa-cog icon"></i> Manage Account
+            </a>
         </div>
         <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
             <button class="logout-button">
@@ -783,20 +824,21 @@
         </form>
     </div>
 </header>
+<div class="toolbar">
+    <div class="toolbar-content">
+        <a href="{{ url_for('update_project') }}" class="toolbar-link">
+            <i class="fas fa-cog"></i> Project Settings
+        </a>
+    </div>
+</div>
+
 <div class="sidebar" id="sidebar">
     <div class="sidebar-item" onclick="window.location.href='{{ url_for('user_profiles') }}'">
         User Profiles
     </div>
-    <div id="user-level-view" class="dropdown-menu">
-        <div class="dropdown-item" onclick="redirectToView('active-users')">Active Users (Last 30 Days)</div>
-        <div class="dropdown-item" onclick="redirectToView('top-users')">Top K Users</div>
-        <div class="dropdown-item" onclick="redirectToView('time-period-users')">Users by Time Period</div>
-    </div>
-    <div class="sidebar-item" onclick="redirectToView('archived-emails-view')">
+    <a href="{{ url_for('view_archived_emails') }}" class="sidebar-item">
         Archived Emails
-    </div>
-
-
+    </a>
 </div>
 <!-- Title for the Project Name -->
 <div class="project-title">
@@ -1004,24 +1046,17 @@
 
         function redirectToView(view) {
             switch (view) {
-                case 'active-users':
-                    window.location.href = '{{ url_for("user_profiles_active_users") }}';
+                case 'user_profiles':
+                    window.location.href = '{{ url_for("user_profiles") }}';
                     break;
-                case 'top-users':
-                    window.location.href = '{{ url_for("user_profiles_top_users") }}';
-                    break;
-                case 'time-period-users':
-                    window.location.href = '{{ url_for("user_profiles_time_period_users") }}';
-                    break;
-                case 'archived-emails-view':
-                    window.location.href = '{{ url_for("view_archived_emails") }}';  // Use the correct function name
+                case 'archived_emails':
+                    window.location.href = '{{ url_for("view_archived_emails") }}';
                     break;
                 default:
                     window.location.href = '{{ url_for("index") }}';
                     break;
             }
         }
-
         document.addEventListener('DOMContentLoaded', function () {
             const filtersContainer = document.getElementById('filters-container');
             const toggleFiltersButton = document.getElementById('toggle-filters-btn');

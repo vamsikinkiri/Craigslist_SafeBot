@@ -231,21 +231,21 @@
         }
 
         .alert-success {
-        background-color: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
 
         .alert-error {
-        background-color: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
 
         .alert-info {
-        background-color: #d1ecf1;
-        color: #0c5460;
-        border: 1px solid #bee5eb;
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
         }
 
         .input-wrapper {
@@ -512,15 +512,15 @@
     <h1>Project creation</h1>
     <!-- Flash Message Box -->
     {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div>
-        {% for category, message in messages %}
-            <div class="alert alert-{{ category }}" role="alert">
-            {{ message }}
+        {% if messages %}
+            <div>
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
             </div>
-        {% endfor %}
-        </div>
-    {% endif %}
+        {% endif %}
     {% endwith %}
 
     <form action="{{ url_for('project_creation') }}" method="POST">
@@ -539,10 +539,10 @@
         </div>
         <input type="password" placeholder="Re-Type Password" id="retype-password" required>
         <div class="error-message" id="password-error">Passwords do not match.</div>
-        <textarea name="ai_prompt_text" rows="3" placeholder="AI Prompt Text Message"></textarea>
+        <textarea name="ai_prompt_text" rows="3" placeholder="Instructions to Safe Bot"></textarea>
 
         <div class="input-wrapper">
-            <input type="number" id="response_frequency" name="response_frequency" placeholder="Response Frequency (In Minutes)" min="1" style="margin-top: 10px;">
+            <input type="number" id="response_frequency" name="response_frequency" placeholder="Response Frequency (Minutes)" min="1" style="margin-top: 10px;">
         </div>
 
         <div class="keyword-frequency-wrapper">
@@ -610,7 +610,7 @@
         window.location.href = "{{ url_for('logout') }}";  // Redirect to the logout route
     }
 
-        // Password validation
+    // Password validation
     const passwordInput = document.getElementById('password');
     const retypePasswordInput = document.getElementById('retype-password');
     const passwordError = document.getElementById('password-error');

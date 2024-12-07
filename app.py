@@ -446,50 +446,118 @@ def delete_project(project_id):
         return redirect(url_for('all_projects_view'))
 
     flash("Project deleted successfully.", "success")
-    return redirect(url_for('all_projects_view'))
+    return (redirect(url_for('all_projects_view')))
+
 
 @app.route('/user_profiles', methods=['GET'])
 def user_profiles():
+    """
+    Fetch and display user profiles with sorting and filtering by last active time.
+    """
+    # Fetch all user profiles
     all_users = user_profiling.get_all_users()
     success, user_scores = knowledge_base.fetch_scores_at_user_level()
 
-    if success:
-        return render_template("user_profiles.html", active_users=all_users, user_scores=user_scores)
-    else:
-        return jsonify({"error": "Error fetching data"}), 500
+    if not all_users:
+        return jsonify({"error": "Error fetching user profiles"}), 500
 
-@app.route('/user_profiles/active_users', methods=['GET'])
-def user_profiles_active_users():
-    all_users = user_profiling.get_all_users()
-    logging.info(all_users)
-    if all_users:
-        return render_template(
-            "user_profiles.html",
-            chart="active_users",
-            active_users=all_users,
-        )
-    else:
-        return jsonify({"error": "Error fetching active users"}), 500
+    # Handle 'last_active_filter' query parameter
+    last_active_filter = request.args.get("last_active_filter", "all")  # Default to 'all'
 
-@app.route('/user_profiles/top_users', methods=['GET'])
-def user_profiles_top_users():
-    success, user_scores = knowledge_base.fetch_scores_at_user_level()
-    #logging.info(f"DEBUG App: User Scores: {user_scores}")  # Add this line to check the data
-    if not success:
-        return jsonify({"error": "Error fetching user scores"}), 500
+    # Calculate the current date
+    current_date = datetime.now()
+
+    # Filter users based on 'last_active_filter'
+    if last_active_filter != "all":
+        try:
+            days_filter = int(last_active_filter)
+            all_users = [
+                user for user in all_users
+                if user.get("last_active")
+                   and (current_date - datetime.strptime(user["last_active"], "%Y-%m-%d %H:%M:%S")).days <= days_filter
+            ]
+        except ValueError:
+            logging.error("Invalid last_active_filter value. Showing all users.")
+
+    # Combine user data
+    user_data = [
+        {
+            "primary_email": user.get("primary_email", "N/A"),
+            "score": user_scores.get(user.get("primary_email"), {}).get("total_score", 0) if success else 0,
+            "last_active": user.get("last_active", "N/A"),
+            "contact_numbers": ", ".join(user.get("contact_numbers", [])),
+            "active_user": user.get("active_user", False)
+        }
+        for user in all_users
+    ]
+
+    app.logger.info(f"Merged User Data: {user_data}")
+    # Sorting logic
+    sort_key = request.args.get("sort", "score")
+    order = request.args.get("order", "desc")
+    reverse = order == "desc"
+
+    if user_data:
+        user_data.sort(key=lambda x: x.get(sort_key, ""), reverse=reverse)
+
     return render_template(
-        'user_profiles.html',
-        chart='top_users',
-        user_scores=user_scores
+        "user_profiles.html",
+        user_data=user_data,
+        sort_key=sort_key,
+        order="asc" if reverse else "desc",
+        last_active_filter=last_active_filter  # Pass the active filter to the UI
     )
-
-@app.route('/user_profiles/time_period_users', methods=['GET'])
-def user_profiles_time_period_users():
-    return render_template('user_profiles.html', chart='time_period_users')
-
-# @app.route('/email_view', methods=['GET'])
-# def email_view():
-#     return render_template('email_view.html')
+#
+#
+# @app.route('/user_profiles', methods=['GET'])
+# def user_profiles():
+#     """
+#     Fetch and display user profiles with sorting functionality.
+#     """
+#     # Fetch all user profiles and user scores
+#     all_users = user_profiling.get_all_users()
+#     success, user_scores = knowledge_base.fetch_scores_at_user_level()
+#     # Debug logs to verify fetched data
+#     app.logger.info("Fetched User Profiles: %s", all_users)
+#     app.logger.info("Fetched User Scores: %s", user_scores)
+#
+#     # Handle errors if data fetching fails
+#     if not all_users:
+#         return jsonify({"error": "Error fetching user profiles"}), 500
+#
+#     user_data = [
+#         {
+#             "primary_email": user.get("primary_email", "N/A"),
+#             "score": user_scores.get(user.get("primary_email"), {}).get("total_score", 0) if success else 0,
+#             "last_active": user.get("last_active", "N/A"),
+#             "contact_numbers": ", ".join(user.get("contact_numbers", []))
+#         }
+#         for user in all_users
+#     ]
+#     app.logger.info(f"Merged User Data: {user_data}")
+#
+#
+#     # Allowed sort keys to prevent invalid sorting
+#     allowed_sort_keys = {"primary_email", "score", "last_active", "contact_numbers"}
+#     sort_key = request.args.get("sort", "score")  # Default sorting by score
+#     if sort_key not in allowed_sort_keys:
+#         sort_key = "score"  # Fallback to default sort key
+#
+#     order = request.args.get("order", "desc")  # Default order is descending
+#     reverse = order == "desc"
+#
+#     # Sort the user data
+#     if user_data:
+#         user_data.sort(key=lambda x: x.get(sort_key, 0), reverse=reverse)
+#
+#     app.logger.info("Sorted User Data: %s", user_data)
+#
+#     return render_template(
+#         "user_profiles.html",
+#         user_data=user_data,
+#         sort_key=sort_key,
+#         order="asc" if reverse else "desc"  # Toggle order for sorting
+#     )
 
 @app.route('/update_ai_response_state', methods=['POST'])
 @login_required
@@ -638,6 +706,7 @@ def index():
 
         # Convert sorted list back to dictionary for use in the template
         conversations = dict(sorted_conversations)
+    logging.info(f"Session Email: {session.get('email')}")
 
     # Update data dictionary with the filtered conversations
     data['conversations'] = conversations
