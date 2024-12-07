@@ -102,13 +102,6 @@ class EmailProcessor:
             flash(result, "error")
 
     def _handle_ai_response_state(self, email, thread_id, session_email, project_details, score, conversation_history, from_address):
-        # Extract the admin email
-        admin_success, admin_email = knowledge_base.get_email_by_admin_id(admin_id=project_details[7])
-        if not admin_success:
-            logging.error(admin_email)
-            flash(admin_email)
-            return
-        
         # Extract the user profile
         user_success, user_profile = knowledge_base.get_user_profile(from_address)
         if not user_success:
@@ -117,6 +110,9 @@ class EmailProcessor:
             return
         user_id, primary_email, thread_ids, email_list, contact_numbers, last_active_db, last_updated = user_profile
         user_details = f"""User primary Email: {primary_email}\nEmail List: {email_list if email_list else 'N/A'}\nContact Numbers: {', '.join(contact_numbers) if contact_numbers else 'N/A'}\nLast Active: {last_active_db}"""
+        
+        # Extract the admin email
+        # admin_success, admin_email = knowledge_base.get_email_by_admin_id(admin_id=project_details[7])
 
         # Extract the AI response state
         ai_success, ai_state = knowledge_base.get_ai_response_state(thread_id)
@@ -130,15 +126,18 @@ class EmailProcessor:
         response_frequency = project_details[5]
         lower_threshold = project_details[8]
         upper_threshold = project_details[9]
+        authorized_emails = project_details[10]
 
         if ai_state == 'Manual':
-            self._notify_admin(project_name, admin_email, session_email, app_password, email, user_details, score, thread_id)
+            for admin_email in authorized_emails:
+                self._notify_admin(project_name, admin_email, session_email, app_password, email, user_details, score, thread_id)
         elif ai_state == 'Automated' and score > lower_threshold:
             if score < upper_threshold:
                 self.schedule_or_send_reply(email, conversation_history, session_email, app_password, response_frequency, admin_prompt)
             else:
                 # Notify all the authorized admins
-                self._notify_admin(project_name, admin_email, session_email, app_password, email, user_details, score, thread_id, threshold_exceeded=True)
+                for admin_email in authorized_emails:
+                    self._notify_admin(project_name, admin_email, session_email, app_password, email, user_details, score, thread_id, threshold_exceeded=True)
                 knowledge_base.update_ai_response_state(thread_id, 'Manual')
 
     def _notify_admin(self, project_name, admin_email, session_email, app_password, email, user_details, score, thread_id, threshold_exceeded=False):

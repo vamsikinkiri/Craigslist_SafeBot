@@ -100,7 +100,7 @@ class ProjectScheduler:
         if not session_email and not session_password:
             for project in projects:
                 logging.info(f"Currently processing project: {project}")
-                if len(project) != 9:  # Expecting 9 fields now
+                if len(project) != 12:  # Expecting 12 fields now
                     logging.error(f"Unexpected project tuple length: {len(project)}. Data: {project}")
                     continue  # Skip processing this project
                 project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, last_updated = project

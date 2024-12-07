@@ -115,8 +115,8 @@ def setup_database():
 
 
 setup_database()
-success, result = knowledge_base.get_projects_by_admin_email("vamsikinkiri@gmail.com")
-if success:
-    print("Projects found:", result)
-else:
-    print("Error:", result)
+# success, result = knowledge_base.get_projects_by_admin_email("vamsikinkiri@gmail.com")
+# if success:
+#     print("Projects found:", result)
+# else:
+#     print("Error:", result)
