@@ -27,6 +27,7 @@ class EmailProcessor:
     def process_grouped_emails(self, grouped_emails, session_email, project_keywords):
         for thread_id, emails in grouped_emails.items():
             conversation_history = []
+            user_email = ""
             # Process each email in the thread
             for email in reversed(emails):
                 # Extract sender's email for comparison
@@ -37,11 +38,17 @@ class EmailProcessor:
                     conversation_history.append(f"We replied: {email['content']}")
                     continue  # Ignore the emails the chatbot sent
                 else:
+                    user_email = from_address
                     conversation_history.append(f"User sent: {email['content']}")
 
                 self._process_single_email(
                     email, from_address, thread_id, session_email, project_keywords, conversation_history, len(emails)
                 )
+            
+            if user_email != "":
+                user_profiling.update_user_activity_status(user_email=user_email)
+            # else:
+            #     logging.info(f"This is a manual trigger conversation!!")
 
     def _process_single_email(self, email, from_address, thread_id, session_email, project_keywords, conversation_history, email_count):
         # Check if the email is already processed
@@ -108,7 +115,7 @@ class EmailProcessor:
             flash("Failed to fetch user profile for notification.", "error")
             logging.error("Failed to fetch user profile for notification.")
             return
-        user_id, primary_email, thread_ids, email_list, contact_numbers, last_active_db, last_updated = user_profile
+        user_id, primary_email, thread_ids, email_list, contact_numbers, active_user, last_active_db, last_updated = user_profile
         user_details = f"""User primary Email: {primary_email}\nEmail List: {email_list if email_list else 'N/A'}\nContact Numbers: {', '.join(contact_numbers) if contact_numbers else 'N/A'}\nLast Active: {last_active_db}"""
         
         # Extract the admin email
@@ -129,6 +136,7 @@ class EmailProcessor:
         authorized_emails = project_details[10]
 
         if ai_state == 'Manual':
+            # Notify all the authorized admins
             for admin_email in authorized_emails:
                 self._notify_admin(project_name, admin_email, session_email, app_password, email, user_details, score, thread_id)
         elif ai_state == 'Automated' and score > lower_threshold:
@@ -172,7 +180,7 @@ class EmailProcessor:
         current_time = datetime.now(email_received_time.tzinfo)
 
         # Randomize the response frequency within ±10 minutes
-        randomized_response_frequency = response_frequency + random.randint(-10, 10)
+        randomized_response_frequency = max(5, response_frequency + random.randint(-10, 10))
         send_time = email_received_time + timedelta(minutes=randomized_response_frequency)
 
         # Define acceptable send hours
@@ -302,6 +310,13 @@ class EmailProcessor:
         # logging.info(f"Debugging the conversation: {conversation_history}")
         # Process the most recent email in the conversation
         latest_email = grouped_emails[0]
+
+        if email['from'] == session_email:
+            # The latest email is from the project email itself, so no need to send a reply
+            # logging.info(f"Debug: {session_email}, {latest_email}")
+            return True, "Successfully switched to Automated."
+        
+        # The latest email is from the user email
         self.schedule_or_send_reply(
             email=latest_email,
             conversation_history=conversation_history,

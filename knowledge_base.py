@@ -714,7 +714,7 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
     
-    def create_user_profile(self, user_email, thread_ids, email_list, contact_numbers, last_active):
+    def create_user_profile(self, user_email, thread_ids, email_list, contact_numbers, active_user, last_active):
         """
         Create a new user profile.
         """
@@ -732,11 +732,11 @@ class KnowledgeBase:
             cursor.execute("""
                 INSERT INTO USER_PROFILES (
                     USER_ID, PRIMARY_EMAIL, THREAD_IDS, EMAIL_LIST, CONTACT_NUMBERS, 
-                    LAST_ACTIVE, LAST_UPDATED
+                    ACTIVE_USER, LAST_ACTIVE, LAST_UPDATED
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, NOW())
+                VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
             """, (
-                generated_id, user_email, thread_ids, email_list, json.dumps(contact_numbers), last_active
+                generated_id, user_email, thread_ids, email_list, json.dumps(contact_numbers), active_user, last_active
             ))
             conn.commit()
             return True, None
@@ -784,7 +784,8 @@ class KnowledgeBase:
                 PRIMARY_EMAIL, 
                 THREAD_IDS, 
                 EMAIL_LIST, 
-                CONTACT_NUMBERS, 
+                CONTACT_NUMBERS,
+                ACTIVE_USER, 
                 LAST_ACTIVE, 
                 LAST_UPDATED
             FROM 
@@ -798,7 +799,7 @@ class KnowledgeBase:
 
             user_profiles = []
             for row in rows:
-                user_id, primary_email, thread_ids, email_list, contact_numbers, last_active, last_updated = row
+                user_id, primary_email, thread_ids, email_list, contact_numbers, active_user, last_active, last_updated = row
 
                 # Parse THREAD_IDS as a list if it's a JSON-like string
                 parsed_thread_ids = json.loads(thread_ids) if thread_ids and thread_ids.startswith('[') else thread_ids.split(',') if thread_ids else []
@@ -806,12 +807,14 @@ class KnowledgeBase:
                 # Parse CONTACT_NUMBERS safely
                 parsed_contact_numbers = json.loads(contact_numbers) if isinstance(contact_numbers, str) else contact_numbers
 
+                # Can include the logic to only send the active users using the active_user field
                 user_profiles.append({
                     "user_id": user_id,
                     "primary_email": primary_email,
                     "thread_ids": parsed_thread_ids,
                     "email_list": email_list if email_list else "",
                     "contact_numbers": parsed_contact_numbers if parsed_contact_numbers else [],
+                    "active_user": active_user,
                     "last_active": last_active.strftime('%Y-%m-%d %H:%M:%S') if last_active else "Never",
                     "last_updated": last_updated.strftime('%Y-%m-%d %H:%M:%S') if last_updated else "Never"
                 })
@@ -822,7 +825,7 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
     
-    def update_user_profile(self, user_email, thread_ids, contact_numbers, last_active):
+    def update_user_profile(self, user_email, thread_ids, contact_numbers, active_user, last_active):
         """
         Update THREAD_IDS and LAST_UPDATED for a user.
         """
@@ -835,14 +838,62 @@ class KnowledgeBase:
             cursor = conn.cursor()
             cursor.execute("""
                 UPDATE USER_PROFILES
-                SET THREAD_IDS = %s, CONTACT_NUMBERS = %s, LAST_ACTIVE = %s, LAST_UPDATED = NOW()
+                SET THREAD_IDS = %s, CONTACT_NUMBERS = %s, ACTIVE_USER = %s, LAST_ACTIVE = %s, LAST_UPDATED = NOW()
                 WHERE PRIMARY_EMAIL = %s
-            """, (thread_ids, json.dumps(contact_numbers), last_active, user_email))
+            """, (thread_ids, json.dumps(contact_numbers), active_user, last_active, user_email))
             conn.commit()
             return True, None
         except Exception as error:
             logging.error(f"Database error while updating user profile: {error}")
             return False, f"Database error while updating user profile: {error}"
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def get_user_last_active(self, user_email):
+        """
+        Retrieve user profile by email.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            logging.error(conn_error)
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT LAST_ACTIVE FROM USER_PROFILES WHERE PRIMARY_EMAIL = %s
+            """, (user_email,))
+            result = cursor.fetchone()
+            return True, result[0]
+        except Exception as error:
+            logging.error(f"Database error while retrieving user's last active time: {error}")
+            return False, f"Database error while retrieving user's last active time: {error}"
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def update_active_user(self, user_email, active_user):
+        """
+        Update THREAD_IDS and LAST_UPDATED for a user.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            logging.error(conn_error)
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE USER_PROFILES
+                SET ACTIVE_USER = %s, LAST_UPDATED = NOW()
+                WHERE PRIMARY_EMAIL = %s
+            """, (active_user, user_email))
+            conn.commit()
+            return True, None
+        except Exception as error:
+            logging.error(f"Database error while updating active user: {error}")
+            return False, f"Database error while updating active user: {error}"
         finally:
             cursor.close()
             conn.close()

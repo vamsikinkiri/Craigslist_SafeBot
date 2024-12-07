@@ -50,6 +50,7 @@ def create_tables(cursor):
             THREAD_IDS TEXT,
             EMAIL_LIST TEXT,
             CONTACT_NUMBERS JSON,
+            ACTIVE_USER BOOLEAN,
             LAST_ACTIVE TIMESTAMP,
             LAST_UPDATED TIMESTAMP
         );

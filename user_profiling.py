@@ -28,13 +28,13 @@ class UserProfiling:
         
         if user_profile:  # User already exists
             logging.info(user_profile)
-            user_id, primary_email, thread_ids, email_list, contact_numbers, last_active_db, last_updated = user_profile
+            user_id, primary_email, thread_ids, email_list, contact_numbers, active_user, last_active_db, last_updated = user_profile
             # if thread_id not in thread_ids:
             #     thread_ids.append(thread_id)
             if contact_number and contact_number not in contact_numbers:
                 contact_numbers.append(contact_number)
                 # Update the THREAD_IDS, CONTACT_NUMBER and LAST_ACTIVE
-            knowledge_base.update_user_profile(user_email, thread_ids, contact_numbers, last_active)
+            knowledge_base.update_user_profile(user_email, thread_ids, contact_numbers, active_user=True, last_active=last_active)
         else: 
             # New user found. Create a new user profile
             contact_numbers = [contact_number] if contact_number else []
@@ -43,6 +43,7 @@ class UserProfiling:
                 thread_ids=thread_id,
                 email_list="",
                 contact_numbers=contact_numbers,
+                active_user=True,
                 last_active=last_active,
             )
 
@@ -57,10 +58,27 @@ class UserProfiling:
 
     def get_all_users(self):
         success, all_user_profiles = knowledge_base.get_all_user_profiles()
+        # Can include the logic to only send the active users using the active_user field in the all_user_profiles
         if not success:
             logging.error(f"Error fetching user profiles: {all_user_profiles}")
             return []
 
         # Return the user profiles directly
         return all_user_profiles
+
+    def update_user_activity_status(self, user_email):
+        success, last_active = knowledge_base.get_user_last_active(user_email)
+        if not success:
+            logging.error(f"Error fetching user's last active time: {last_active}")
+            return
+        current_time = datetime.now()
+        days_since_last_active = (current_time - last_active).days
+        logging.info(f"DEBUG: For user: {user_email}, the days since last active is {days_since_last_active}")
+        if days_since_last_active > 30:
+            # Mark the user as inactive since 30 days passed since the last reply from the user
+            success, result = knowledge_base.update_active_user(user_email, active_user=False)
+            if success:
+                logging.info(f"User {user_email} marked as inactive.")
+            else:
+                logging.error(f"Failed to update activity for user {user_email}: {result}")
 
