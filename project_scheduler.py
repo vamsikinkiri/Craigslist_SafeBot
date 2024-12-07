@@ -103,14 +103,14 @@ class ProjectScheduler:
                 if len(project) != 9:  # Expecting 9 fields now
                     logging.error(f"Unexpected project tuple length: {len(project)}. Data: {project}")
                     continue  # Skip processing this project
-                project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, last_updated = project
+                project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, last_updated = project
                 self.process_project(email_id=email_id, app_password=app_password, project_keywords=keywords_data, filters=filters,project_name=project_name)
         else:
             success, project_details = knowledge_base.get_project_details(session_email)
             if not success:
                 logging.error(f"Error retrieving project information. Please check your inputs and try again.")
                 return
-            project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, last_updated  = project_details
+            project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, last_updated  = project_details
             logging.info(f"Currently processing project: {project_details}")
             data = self.process_project(email_id=session_email, app_password=app_password, project_keywords=keywords_data, filters=filters, project_name=project_name)
 

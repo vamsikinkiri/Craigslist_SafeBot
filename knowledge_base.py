@@ -193,7 +193,7 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
 
-    def create_project(self, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, last_updated):
+    def create_project(self, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, last_updated):
         conn, conn_error = self.get_db_connection()
         if not conn:
             return False, conn_error
@@ -204,10 +204,15 @@ class KnowledgeBase:
 
         try:
             cursor = conn.cursor()
-            cursor.execute('''
-                INSERT INTO projects(project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, last_updated) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
-            ''', (generated_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id))
+            cursor.execute(
+                '''
+                INSERT INTO projects(
+                project_id, email_id, project_name, app_password, ai_prompt_text, 
+                response_frequency, keywords_data, owner_admin_id, lower_threshold, 
+                upper_threshold, authorized_emails, last_updated) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                ''', 
+                (generated_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails))
             conn.commit()
             return True, "Project created successfully!"
         except Exception as e:
@@ -265,6 +270,34 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
+    
+    def get_project_details_by_id(self, project_id):
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            logging.error(conn_error)
+            return False, conn_error
+        try:
+            cursor = conn.cursor()
+            # SQL Query to get the project details by ID
+            query = """
+                SELECT * FROM projects WHERE project_id = %s
+            """
+            cursor.execute(query, (project_id,))
+            project_details = cursor.fetchone()
+
+            if not project_details:
+                return False, "Project not found."
+
+            return True, project_details
+
+        except Exception as e:
+            logging.error(f"Error fetching project details by ID: {e}")
+            return False, str(e)
+
+        finally:
+            cursor.close()
+            if conn:
+                conn.close()
 
 
     def fetch_all_projects(self):
@@ -276,7 +309,7 @@ class KnowledgeBase:
             return False, conn_error
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, date(last_updated) as Last_Updated FROM projects")
+            cursor.execute("SELECT project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, date(last_updated) as Last_Updated FROM projects")
             projects = cursor.fetchall()
             return True, projects
         except Exception as error:
@@ -284,6 +317,56 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
+    
+    def get_projects_by_admin_email(self, admin_email):
+        """
+        Retrieve all projects where the given admin email is present in the authorized_emails field.
+        Parameters: admin_email (str): The email ID of the admin to search for in authorized_emails.
+        Returns: tuple: (success (bool), result (list of project details or error message))
+        """
+        conn, conn_error = self.get_db_connection()
+        if not conn:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            query = '''
+                SELECT * FROM projects
+                WHERE authorized_emails @> %s::jsonb
+            '''
+            cursor.execute(query, [json.dumps([admin_email])])
+            projects = cursor.fetchall()
+
+            if projects:
+                # Convert the query results to a list of dictionaries for better readability
+                result = [
+                    {
+                        "project_id": project[0],
+                        "project_email": project[1],
+                        "project_name": project[2],
+                        "app_password": project[3],
+                        "ai_prompt_text": project[4],
+                        "response_frequency": project[5],
+                        "keywords_data": project[6],
+                        "owner_admin_id": project[7],
+                        "lower_threshold": project[8],
+                        "upper_threshold": project[9],
+                        "authorized_emails": project[10],
+                        "last_updated": project[11]
+                    }
+                    for project in projects
+                ]
+                return True, result
+            else:
+                return False, "No projects found for the given admin email."
+
+        except Exception as e:
+            logging.error(f"Error retrieving projects for admin email {admin_email}: {e}")
+            return False, f"Error retrieving projects: {e}"
+
+        finally:
+            conn.close()
+            cursor.close()
 
 
     def update_project(self, email, project_name, ai_prompt_text, response_frequency):
@@ -324,8 +407,36 @@ class KnowledgeBase:
                 cursor.close()
             if conn:
                 conn.close()
+    
+    def delete_project(self, project_id):
+        try:
+            # Get the database connection
+            conn, conn_error = self.get_db_connection()
+            if not conn:
+                return False, conn_error
 
+            cursor = conn.cursor()
 
+            # SQL Query to delete the project by ID
+            delete_query = """
+                DELETE FROM projects
+                WHERE project_id = %s
+            """
+            cursor.execute(delete_query, (project_id,))
+            conn.commit()
+
+            # Check if any row was deleted
+            if cursor.rowcount == 0:
+                return False, "Project not found or could not be deleted."
+            return True, "Project deleted successfully."
+        except Exception as e:
+            logging.error(f"Error deleting project: {e}")
+            return False, str(e)
+
+        finally:
+            cursor.close()
+            if conn:
+                conn.close()
 
     def is_email_processed(self, message_id):
         """
@@ -452,6 +563,7 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
+
     def fetch_all_archived_emails(self, project_email):
         conn, conn_error = self.get_db_connection()
         if conn is None:
@@ -861,65 +973,3 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
-
-    def delete_project(self, project_id):
-        try:
-            # Get the database connection
-            conn, conn_error = self.get_db_connection()
-            if not conn:
-                return False, conn_error
-
-            cursor = conn.cursor()
-
-            # SQL Query to delete the project by ID
-            delete_query = """
-                DELETE FROM projects
-                WHERE project_id = %s
-            """
-            cursor.execute(delete_query, (project_id,))
-            conn.commit()
-
-            # Check if any row was deleted
-            if cursor.rowcount == 0:
-                return False, "Project not found or could not be deleted."
-            return True, "Project deleted successfully."
-        except Exception as e:
-            logging.error(f"Error deleting project: {e}")
-            return False, str(e)
-
-        finally:
-            cursor.close()
-            if conn:
-                conn.close()
-
-
-    def get_project_details_by_id(self, project_id):
-        try:
-            # Get the database connection
-            conn, conn_error = self.get_db_connection()
-            if not conn:
-                return False, conn_error
-            cursor = conn.cursor()
-            # SQL Query to get the project details by ID
-            query = """
-                SELECT project_id, email_id, project_name, app_password, ai_prompt_text,
-                       response_frequency, keywords_data, owner_admin_id, last_updated
-                FROM projects
-                WHERE project_id = %s
-            """
-            cursor.execute(query, (project_id,))
-            project_details = cursor.fetchone()
-
-            if not project_details:
-                return False, "Project not found."
-
-            return True, project_details
-
-        except Exception as e:
-            logging.error(f"Error fetching project details by ID: {e}")
-            return False, str(e)
-
-        finally:
-            cursor.close()
-            if conn:
-                conn.close()

@@ -144,6 +144,9 @@ def project_creation():
         response_frequency = 10 if not response_frequency_raw.isdigit() else int(response_frequency_raw)
         keywords_data_fetch = request.form['keywords_data']
         keywords_data = keywords_data_fetch.replace('""', '"')
+        lower_threshold = 0
+        upper_threshold = 75
+        authorized_emails=["vamsikinkiri@gmail.com", "kinkiriv@gmail.com"]
 
         project_success, message = knowledge_base.is_email_unique_in_projects(email)
         if not project_success:
@@ -175,6 +178,9 @@ def project_creation():
                                                          response_frequency=response_frequency,
                                                          keywords_data=json.dumps(keywords_data_updated),
                                                          owner_admin_id=session['admin_id'],
+                                                         lower_threshold=lower_threshold,
+                                                         upper_threshold=upper_threshold,
+                                                         authorized_emails=json.dumps(authorized_emails),
                                                          last_updated=None
                                                          )
 
@@ -235,7 +241,10 @@ def update_project():
             "response_frequency": project_info[5],
             "keywords_data": project_info[6],
             "owner_admin_id": project_info[7],
-            "last_updated": project_info[8]
+            "lower_threshold": project_info[8],
+            "upper_threshold": project_info[9],
+            "authorized_emails": project_info[10],
+            "last_updated": project_info[11]
         }
 
         # Fetch all projects for dropdown, including prompt details
@@ -373,7 +382,7 @@ def all_projects_view():
             "id": project[0],  # project_id
             "email": project[1],  # email_id
             "name": project[2],  # project_name
-            "last_updated": project[8],  # last_updated as date,
+            "last_updated": project[11],  # last_updated as date,
             "owner_admin_id": project[7],  # owner_admin_id
         }
         for project in filtered_projects
@@ -388,7 +397,7 @@ def all_projects_view():
             return redirect(url_for('all_projects_view'))
 
         # Extract project details
-        project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, last_updated = project_details
+        project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, last_updated = project_details
         logging.info(f"Project Owner ID: {owner_admin_id}, Session Admin ID: {session.get('admin_id')}")
 
         # Update session with selected project details
@@ -422,7 +431,7 @@ def delete_project(project_id):
         return redirect(url_for('all_projects_view'))
 
     # Extract owner_admin_id from project_details tuple
-    _, _, _, _, _, _, _, project_owner_admin_id, _ = project_details
+    _, _, _, _, _, _, _, project_owner_admin_id, _, _, _, _ = project_details
 
     # Check if the current session's admin_id matches the owner_admin_id
     session_admin_id = session.get('admin_id')

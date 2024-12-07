@@ -74,6 +74,9 @@ def create_tables(cursor):
             RESPONSE_FREQUENCY INTEGER,
             KEYWORDS_DATA JSONB,
             OWNER_ADMIN_ID TEXT,
+            LOWER_THRESHOLD INTEGER,
+            UPPER_THRESHOLD INTEGER,
+            AUTHORIZED_EMAILS JSONB,
             LAST_UPDATED TIMESTAMP
         );
         """
@@ -112,3 +115,8 @@ def setup_database():
 
 
 setup_database()
+success, result = knowledge_base.get_projects_by_admin_email("vamsikinkiri@gmail.com")
+if success:
+    print("Projects found:", result)
+else:
+    print("Error:", result)

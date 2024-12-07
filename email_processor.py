@@ -74,7 +74,7 @@ class EmailProcessor:
             return
         
         # logging.info(f"PROJECT: {project_details}")
-        # project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, last_updated = project_details
+        # project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, last_updated  = project_detailss
 
         self._update_email_thread(email, thread_id, session_email, project_details, score, seen_keywords)
         # Determine and act on the AI response state
@@ -124,17 +124,21 @@ class EmailProcessor:
             flash(ai_state, "error")
             return
 
+        project_name = project_details[2]
         app_password = project_details[3]
         admin_prompt = project_details[4] 
         response_frequency = project_details[5]
+        lower_threshold = project_details[8]
+        upper_threshold = project_details[9]
 
         if ai_state == 'Manual':
-            self._notify_admin(project_details[2], admin_email, session_email, app_password, email, user_details, score, thread_id)
-        elif ai_state == 'Automated' and score > 0:
-            if score < 75:
+            self._notify_admin(project_name, admin_email, session_email, app_password, email, user_details, score, thread_id)
+        elif ai_state == 'Automated' and score > lower_threshold:
+            if score < upper_threshold:
                 self.schedule_or_send_reply(email, conversation_history, session_email, app_password, response_frequency, admin_prompt)
             else:
-                self._notify_admin(project_details[2], admin_email, session_email, app_password, email, user_details, score, thread_id, threshold_exceeded=True)
+                # Notify all the authorized admins
+                self._notify_admin(project_name, admin_email, session_email, app_password, email, user_details, score, thread_id, threshold_exceeded=True)
                 knowledge_base.update_ai_response_state(thread_id, 'Manual')
 
     def _notify_admin(self, project_name, admin_email, session_email, app_password, email, user_details, score, thread_id, threshold_exceeded=False):
@@ -159,7 +163,7 @@ class EmailProcessor:
             content=notification_content,
             subject=subject
         )
-        logging.info('*'*10 + "Email sent to Admin" + "*"*10)               
+        logging.info('*'*10 + "Email sent successfully to Admin" + "*"*10)               
 
     def schedule_or_send_reply(self, email, conversation_history, session_email, app_password, response_frequency, admin_prompt):
         """
