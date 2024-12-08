@@ -204,7 +204,6 @@
             font-size: 16px;
             font-weight: bold;
             color: #134258; /* Match with theme color */
-            background-color: #e0f7fa; /* Light background for better visibility */
             padding: 5px 10px;
             border-radius: 5px;
             margin: 0 10px;
@@ -213,6 +212,14 @@
 
         .email-chain-header .button-box {
             flex-shrink: 0;
+        }
+
+        .email-chain-header:hover {
+            background-color: #eaeaea; /* Highlight on hover */
+            padding: 7px;
+            border-radius: 10px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+
         }
         .email-chain-header {
             background: none;
@@ -587,7 +594,6 @@
         .project-title {
             width: 100%;
             text-align: center;
-            margin-top: 100px; /* Space below the header */
             margin-bottom: 10px; /* Space above the container */
             font-size: 30px;
             font-weight: bold;
@@ -954,8 +960,12 @@
             <div>
                 {% for thread_id, email_list in archived_emails.items() %}
                     <div class="email-chain" data-thread-id="{{ thread_id }}">
-                        <div class="email-chain-header">
+                        <div class="email-chain-header" onclick="toggleEmailChain('chain-{{ loop.index }}', this)">
                             <div class="subject-box" style="width: 70%;">{{ email_list[0]['subject'] }}
+                            </div>
+                            <div class="score-box" style="width: 10%; font-size: small; text-align: center;">
+                                {% set conversations_score = conversations_score.get(thread_id, 'N/A') %}
+                                <strong>Score:</strong> {{ conversations_score }}
                             </div>
                             <div class="button-box">
                                 <button class="unarchive-button" onclick="unarchiveEmail(this)" title="Unarchive">
@@ -1050,6 +1060,7 @@
 
             console.log(`Content for ${chainId} is now ${isHidden ? 'visible' : 'hidden'}`);
         }
+
 
         function setDateRange(days) {
             var endDate = new Date();

@@ -390,10 +390,10 @@ class KnowledgeBase:
                     keywords_data = %s,
                     lower_threshold = %s,
                     upper_threshold = %s,
-                    authorized_emails = %s::jsonb,
+                    authorized_emails = %s,
                     last_updated = NOW()
                 WHERE email_id = %s AND project_name = %s
-            """, (ai_prompt_text, response_frequency, keywords_data, lower_threshold, upper_threshold, json.dumps(authorized_emails), email, project_name))
+            """, (ai_prompt_text, response_frequency, keywords_data, lower_threshold, upper_threshold, authorized_emails, email, project_name))
 
             if cursor.rowcount == 0:
                 logging.warning(f"No matching project found for email={email} and project_name={project_name}.")

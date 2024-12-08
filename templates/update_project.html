@@ -152,6 +152,15 @@
             flex-direction: column;
             margin-bottom: 20px;
         }
+        /* Styling for the keywords list */
+        #keywords-list {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Space between each keyword entry */
+            max-height: 200px; /* Optional: limit the height */
+            overflow-y: auto; /* Add scroll if the list exceeds the max height */
+        }
 
         /* Grouping keyword, frequency, and add button into one line */
         .field-group {
@@ -169,7 +178,7 @@
             border-radius: 8px;
             font-size: 16px;
             outline: none;
-            background-color: #e7eef0
+            background-color: #e7eef0;
         }
 
 
@@ -184,12 +193,13 @@
         /* Individual keyword entries */
         .list-entry {
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             background-color: #e7eef0;
             padding: 10px 15px;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 14px;
+            word-break: break-word; /* Prevent text from overflowing */
         }
 
         /* Tooltip styling for the hover message */
@@ -543,7 +553,6 @@
             color: white;
             border: none;
             border-radius: 50%; /* Makes the button round */
-            cursor: pointer;
             font-size: 21px;
             width: 21px;
             height: 21px;
@@ -551,6 +560,7 @@
             align-items: center;
             justify-content: center;
             transition: background-color 0.3s;
+            margin: -10px;
         }
 
         .add-email-btn{
@@ -749,24 +759,6 @@
 
     <form action="{{ url_for('update_project') }}" method="POST">
         <div class="form-field">
-{#            <div class="field-wrapper" title="Please add or update the keyword list.">#}
-{#                <!-- Input for Keyword and Frequency -->#}
-{#                <div class="field-group">#}
-{#                    <input type="text" id="keyword-input" class="field-item" placeholder="Keyword">#}
-{#                    <input type="number" id="keyword-frequency" class="field-item" placeholder="Frequency">#}
-{#                    <button type="button" class="add-keyword-btn" onclick="addKeyword()">+</button>#}
-{#                </div>#}
-{##}
-{#                <!-- Display Existing Keywords -->#}
-{#                <div id="keywords-list" class="list-container">#}
-{#                    {% for keyword, frequency in project_details['keywords_data'].items() %}#}
-{#                        <div class="list-entry">#}
-{#                            <span>{{ keyword }}: {{ frequency }}</span>#}
-{#                            <button type="button" class="remove-keyword-btn" onclick="removeKeyword('{{ keyword }}')">-</button>#}
-{#                        </div>#}
-{#                    {% endfor %}#}
-{#                </div>#}
-{#            </div>#}
             <div class="field-wrapper" title="Please add or update the keyword list.">
                 <!-- Input for Keyword and Frequency -->
                 <div class="field-group">
@@ -787,9 +779,9 @@
                                         <i class="fas fa-minus"></i>
                                     </button>
 
-
                                 </div>
                             {% endfor %}
+
                         {% elif project_details['keywords_data'] is iterable %}
                             {% for item in project_details['keywords_data'] %}
                                 <div class="list-entry">
@@ -860,6 +852,8 @@
                 </div>
             </div>
 
+            <input type="hidden" id="keywords-input" name="keywords_data" value='{}'>
+            <input type="hidden" id="authorized-emails-input" name="authorized_emails" value='[]'>
 
             <!-- Mode Selection -->
             <label title="Please edit or import a prompt message.">Choose Mode</label>
@@ -941,7 +935,6 @@
     <div class="back-link">
         <p><a href="{{ url_for('index') }}">Back to Dashboard</a></p>
     </div>
-
 
     <script>
 
@@ -1079,99 +1072,118 @@
             document.getElementById('ai_prompt_text').value = selectedPrompt;
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const addKeyword = () => {
-                const keywordInput = document.getElementById('keyword-input');
-                const frequencyInput = document.getElementById('keyword-frequency');
-                const keywordsList = document.getElementById('keywords-list');
 
-                if (!keywordInput || !frequencyInput || !keywordsList) {
-                    console.error("One or more required elements are missing.");
-                    return;
-                }
+            // Manage Keywords
+    function addKeyword() {
+        const keywordInput = document.getElementById("keyword-input");
+        const keywordFrequencyInput = document.getElementById("keyword-frequency");
 
-                const keyword = keywordInput.value.trim();
-                const frequency = parseInt(frequencyInput.value, 10);
+        const keyword = keywordInput.value.trim().toLowerCase();
 
-                if (keyword && !isNaN(frequency)) {
-                    const entry = document.createElement('div');
-                    entry.classList.add('list-entry');
-                    entry.innerHTML = `
-            <span>${keyword}: ${frequency}</span>
-            <button type="button" class="remove-keyword-btn" onclick="removeKeyword('${keyword}')">Remove</button>
-        `;
-                    keywordsList.appendChild(entry);
+        const frequency = parseInt(keywordFrequencyInput.value, 10);
 
-                    // Clear input fields
-                    keywordInput.value = '';
-                    frequencyInput.value = '';
-                } else {
-                    alert('Please provide valid keyword and frequency.');
-                }
-            };
+        if (keyword && frequency > 0) {
+            // Update the keywords object
+            keywords[keyword] = frequency;
+            document.getElementById("keywords-input").value = JSON.stringify(keywords);
 
+            // Update the UI
+            const addedKeywords = document.getElementById("keywords-list");
+            const entry = document.createElement("div");
+            entry.classList.add("list-entry");
 
-            // Attach the click event listener
-            document.querySelector('.add-keyword-btn')?.addEventListener('click', addKeyword);
+            entry.innerHTML = `
+    <span>${keyword}: ${frequency}</span>
+    <button type="button" class="remove-keyword-btn" onclick="removeKeyword('${keyword}')">-</button>
+`;
+            addedKeywords.appendChild(entry);
+
+            // Clear the input fields
+            keywordInput.value = "";
+            keywordFrequencyInput.value = "";
+        } else {
+            alert("Please enter a valid keyword and frequency.");
+        }
+    }
+
+    function removeKeyword(keyword) {
+        // Remove the keyword from the keywords object
+        delete keywords[keyword];
+        document.getElementById("keywords-input").value = JSON.stringify(keywords);
+
+        // Update the UI
+        const addedKeywords = document.getElementById("keywords-list");
+        Array.from(addedKeywords.children).forEach(entry => {
+            if (entry.textContent.includes(keyword)) {
+                addedKeywords.removeChild(entry);
+            }
         });
+    }
 
-
-
-        function removeKeyword(button) {
-            const keyword = button.getAttribute('data-keyword');
-            const keywordsList = document.getElementById('keywords-list');
-
-            if (keywordsList) {
-                Array.from(keywordsList.children).forEach(entry => {
-                    if (entry.textContent.includes(keyword)) {
-                        keywordsList.removeChild(entry);
-                    }
-                });
-            }
-        }
-
-
-        // Add email functionality
+// Manage Authorized Emails
         function addEmail() {
+
             const emailInput = document.getElementById('email-input');
-            const emailValue = emailInput.value.trim();
+            const emailValue = emailInput.value.trim().toLowerCase();
 
-            if (emailValue && !authorizedEmails.includes(emailValue)) {
-                authorizedEmails.push(emailValue);
-                updateEmailsUI();
-                document.getElementById('authorized-emails-input').value = JSON.stringify(authorizedEmails);
-                emailInput.value = '';
-            } else {
-                alert('Please provide a valid and unique email address.');
+
+            const authorizedEmailsInput = document.getElementById('authorized-emails-input');
+            const emailListContainer = document.getElementById('email-list-container');
+
+            if (!emailValue) {
+                alert('Please enter a valid email address.');
+                return;
             }
+            let currentEmails = [];
+            try {
+                currentEmails = JSON.parse(authorizedEmailsInput.value || "[]");
+            } catch (e) {
+                console.error("Error parsing authorized emails:", e);
+                currentEmails = [];
+            }
+
+
+            // Prevent duplicate emails
+            if (currentEmails.includes(emailValue)) {
+                alert('This email is already added.');
+                return;
+            }
+
+            // Add the new email to the list
+            currentEmails.push(emailValue);
+            authorizedEmailsInput.value = JSON.stringify(currentEmails);
+
+            // Update the UI to reflect the added email
+            const emailItem = document.createElement('div');
+            emailItem.className = 'email-entry';
+            emailItem.innerHTML = `
+            <span>${emailValue}</span>
+            <button type="button" class="remove-email-btn" onclick="removeEmail('${emailValue}')">-</button>
+        `;
+            emailListContainer.appendChild(emailItem);
+
+            // Clear the input field
+            emailInput.value = '';
         }
 
-        function removeEmail(email) {
-            const index = authorizedEmails.indexOf(email);
-            if (index !== -1) {
-                authorizedEmails.splice(index, 1);
-                updateEmailsUI();
-                document.getElementById('authorized-emails-input').value = JSON.stringify(authorizedEmails);
-            }
-        }
+        function removeEmail(emailValue) {
+            const authorizedEmailsInput = document.getElementById('authorized-emails-input');
+            const emailListContainer = document.getElementById('email-list-container');
+            let currentEmails = JSON.parse(authorizedEmailsInput.value || "[]");
 
-        function updateEmailsUI() {
-            const container = document.getElementById('email-list-container');
-            container.innerHTML = '';
-            authorizedEmails.forEach(email => {
-                const entry = document.createElement('div');
-                entry.className = 'keyword-entry';
-                entry.innerHTML = `${email}
-                <button type="button" class="remove-keyword-btn" onclick="removeEmail('${email}')">
-                    <i class="fas fa-minus"></i>
-                </button>`;
-                container.appendChild(entry);
+            // Remove the email from the list
+            currentEmails = currentEmails.filter(email => email !== emailValue);
+            authorizedEmailsInput.value = JSON.stringify(currentEmails);
+
+            // Update the UI to reflect the removed email
+            Array.from(emailListContainer.children).forEach(item => {
+                if (item.textContent.includes(emailValue)) {
+                    emailListContainer.removeChild(item);
+                }
             });
         }
-
-        // Call this function once the document is ready to load the projects
-        document.addEventListener('DOMContentLoaded', fetchAllProjects);
         document.addEventListener('DOMContentLoaded', () => {
+            // Attach event listeners
             document.querySelector('.add-keyword-btn')?.addEventListener('click', addKeyword);
             document.querySelector('.add-email-btn')?.addEventListener('click', addEmail);
 
@@ -1181,7 +1193,6 @@
             // Fetch all projects on load
             fetchAllProjects();
         });
-
 
     </script>
 </body>
