@@ -1202,15 +1202,14 @@
         dropdown.style.display = isVisible ? 'none' : 'block';
     }
 
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(event) {
-        const isClickInside = document.querySelector('.settings-dropdown').contains(event.target);
-        if (!isClickInside) {
-            document.querySelectorAll('.dropdown-content').forEach(content => {
-                content.style.display = 'none';
-            });
-        }
-    });
+    {#// Close dropdown when clicking outside#}
+    {#document.addEventListener('click', function(event) {#}
+    {#    const isClickInside = document.querySelector('.settings-dropdown').contains(event.target);#}
+    {#    if (!isClickInside) {#}
+    {#        document.querySelectorAll('.dropdown-content').forEach(content => {#}
+    {#            content.style.display = 'none';#}
+    {#        });#}
+    {#    }#}
 
     function redirectToView(view) {
         switch (view) {

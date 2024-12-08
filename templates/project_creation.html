@@ -352,7 +352,6 @@
         .frequency-input label {
             font-size: 16px;
             font-weight: bold;
-            font-weight: bold;
             color: #666; /* Adjust to match the UI's font color */
             white-space: nowrap; /* Prevents label from wrapping to a new line */
         }
@@ -383,12 +382,10 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin: 5px 0;
-            padding: 10px;
             background-color: #f9fafb;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             font-size: 14px;
+            padding: 10px;
         }
 
         .add-keyword-btn {
@@ -406,9 +403,26 @@
             justify-content: center;
             transition: background-color 0.3s;
         }
-
-        .add-keyword-btn:hover {
+        .remove-keyword-btn {
+            background-color: #003a8d;
+            color: white;
+            border: none;
+            border-radius: 50%; /* Makes the button round */
+            cursor: pointer;
+            font-size: 15px; /* Increases icon size */
+            width: 18px; /* Adjust size as needed */
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+        .add-keyword-btn:hover , .remove-keyword-btn:hover{
             background-color: #4C6A9C;
+        }
+
+        .remove-keyword-btn:hover {
+            background-color: #c82333;
         }
 
 
@@ -493,6 +507,89 @@
             outline: none;
         }
 
+        /* General wrapper for input sections */
+        .field-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        /* Threshold input boxes */
+        .threshold-box {
+            flex: 1;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 15px;
+            background-color: #e7eef0;
+            font-size: 16px;
+            outline: none;
+        }
+        .authorized-emails-box {
+            flex: 1;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 15px;
+            background-color: #e7eef0;
+            font-size: 16px;
+            outline: none;
+        }
+
+        /* Buttons for adding or removing */
+        .add-btn,
+        .remove-btn {
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .add-btn:hover{
+            background-color: #0056b3;
+        }
+
+        .remove-btn {
+            background-color: #dc3545;
+        }
+
+        .remove-btn:hover {
+            background-color: #c82333;
+        }
+
+        /* Email list container */
+        .email-list-container,
+        .threshold-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+
+        .remove-keyword-btn:hover {
+            background-color: #c82333;
+        }
+
+
+
+
+
 
     </style>
 </head>
@@ -554,9 +651,38 @@
                 </button>
             </div>
         </div>
+        <!-- Added Keywords Section -->
         <div class="added-keywords" id="added-keywords">
+            <!-- Dynamically added keywords with Remove button -->
         </div>
         <input type="hidden" name="keywords_data" id="keywords-input">
+        <div class="field-wrapper">
+            <input type="number" id="lower_threshold" name="lower_threshold"
+                   class="threshold-box" placeholder="Lower Threshold (Default: 0)"
+                   min="0" title="Please update the lower threshold value if required (Default: 0)">
+        </div>
+        <div class="field-wrapper">
+            <input type="number" id="upper_threshold" name="upper_threshold"
+                   class="threshold-box" placeholder="Upper Threshold (Default: 75)"
+                   min="1" title="Please update the upper threshold value if required (Default: 75)">
+        </div>
+        <div>
+            <label for="authorized_emails"></label>
+            <div class="field-wrapper">
+                <input type="email" id="email_input" class="authorized-emails-box " placeholder="Authorized emails"
+                       title="Please add the emails that require Read, Write, and Delete Access">
+                <button type="button" class="add-keyword-btn" onclick="addEmail()">
+                    <i class="fas fa-plus"></i> <!-- Font Awesome icon for 'plus' -->
+                </button>
+            </div>
+
+        </div>
+        <!-- Authorized Emails Section -->
+        <div id="email-list-container" class="email-list-container">
+            <!-- Dynamically added emails with Remove button -->
+        </div>
+        <input type="hidden" name="authorized_emails" id="authorized-emails-input">
+
         <div class="button-container">
             <a href="{{ url_for('all_projects_view') }}">
                 <button type="submit">Save Project</button>
@@ -579,32 +705,7 @@
     }
 
     const keywords = {};  // Object to store keywords and their frequencies as key-value pairs
-
-    function addKeyword() {
-        const keywordInput = document.getElementById("keyword-input");
-        const keywordFrequencyInput = document.getElementById("keyword-frequency");
-
-        const keyword = keywordInput.value.trim();
-        const frequency = parseInt(keywordFrequencyInput.value);
-
-        if (keyword && frequency > 0) {
-            keywords[keyword] = frequency;  // Add as a key-value pair to the object
-            document.getElementById("keywords-input").value = JSON.stringify(keywords);
-
-            // Display the keyword in the added keywords list
-            const addedKeywords = document.getElementById("added-keywords");
-            const entry = document.createElement("div");
-            entry.classList.add("keyword-entry");
-            entry.innerText = `${keyword}: ${frequency}`;
-            addedKeywords.appendChild(entry);
-
-            // Clear the keyword-related fields
-            keywordInput.value = "";
-            keywordFrequencyInput.value = "";
-        } else {
-            alert("Please enter a valid keyword and frequency.");
-        }
-    }
+    const emails = [];
 
     function handleLogout() {
         window.location.href = "{{ url_for('logout') }}";  // Redirect to the logout route
@@ -617,6 +718,125 @@
     retypePasswordInput.addEventListener('input', () => {
         passwordError.style.display = (passwordInput.value !== retypePasswordInput.value) ? 'block' : 'none';
     });
+
+    function addKeyword() {
+        const keywordInput = document.getElementById("keyword-input");
+        const keywordFrequencyInput = document.getElementById("keyword-frequency");
+
+        const keyword = keywordInput.value.trim();
+        const frequency = parseInt(keywordFrequencyInput.value);
+
+        if (keyword && frequency > 0) {
+            keywords[keyword] = frequency; // Add to the keywords object
+            document.getElementById("keywords-input").value = JSON.stringify(keywords);
+
+            const addedKeywords = document.getElementById("added-keywords");
+            const entry = document.createElement("div");
+            entry.classList.add("keyword-entry");
+
+            entry.innerHTML = `
+            ${keyword}: ${frequency}
+            <button class="remove-keyword-btn" onclick="removeKeyword('${keyword}')">-</button>
+        `;
+            addedKeywords.appendChild(entry);
+
+            keywordInput.value = "";
+            keywordFrequencyInput.value = "";
+        } else {
+            alert("Please enter a valid keyword and frequency.");
+        }
+    }
+
+    function removeKeyword(keyword) {
+        delete keywords[keyword]; // Remove from the keywords object
+        document.getElementById("keywords-input").value = JSON.stringify(keywords);
+
+        const addedKeywords = document.getElementById("added-keywords");
+        Array.from(addedKeywords.children).forEach(entry => {
+            if (entry.textContent.includes(keyword)) {
+                addedKeywords.removeChild(entry);
+            }
+        });
+    }
+
+    function addEmail() {
+        const emailInput = document.getElementById('email_input');
+        const emailValue = emailInput.value.trim();
+        const authorizedEmailsInput = document.getElementById('authorized-emails-input');
+        const emailListContainer = document.getElementById('email-list-container');
+
+        if (!emailValue) {
+            alert('Please enter a valid email address.');
+            return;
+        }
+
+        // Parse the existing authorized emails
+        let currentEmails = JSON.parse(authorizedEmailsInput.value || "[]");
+
+        // Prevent duplicate emails
+        if (currentEmails.includes(emailValue)) {
+            alert('This email is already added.');
+            return;
+        }
+
+        // Add the new email to the list
+        currentEmails.push(emailValue);
+        authorizedEmailsInput.value = JSON.stringify(currentEmails);
+
+        // Update the UI to reflect the added email
+        const emailItem = document.createElement('div');
+        emailItem.className = 'list-item';
+        emailItem.innerHTML = `
+        <span>${emailValue}</span>
+        <button type="button" class="remove-keyword-btn" onclick="removeEmail('${emailValue}')">-</button>
+    `;
+        emailListContainer.appendChild(emailItem);
+
+        // Clear the input field
+        emailInput.value = '';
+    }
+
+    function removeEmail(emailValue) {
+        const authorizedEmailsInput = document.getElementById('authorized-emails-input');
+        const emailListContainer = document.getElementById('email-list-container');
+        let currentEmails = JSON.parse(authorizedEmailsInput.value || "[]");
+
+        // Remove the email from the list
+        currentEmails = currentEmails.filter(email => email !== emailValue);
+        authorizedEmailsInput.value = JSON.stringify(currentEmails);
+
+        // Update the UI to reflect the removed email
+        Array.from(emailListContainer.children).forEach(item => {
+            if (item.textContent.includes(emailValue)) {
+                emailListContainer.removeChild(item);
+            }
+        });
+    }
+
+    document.querySelector('form').addEventListener('submit', function (event) {
+        const lowerThreshold = document.getElementById('lower_threshold');
+        const upperThreshold = document.getElementById('upper_threshold');
+
+        // Set default values only if the fields are empty
+        if (!lowerThreshold.value) {
+            lowerThreshold.value = 0;
+        }
+        if (!upperThreshold.value) {
+            upperThreshold.value = 75;
+        }
+    });
+
+    function validateThresholds() {
+        const lowerThreshold = document.getElementById('lower_threshold').value;
+        const upperThreshold = document.getElementById('upper_threshold').value;
+
+        if (parseInt(lowerThreshold) >= parseInt(upperThreshold)) {
+            alert("Lower threshold must be less than upper threshold.");
+            return false;
+        }
+        return true;
+    }
+
 </script>
 
 </body>

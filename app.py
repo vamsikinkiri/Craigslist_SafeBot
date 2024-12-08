@@ -144,9 +144,18 @@ def project_creation():
         response_frequency = 10 if not response_frequency_raw.isdigit() else int(response_frequency_raw)
         keywords_data_fetch = request.form['keywords_data']
         keywords_data = keywords_data_fetch.replace('""', '"')
-        lower_threshold = 0
-        upper_threshold = 75
-        authorized_emails=["vamsikinkiri@gmail.com", "kinkiriv@gmail.com"]
+        lower_threshold_raw = request.form.get('lower_threshold', '0').strip()
+        upper_threshold_raw = request.form.get('upper_threshold', '75').strip()
+        lower_threshold = 0 if not lower_threshold_raw.isdigit() else int(lower_threshold_raw)
+        upper_threshold = 75 if not upper_threshold_raw.isdigit() else int(upper_threshold_raw)
+        authorized_emails = request.form.get('authorized_emails', '[]')
+        try:
+            authorized_emails_list = json.loads(authorized_emails)
+            if not isinstance(authorized_emails_list, list):
+                raise ValueError("Authorized emails must be a list.")
+        except json.JSONDecodeError:
+            return jsonify({"error": "Invalid email format"}), 400
+        # authorized_emails=["vamsikinkiri@gmail.com", "kinkiriv@gmail.com"]
 
         project_success, message = knowledge_base.is_email_unique_in_projects(email)
         if not project_success:
@@ -180,7 +189,7 @@ def project_creation():
                                                          owner_admin_id=session['admin_id'],
                                                          lower_threshold=lower_threshold,
                                                          upper_threshold=upper_threshold,
-                                                         authorized_emails=json.dumps(authorized_emails),
+                                                         authorized_emails=authorized_emails_list,
                                                          last_updated=None
                                                          )
 
@@ -213,11 +222,39 @@ def update_projects():
 
     return jsonify({"success": True, "projects": projects_list})
 
+def parse_json_field(field, default):
+    try:
+        return json.loads(field) if field else default
+    except json.JSONDecodeError:
+        return default
 
+def get_project_data(email):
+    success, project_info = knowledge_base.get_project_details(email)
+    if not success:
+        return success, project_info
+    try:
+        keywords_data = parse_json_field(project_info[6], {})
+        authorized_emails = parse_json_field(project_info[10], [])
+        return True, {
+            "project_id": project_info[0],
+            "email_id": project_info[1],
+            "project_name": project_info[2],
+            "app_password": project_info[3],
+            "ai_prompt_text": project_info[4],
+            "response_frequency": project_info[5],
+            "keywords_data": keywords_data,
+            "owner_admin_id": project_info[7],
+            "lower_threshold": project_info[8],
+            "upper_threshold": project_info[9],
+            "authorized_emails": authorized_emails,
+            "last_updated": project_info[11],
+        }
+    except Exception as e:
+        logging.error(f"Error processing project data: {e}")
+        return False, "Error processing project data."
 @app.route('/update_project', methods=['GET', 'POST'])
 @login_required
 def update_project():
-    # Check if the user is logged in
     if 'email' not in session or 'project' not in session:
         flash("You need to be logged in to update project details.", "error")
         return redirect(url_for('all_projects_view'))
@@ -226,87 +263,252 @@ def update_project():
     project_name = session['project']
 
     if request.method == 'GET':
-        # Fetch current project details
-        success, project_info = knowledge_base.get_project_details(email)
+        success, project_details = get_project_data(email)
         if not success:
-            flash(project_info, "error")
+            flash(project_details, "error")
             return redirect(url_for('index'))
 
-        project_details = {
-            "project_id": project_info[0],
-            "email_id": project_info[1],
-            "project_name": project_info[2],
-            "app_password": project_info[3],
-            "ai_prompt_text": project_info[4],
-            "response_frequency": project_info[5],
-            "keywords_data": project_info[6],
-            "owner_admin_id": project_info[7],
-            "lower_threshold": project_info[8],
-            "upper_threshold": project_info[9],
-            "authorized_emails": project_info[10],
-            "last_updated": project_info[11]
-        }
-
-        # Fetch all projects for dropdown, including prompt details
         all_projects_success, all_projects = knowledge_base.fetch_all_projects()
         if not all_projects_success:
             flash(all_projects, "error")
             all_projects = []
 
-        # Prepare projects with prompts for dropdown
         projects_with_prompts = [
             {
                 "project_id": project[0],
                 "project_name": project[2],
-                "ai_prompt_text": project[4]  # Assuming that the fourth item is the prompt
-            } for project in all_projects
+                "ai_prompt_text": project[4],
+            }
+            for project in all_projects
         ]
 
-        logging.info(f"Fetched projects for dropdown: {projects_with_prompts}")
         return render_template(
             'update_project.html',
             project_details=project_details,
-            projects=projects_with_prompts
+            projects=projects_with_prompts,
         )
 
     elif request.method == 'POST':
         try:
             logging.info(f"Form data received: {request.form}")
+            success, project_info = get_project_data(email)
+            if not success:
+                flash(project_info, "error")
+                return redirect(url_for('index'))
+
+            # Parse form data
             mode = request.form.get('mode')
-            response_frequency = request.form.get('response_frequency')
+            response_frequency = int(request.form.get('response_frequency', project_info['response_frequency']))
+            lower_threshold = int(request.form.get('lower_threshold', project_info['lower_threshold']))
+            upper_threshold = int(request.form.get('upper_threshold', project_info['upper_threshold']))
 
-            # Determine prompt text based on the mode
-            if mode == 'edit':
-                ai_prompt_text = request.form.get('ai_prompt_text')
-                if not ai_prompt_text:
-                    flash("Prompt text is required in edit mode.", "error")
-                    return redirect(url_for('update_project'))
-            elif mode == 'dropdown':
-                ai_prompt_text = request.form.get('sample_prompt')
-                if not ai_prompt_text:
-                    flash("You need to select a prompt in dropdown mode.", "error")
-                    return redirect(url_for('update_project'))
-            else:
-                flash("Invalid mode selected.", "error")
+            if lower_threshold >= upper_threshold:
+                flash(f"Lower threshold ({lower_threshold}) must be less than upper threshold ({upper_threshold}).", "error")
                 return redirect(url_for('update_project'))
 
-            if not response_frequency:
-                flash("Response frequency is required.", "error")
-                return redirect(url_for('update_project'))
+            updated_keywords = parse_json_field(request.form.get('keywords_data', '{}'), {})
+            updated_emails = parse_json_field(request.form.get('authorized_emails', '[]'), [])
 
-            # Update project with the new details
-            success, message = knowledge_base.update_project(email, project_name, ai_prompt_text, response_frequency)
+            ai_prompt_text = (
+                request.form.get('ai_prompt_text') if mode == 'edit'
+                else request.form.get('sample_prompt', project_info['ai_prompt_text'])
+            )
+
+            success, message = knowledge_base.update_project(
+                email=email,
+                project_name=project_name,
+                ai_prompt_text=ai_prompt_text,
+                response_frequency=response_frequency,
+                keywords_data=json.dumps(updated_keywords),
+                lower_threshold=lower_threshold,
+                upper_threshold=upper_threshold,
+                authorized_emails=json.dumps(updated_emails),
+            )
+
             if success:
                 flash("Project details updated successfully.", "success")
-                return redirect(url_for('index'))
+                return redirect(url_for('all_projects_view'))
             else:
                 flash(message, "error")
                 return redirect(url_for('update_project'))
 
-        except KeyError as e:
-            logging.error(f"Missing form field: {e}")
-            flash("A required form field is missing.", "error")
+        except Exception as e:
+            logging.error(f"Unexpected error during project update: {e}")
+            flash("An unexpected error occurred while updating the project.", "error")
             return redirect(url_for('update_project'))
+
+#
+#
+# @app.route('/update_project', methods=['GET', 'POST'])
+# @login_required
+# def update_project():
+#     # Check if the user is logged in
+#     if 'email' not in session or 'project' not in session:
+#         flash("You need to be logged in to update project details.", "error")
+#         return redirect(url_for('all_projects_view'))
+#
+#     email = session['email']
+#     project_name = session['project']
+#
+#     if request.method == 'GET':
+#         # Fetch current project details
+#         success, project_info = knowledge_base.get_project_details(email)
+#         if not success:
+#             flash(project_info, "error")
+#             return redirect(url_for('index'))
+#         # Process keywords_data to ensure it's a dictionary
+#         if isinstance(project_info[6], str):  # If it's a JSON string
+#
+#
+#             try:
+#                 keywords_data = json.loads(project_info[6])
+#             except json.JSONDecodeError:
+#                 keywords_data = {}
+#         elif isinstance(project_info[6], list):  # If it's already a list
+#             # Convert the list to a dictionary if required
+#             keywords_data = {item.get('keyword', 'Unknown'): item.get('frequency', 0) for item in project_info[6]}
+#         else:
+#             keywords_data = project_info[6] if isinstance(project_info[6], dict) else {}
+#
+#         # Process authorized_emails to ensure it's a list
+#         if isinstance(project_info[10], str):  # If it's a JSON string
+#             try:
+#                 authorized_emails = json.loads(project_info[10])
+#             except json.JSONDecodeError:
+#                 authorized_emails = []
+#         elif isinstance(project_info[10], list):  # If it's already a list
+#             authorized_emails = project_info[10]
+#         else:
+#             authorized_emails = []
+#
+#         project_details = {
+#             "project_id": project_info[0],
+#             "email_id": project_info[1],
+#             "project_name": project_info[2],
+#             "app_password": project_info[3],
+#             "ai_prompt_text": project_info[4],
+#             "response_frequency": project_info[5],
+#             "keywords_data": keywords_data,
+#             # "keywords_data": project_info[6] if isinstance(project_info[6], dict) else json.loads(project_info[6]),
+#             "owner_admin_id": project_info[7],
+#             "lower_threshold": project_info[8],
+#             "upper_threshold": project_info[9],
+#             "authorized_emails": authorized_emails,
+#             # "authorized_emails": project_info[10] if isinstance(project_info[10], list) else json.loads(project_info[10]),
+#             "last_updated": project_info[11],
+#         }
+#
+#         # Fetch all projects for dropdown
+#         all_projects_success, all_projects = knowledge_base.fetch_all_projects()
+#         if not all_projects_success:
+#             flash(all_projects, "error")
+#             all_projects = []
+#
+#         projects_with_prompts = [
+#             {
+#                 "project_id": project[0],
+#                 "project_name": project[2],
+#                 "ai_prompt_text": project[4],
+#             }
+#             for project in all_projects
+#         ]
+#
+#         return render_template(
+#             'update_project.html',
+#             project_details=project_details,
+#             projects=projects_with_prompts,
+#         )
+#
+#     elif request.method == 'POST':
+#         try:
+#             logging.info(f"Form data received: {request.form}")
+#             # Fetch current project details
+#             success, project_info = knowledge_base.get_project_details(email)
+#             if not success:
+#                 flash(project_info, "error")
+#                 return redirect(url_for('index'))
+#
+#             # Current values
+#             current_prompt = project_info[4]
+#             current_frequency = project_info[5]
+#             current_keywords = project_info[6]
+#             current_lower_threshold = project_info[8]
+#             current_upper_threshold = project_info[9]
+#             current_emails = project_info[10]
+#
+#             # Parse form data
+#             mode = request.form.get('mode')
+#             response_frequency_raw = request.form.get('response_frequency')
+#             lower_threshold_raw = request.form.get('lower_threshold',0)
+#             upper_threshold_raw = request.form.get('upper_threshold',75)
+#             keywords_data_raw = request.form.get('keywords_data', '{}')
+#             authorized_emails_raw = request.form.get('authorized_emails', '[]')
+#
+#             # Handle defaults and validation
+#             response_frequency = (
+#                 int(response_frequency_raw) if response_frequency_raw and response_frequency_raw.isdigit() else current_frequency
+#             )
+#             lower_threshold = (
+#                 int(lower_threshold_raw) if lower_threshold_raw and lower_threshold_raw.isdigit() else current_lower_threshold or 0
+#             )
+#             upper_threshold = (
+#                 int(upper_threshold_raw) if upper_threshold_raw and upper_threshold_raw.isdigit() else current_upper_threshold or 75
+#             )
+#
+#             if lower_threshold >= upper_threshold:
+#                 flash("Lower threshold must be less than upper threshold.", "error")
+#                 return redirect(url_for('update_project'))
+#
+#             # Parse keywords and emails
+#             try:
+#                 updated_keywords = json.loads(keywords_data_raw)
+#                 updated_emails = json.loads(authorized_emails_raw) if authorized_emails_raw else current_emails
+#             except json.JSONDecodeError as e:
+#                 flash("Invalid format for keywords or authorized emails.", "error")
+#                 logging.error(f"JSON decode error: {e}")
+#                 return redirect(url_for('update_project'))
+#
+#             # Determine prompt text
+#             if mode == 'edit':
+#                 ai_prompt_text = request.form.get('ai_prompt_text', current_prompt)
+#             elif mode == 'dropdown':
+#                 ai_prompt_text = request.form.get('sample_prompt', current_prompt)
+#             else:
+#                 ai_prompt_text = current_prompt
+#             try:
+#                 keywords_data = json.loads(request.form.get('keywords_data', '{}'))
+#                 authorized_emails = json.loads(request.form.get('authorized_emails', '[]'))
+#             except json.JSONDecodeError as e:
+#                 logging.error(f"JSON decode error: {e}")
+#                 return "Invalid data format for keywords or emails.", 400
+#
+#             logging.info(f"Parsed data: ai_prompt_text={ai_prompt_text}, response_frequency={response_frequency}, "
+#                          f"keywords_data={updated_keywords}, lower_threshold={lower_threshold}, "
+#                          f"upper_threshold={upper_threshold}, authorized_emails={updated_emails}")
+#
+#             # Update the project in the database
+#             success, message = knowledge_base.update_project(
+#                 email=email,
+#                 project_name=project_name,
+#                 ai_prompt_text=ai_prompt_text,
+#                 response_frequency=response_frequency,
+#                 keywords_data=json.dumps(updated_keywords),
+#                 lower_threshold=lower_threshold,
+#                 upper_threshold=upper_threshold,
+#                 authorized_emails=json.dumps(updated_emails),
+#             )
+#
+#             if success:
+#                 flash("Project details updated successfully.", "success")
+#                 return redirect(url_for('all_projects_view'))
+#             else:
+#                 flash(message, "error")
+#                 return redirect(url_for('update_project'))
+#
+#         except Exception as e:
+#             logging.error(f"Unexpected error during project update: {e}")
+#             flash("An unexpected error occurred while updating the project.", "error")
+#             return redirect(url_for('update_project'))
 
 @app.route('/update_account_profile', methods=['GET', 'POST'])
 @login_required
@@ -628,6 +830,7 @@ def archive_email():
     data = request.get_json()
     thread_id = data.get('key')
 
+
     if not thread_id:
         logging.error("Thread ID is missing in the request")
         return jsonify({"success": False, "message": "Thread ID is required."}), 400
@@ -644,6 +847,7 @@ def archive_email():
             email_list = project_data['conversations'].pop(thread_id)
             project_data['archived_emails'][thread_id] = email_list
 
+
         return jsonify({"success": True, "message": "Thread archived successfully."})
     else:
         return jsonify({"success": False, "message": message}), 500
@@ -657,9 +861,52 @@ def view_archived_emails():
 
     archived_emails = project_data.get('archived_emails', {})
     latest_timestamps = project_data.get('latest_timestamp', {})
+    ai_response_state = project_data.get('ai_response_state', {})
 
     current_date = datetime.now().date()
-    return render_template('archived_emails.html', archived_emails=archived_emails, latest_timestamp=latest_timestamps, current_date=current_date)
+    return render_template('archived_emails.html', archived_emails=archived_emails, latest_timestamp=latest_timestamps, ai_response_state = ai_response_state,current_date=current_date)
+@app.route('/unarchiving_emails', methods=['POST'])
+@login_required
+def unarchiving_emails():
+    data = request.get_json()
+    thread_id = data.get('key')
+    email = session['email']
+
+    if not thread_id:
+        logging.error("Thread ID is missing in the request")
+        return jsonify({"success": False, "message": "Thread ID is required."}), 400
+
+    try:
+        success, project_data = knowledge_base.get_project_details(email)
+        if not success:
+            return jsonify({"success": False, "message": "No project details found for the provided email."}), 404
+    except Exception as error:
+        logging.error(f"Error fetching project details: {error}")
+        return jsonify({"success": False, "message": str(error)}), 500
+
+    # Extract required details from project_data
+    prompt = project_data[4]
+    response_frequency = project_data[5]
+
+    try:
+        # Automatically switch to automated state
+        success, message = email_processor.switch_to_automated(
+            thread_id=thread_id,
+            session_email=session.get('email'),
+            app_password=session.get('app_password'),
+            response_frequency=response_frequency,
+            admin_prompt=prompt
+        )
+    except Exception as error:
+        logging.error(f"Error switching email thread to Automated: {error}")
+        return jsonify({"success": False, "message": str(error)}), 500
+
+    if success:
+        flash(f"Thread {thread_id} has been unarchived and set to Automated.", "success")
+        return jsonify({"success": True, "redirect": url_for('index')})
+    else:
+        return jsonify({"success": False, "message": message}), 500
+
 
 @app.route('/', methods=['GET'])
 @login_required

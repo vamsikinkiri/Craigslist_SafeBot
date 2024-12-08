@@ -94,11 +94,124 @@
             font-size: 20px;
             font-weight: 600;
             margin-top: 10px;
+            text-decoration: none;
         }
 
         .sidebar-item:hover {
             background-color: #eaeaea;
         }
+        /* Wrapper for threshold fields */
+        .field-wrapper {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        /* Grouping lower and upper threshold fields into one line */
+        .threshold-group {
+            display: flex;
+            gap: 10px; /* Space between fields */
+            align-items: center;
+        }
+
+        /* Styling for individual threshold fields */
+        .threshold-input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background-color: #e7eef0;
+            font-size: 16px;
+            outline: none;
+            transition: background-color 0.3s;
+        }
+
+        /* Tooltip styling for the hover message */
+        .field-wrapper[title] {
+            cursor: pointer;
+        }
+
+        .field-wrapper[title]:hover::after {
+            content: attr(title); /* Display the title attribute as tooltip */
+            position: absolute;
+            top: -30px; /* Position above the input fields */
+            left: 0;
+            background-color: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        /* General wrapper for keyword fields */
+        .field-wrapper {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+        /* Grouping keyword, frequency, and add button into one line */
+        .field-group {
+            display: flex;
+            align-items: center;
+            gap: 20px; /* Space between items */
+            margin-bottom: 10px;
+        }
+
+        /* Individual input fields for keywords and frequency */
+        .field-item {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            background-color: #e7eef0
+        }
+
+
+        /* Container for displaying the existing keywords */
+        .list-container {
+            margin-top: -36px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Space between list entries */
+        }
+
+        /* Individual keyword entries */
+        .list-entry {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #e7eef0;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        /* Tooltip styling for the hover message */
+        .field-wrapper[title] {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .field-wrapper[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            top: -30px; /* Position the tooltip above the field */
+            left: 0;
+            background-color: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 10;
+        }
+
 
         .dropdown-menu {
             display: none;
@@ -175,7 +288,7 @@
             background-color: #ffffff;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
             text-align: center;
-            margin-top: 140px;
+            margin-top: 60px;
             margin-right: 100px; /* Adjust to account for sidebar */
         }
 
@@ -185,6 +298,68 @@
             margin-bottom: 25px;
             font-weight: 700;
         }
+
+        /* Wrapper for email field and button */
+        .email-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Styling for email input */
+        .email-input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background-color: #e7eef0;
+            font-size: 16px;
+            outline: none;
+            transition: background-color 0.3s;
+        }
+
+
+
+        /* Styling for the email list container */
+        .email-list-container {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Styling for each email entry */
+        .email-entry {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #e7eef0;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+        }
+
+        /* Tooltip styling */
+        .field-wrapper[title] {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .field-wrapper[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            top: -30px;
+            left: 0;
+            background-color: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 10;
+        }
+
 
         .prompt-text{
             padding: 60px 25px;
@@ -348,6 +523,172 @@
             font-size: 20px;
 
         }
+        /* Buttons */
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .add-keyword-btn{
+            background-color: #003a8d;
+            color: white;
+            border: none;
+            border-radius: 50%; /* Makes the button round */
+            cursor: pointer;
+            font-size: 21px;
+            width: 21px;
+            height: 21px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+
+        .add-email-btn{
+            background-color: #003a8d;
+            color: white;
+            margin: 20px;
+            border: none;
+            border-radius: 50%; /* Makes the button round */
+            cursor: pointer;
+            font-size: 16px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+
+        .remove-keyword-btn{
+            background-color: #003a8d;
+            color: white;
+            border: none;
+            border-radius: 50%; /* Makes the button round */
+            cursor: pointer;
+            font-size: 16px; /* Increases icon size */
+            width: 18px; /* Adjust size as needed */
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+
+        .remove-email-btn{
+            background-color: #003a8d;
+            color: white;
+            border: none;
+            border-radius: 50%; /* Makes the button round */
+            cursor: pointer;
+            font-size: 16px; /* Increases icon size */
+            width: 18px; /* Adjust size as needed */
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+
+        .add-keyword-btn:hover , .add-email-btn:hover{
+            background-color: #218838;
+        }
+
+        .remove-keyword-btn:hover, .remove-email-btn:hover {
+            background-color: #c82333;
+        }
+
+        /* Keywords Section */
+        .added-keywords,
+        .email-list-container {
+            margin-top: 15px;
+        }
+
+        .keyword-entry,
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #e7eef0;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        /* Thresholds */
+        .threshold-box {
+            flex: 1;
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            font-size: 16px;
+            outline: none;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .threshold-box:focus {
+            background-color: #eef5ff;
+            border-color: #007bff;
+        }
+
+        .thresholds {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            background-color: #007195;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary:hover {
+            background-color: #134258;
+        }
+
+        /* Placeholder Text */
+        input::placeholder,
+        textarea::placeholder {
+            color: #888;
+        }
+
+        /* Back Link */
+        .back-link {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .back-link a {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
 
 
 
@@ -408,8 +749,120 @@
 
     <form action="{{ url_for('update_project') }}" method="POST">
         <div class="form-field">
+{#            <div class="field-wrapper" title="Please add or update the keyword list.">#}
+{#                <!-- Input for Keyword and Frequency -->#}
+{#                <div class="field-group">#}
+{#                    <input type="text" id="keyword-input" class="field-item" placeholder="Keyword">#}
+{#                    <input type="number" id="keyword-frequency" class="field-item" placeholder="Frequency">#}
+{#                    <button type="button" class="add-keyword-btn" onclick="addKeyword()">+</button>#}
+{#                </div>#}
+{##}
+{#                <!-- Display Existing Keywords -->#}
+{#                <div id="keywords-list" class="list-container">#}
+{#                    {% for keyword, frequency in project_details['keywords_data'].items() %}#}
+{#                        <div class="list-entry">#}
+{#                            <span>{{ keyword }}: {{ frequency }}</span>#}
+{#                            <button type="button" class="remove-keyword-btn" onclick="removeKeyword('{{ keyword }}')">-</button>#}
+{#                        </div>#}
+{#                    {% endfor %}#}
+{#                </div>#}
+{#            </div>#}
+            <div class="field-wrapper" title="Please add or update the keyword list.">
+                <!-- Input for Keyword and Frequency -->
+                <div class="field-group">
+                    <input type="text" id="keyword-input" class="field-item" placeholder="Keyword">
+                    <input type="number" id="keyword-frequency" class="field-item" placeholder="Frequency">
+                    <button type="button" class="add-keyword-btn" onclick="addKeyword()">+</button>
+                </div>
+
+                <!-- Display Existing Keywords -->
+                <div id="keywords-list" class="list-container">
+                    {% if project_details['keywords_data'] %}
+                        {% if project_details['keywords_data'] is mapping %}
+                            <!-- If it's a dictionary -->
+                            {% for keyword, frequency in project_details.get('keywords_data', {}).items() %}
+                                <div class="list-entry">
+                                    <span>{{ keyword }}: {{ frequency }}</span>
+                                    <button type="button" class="remove-keyword-btn" data-keyword="{{ keyword }}" onclick="removeKeyword(this)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+
+
+                                </div>
+                            {% endfor %}
+                        {% elif project_details['keywords_data'] is iterable %}
+                            {% for item in project_details['keywords_data'] %}
+                                <div class="list-entry">
+                                    <span>{{ item.keyword or 'Unknown' }}: {{ item.frequency or 0 }}</span>
+                                    <button type="button" class="remove-keyword-btn" onclick="removeKeyword('{{ item.keyword }}')">-</button>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p></p>
+                        {% endif %}
+                    {% else %}
+                        <p></p>
+                    {% endif %}
+                </div>
+            </div>
+
+
+            <!-- Thresholds Section -->
+            <div class="field-wrapper" title="Please update the lower and upper thresholds if required.">
+                <div class="threshold-group">
+                    <input
+                            type="number"
+                            id="lower-threshold"
+                            class="threshold-input"
+                            placeholder="Lower Threshold (Default: 0)"
+                            value="{{ project_details.get('lower_threshold', 0) }}"
+                            min="0">
+                    <input
+                            type="number"
+                            id="upper-threshold"
+                            class="threshold-input"
+                            placeholder="Upper Threshold (Default: 75)"
+                            value="{{ project_details.get('upper_threshold', 75) }}"
+                            min="1">
+                </div>
+            </div>
+
+
+            <!-- Authorized Emails Section -->
+            <div class="field-wrapper" title="Please add or update the authorized emails list.">
+                <div class="email-group">
+                    <input
+                            type="email"
+                            id="email-input"
+                            class="email-input"
+                            placeholder="Authorized Emails"
+                            value="">
+                    <button
+                            type="button"
+                            class="add-email-btn"
+                            onclick="addEmail()">
+                        <i class="fas fa-plus"></i> <!-- Font Awesome '+' icon -->
+                    </button>
+                </div>
+                <div id="email-list-container" class="email-list-container">
+                    <!-- Existing emails will be displayed here -->
+                    {% for email in project_details.get('authorized_emails', []) %}
+                        <div class="email-entry">
+                            <span>{{ email }}</span>
+                            <button
+                                    type="button"
+                                    class="remove-email-btn"
+                                    onclick="removeEmail('{{ email }}')">
+                                <i class="fas fa-minus"></i> <!-- Font Awesome '-' icon -->
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+
             <!-- Mode Selection -->
-            <label>Choose Mode</label>
+            <label title="Please edit or import a prompt message.">Choose Mode</label>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <input
                         type="radio"
@@ -428,16 +881,16 @@
                         value="dropdown"
                         onchange="toggleInputMode('dropdown')"
                 >
-                <label for="useSamplePrompt">Use Existing Sample Prompt</label>
+                <label for="useSamplePrompt">Import the prompt from an existing project</label>
             </div>
         </div>
 
         <!-- Dropdown for Projects -->
         <div class="form-field" id="projectDropdownContainer" style="display: none;">
-            <label for="project_dropdown">Use the existing prompt to import the prompt from the projects below</label>
+            <label for="project_dropdown"></label>
             <div class="dropdown-container">
                 <select id="project_dropdown" name="project_dropdown" class="dropdown" onchange="updatePromptDropdown()">
-                    <option value="" disabled selected>Select an existing Project</option>
+                    <option value="" disabled selected>Select an existing Project to import</option>
                     {% for project in projects %}
                         <option value="{{ project['project_id'] }}">{{ project['project_name'] }}</option>
                     {% endfor %}
@@ -447,10 +900,10 @@
 
         <!-- Dropdown for Prompts -->
         <div class="form-field" id="promptDropdownContainer" style="display: none;">
-            <label for="prompt_dropdown">Import the prompt </label>
+            <label for="prompt_dropdown"></label>
             <div class="dropdown-container">
                 <select id="prompt_dropdown" name="sample_prompt" class="dropdown" onchange="updatePromptText()">
-                    <option value="" disabled selected>Select an existing Prompt</option>
+                    <option value="" disabled selected>Select an existing Prompt to import</option>
                 </select>
             </div>
         </div>
@@ -469,7 +922,8 @@
 
         <!-- Response Frequency -->
         <div class="form-field">
-            <label>Response Frequency</label>
+            <label></label>
+            <label title="Please edit the response frequency">Response Frequency</label>
             <input
                     type="number"
                     name="response_frequency"
@@ -481,7 +935,7 @@
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" class="btn-primary">Project Settings</button>
+        <button type="submit" class="btn-primary">Update Project Settings</button>
     </form>
 
     <div class="back-link">
@@ -490,6 +944,11 @@
 
 
     <script>
+
+        const keywords = JSON.parse('{{ project_details.get("keywords", {})|tojson|safe }}');
+        const authorizedEmails = JSON.parse('{{ project_details.get("authorized_emails", [])|tojson|safe }}');
+
+
         // Toggle sidebar visibility
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
@@ -553,10 +1012,6 @@
                 });
         }
 
-        // Call this function once the document is ready to load the projects
-        document.addEventListener('DOMContentLoaded', fetchAllProjects);
-
-
 
         // Toggle between editing prompt text and selecting from dropdown
         function toggleInputMode(mode) {
@@ -618,23 +1073,115 @@
             document.getElementById('promptDropdownContainer').style.display = 'block';
         }
 
-
         // Update prompt text based on the selected dropdown prompt
         function updatePromptText() {
             const selectedPrompt = document.getElementById('prompt_dropdown').value;
             document.getElementById('ai_prompt_text').value = selectedPrompt;
         }
 
+        document.addEventListener('DOMContentLoaded', () => {
+            const addKeyword = () => {
+                const keywordInput = document.getElementById('keyword-input');
+                const frequencyInput = document.getElementById('keyword-frequency');
+                const keywordsList = document.getElementById('keywords-list');
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const isClickInside = document.querySelector('.settings-dropdown')?.contains(event.target);
-            if (!isClickInside) {
-                document.querySelectorAll('.dropdown-content').forEach(content => {
-                    content.style.display = 'none';
+                if (!keywordInput || !frequencyInput || !keywordsList) {
+                    console.error("One or more required elements are missing.");
+                    return;
+                }
+
+                const keyword = keywordInput.value.trim();
+                const frequency = parseInt(frequencyInput.value, 10);
+
+                if (keyword && !isNaN(frequency)) {
+                    const entry = document.createElement('div');
+                    entry.classList.add('list-entry');
+                    entry.innerHTML = `
+            <span>${keyword}: ${frequency}</span>
+            <button type="button" class="remove-keyword-btn" onclick="removeKeyword('${keyword}')">Remove</button>
+        `;
+                    keywordsList.appendChild(entry);
+
+                    // Clear input fields
+                    keywordInput.value = '';
+                    frequencyInput.value = '';
+                } else {
+                    alert('Please provide valid keyword and frequency.');
+                }
+            };
+
+
+            // Attach the click event listener
+            document.querySelector('.add-keyword-btn')?.addEventListener('click', addKeyword);
+        });
+
+
+
+        function removeKeyword(button) {
+            const keyword = button.getAttribute('data-keyword');
+            const keywordsList = document.getElementById('keywords-list');
+
+            if (keywordsList) {
+                Array.from(keywordsList.children).forEach(entry => {
+                    if (entry.textContent.includes(keyword)) {
+                        keywordsList.removeChild(entry);
+                    }
                 });
             }
+        }
+
+
+        // Add email functionality
+        function addEmail() {
+            const emailInput = document.getElementById('email-input');
+            const emailValue = emailInput.value.trim();
+
+            if (emailValue && !authorizedEmails.includes(emailValue)) {
+                authorizedEmails.push(emailValue);
+                updateEmailsUI();
+                document.getElementById('authorized-emails-input').value = JSON.stringify(authorizedEmails);
+                emailInput.value = '';
+            } else {
+                alert('Please provide a valid and unique email address.');
+            }
+        }
+
+        function removeEmail(email) {
+            const index = authorizedEmails.indexOf(email);
+            if (index !== -1) {
+                authorizedEmails.splice(index, 1);
+                updateEmailsUI();
+                document.getElementById('authorized-emails-input').value = JSON.stringify(authorizedEmails);
+            }
+        }
+
+        function updateEmailsUI() {
+            const container = document.getElementById('email-list-container');
+            container.innerHTML = '';
+            authorizedEmails.forEach(email => {
+                const entry = document.createElement('div');
+                entry.className = 'keyword-entry';
+                entry.innerHTML = `${email}
+                <button type="button" class="remove-keyword-btn" onclick="removeEmail('${email}')">
+                    <i class="fas fa-minus"></i>
+                </button>`;
+                container.appendChild(entry);
+            });
+        }
+
+        // Call this function once the document is ready to load the projects
+        document.addEventListener('DOMContentLoaded', fetchAllProjects);
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelector('.add-keyword-btn')?.addEventListener('click', addKeyword);
+            document.querySelector('.add-email-btn')?.addEventListener('click', addEmail);
+
+            // Sidebar Toggle
+            document.querySelector('.menu-icon')?.addEventListener('click', toggleSidebar);
+
+            // Fetch all projects on load
+            fetchAllProjects();
         });
+
 
     </script>
 </body>
