@@ -82,7 +82,7 @@ def login():
             session['admin_email'] = result.get('email_id')  # Store admin email in session
             user = User(id=email_id)
             login_user(user)
-            flash("Admin login successful!", "success")
+            # flash("Admin login successful!", "success")
             return redirect(url_for('all_projects_view'))
         else:
             # flash("Invalid credentials. Please try again.", "error")
@@ -193,7 +193,6 @@ def project_creation():
                                                          last_updated=None
                                                          )
 
-        flash(message, "success" if success else "error")
         if success:
             # return redirect(url_for('project_account_login'))
             return redirect(url_for('all_projects_view'))
@@ -546,7 +545,7 @@ def delete_project(project_id):
         flash("Error deleting project: " + message, "danger")
         return redirect(url_for('all_projects_view'))
 
-    flash("Project deleted successfully.", "success")
+    # flash("Project deleted successfully.", "success")
     return (redirect(url_for('all_projects_view')))
 
 
