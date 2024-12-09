@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title><!DOCTYPE html>
+    <title>Project Settings</title>
         <html lang="en">
         <head>
         <meta charset="UTF-8">
@@ -759,11 +759,63 @@
 
     <form action="{{ url_for('update_project') }}" method="POST">
         <div class="form-field">
-            <div class="field-wrapper" title="Please add or update the keyword list.">
+
+            <!-- Response Frequency -->
+            <div class="form-field">
+                <label></label>
+                <label>Response Frequency</label>
+                <input
+                        type="number"
+                        name="response_frequency"
+                        class="response-frequency"
+                        placeholder="Response Frequency (Minutes)"
+                        value="{{ project_details.get('response_frequency', '') }}"
+                        title="Edit roughly how often (in minutes) the bot should check for new emails and respond automatically."
+                        required
+                >
+            </div>
+
+            <!-- Lower Threshold -->
+            <div class="form-field">
+                <label></label>
+                <label>Lower Threshold</label>
+                <input
+                        type="number"
+                        id="lower-threshold"
+                        name="lower_threshold"
+                        class="response-frequency"
+                        placeholder="Lower Threshold (Default: 0)"
+                        value="{{ project_details.get('lower_threshold', 0) }}"
+                        min="0"
+                        title="Edit the minimum score required to initiate automated responses for this project."
+                >
+            </div>
+
+            <!-- Upper Threshold -->
+            <div class="form-field">
+                <label></label>
+                <label>Upper Threshold</label>
+                <input
+                        type="number"
+                        id="upper-threshold"
+                        name="upper_threshold"
+                        class="response-frequency"
+                        placeholder="Upper Threshold (Default: 75)"
+                        value="{{ project_details.get('upper_threshold', 75) }}"
+                        min="1"
+                        title="Edit the score above which the system switches to manual intervention mode and intimate the admins to send responses."
+                >
+            </div>
+
+            <!-- Keywords -->
+            <div class="field-wrapper">
                 <!-- Input for Keyword and Frequency -->
-                <div class="field-group">
-                    <input type="text" id="keyword-input" class="field-item" placeholder="Keyword">
-                    <input type="number" id="keyword-frequency" class="field-item" placeholder="Frequency">
+                <label>Project keywords</label>
+                <div class="field-group" >
+                    <input type="text" id="keyword-input" class="field-item" placeholder="Keyword" 
+                    title="Edit the keywords or add new keywords that the bot will look for in emails to prioritize responses.">
+                    <input type="number" id="keyword-frequency" class="field-item" placeholder="Frequency"
+                    title="Edit the maximum number of times the keyword needs to appear in email threads.">
                     <button type="button" class="add-keyword-btn" onclick="addKeyword()">+</button>
                 </div>
 
@@ -798,8 +850,7 @@
                 </div>
             </div>
 
-
-            <!-- Thresholds Section -->
+            <!-- Thresholds Section
             <div class="field-wrapper" title="Please update the lower and upper thresholds if required.">
                 <div class="threshold-group">
                     <input
@@ -808,27 +859,32 @@
                             class="threshold-input"
                             placeholder="Lower Threshold (Default: 0)"
                             value="{{ project_details.get('lower_threshold', 0) }}"
-                            min="0">
+                            min="0"
+                            title="Edit the minimum score required to initiate automated responses for this project.">
                     <input
                             type="number"
                             id="upper-threshold"
                             class="threshold-input"
                             placeholder="Upper Threshold (Default: 75)"
                             value="{{ project_details.get('upper_threshold', 75) }}"
-                            min="1">
+                            min="1"
+                            title="Edit the score above which the system switches to manual intervention mode and intimate the admins to send responses.">
                 </div>
-            </div>
+            </div> -->
 
 
             <!-- Authorized Emails Section -->
-            <div class="field-wrapper" title="Please add or update the authorized emails list.">
+            <div class="field-wrapper">
+                <label>Authorized Emails</label>
                 <div class="email-group">
                     <input
                             type="email"
                             id="email-input"
                             class="email-input"
-                            placeholder="Authorized Emails"
-                            value="">
+                            placeholder="Enter a new admin Email ID"
+                            value=""
+                            title="Edit the list of email addresses that have permission to view, modify, or delete this project. Add multiple emails if needed."
+                    >
                     <button
                             type="button"
                             class="add-email-btn"
@@ -854,28 +910,30 @@
 
             <input type="hidden" id="keywords-input" name="keywords_data" value='{}'>
             <input type="hidden" id="authorized-emails-input" name="authorized_emails" value='[]'>
+            
+            <div class="field-wrapper">
+                <!-- Mode Selection -->
+                <label title="Edit the specific instructions or preferences for the SafeBot’s behavior and responses. This can include tone, content guidelines, or restrictions.">Instructions to Safebot</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input
+                            type="radio"
+                            id="editPromptText"
+                            name="mode"
+                            value="edit"
+                            onchange="toggleInputMode('edit')"
+                            checked
+                    >
+                    <label for="editPromptText">Edit existing instructions</label>
 
-            <!-- Mode Selection -->
-            <label title="Please edit or import a prompt message.">Choose Mode</label>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <input
-                        type="radio"
-                        id="editPromptText"
-                        name="mode"
-                        value="edit"
-                        onchange="toggleInputMode('edit')"
-                        checked
-                >
-                <label for="editPromptText">Edit Prompt Text</label>
-
-                <input
-                        type="radio"
-                        id="useSamplePrompt"
-                        name="mode"
-                        value="dropdown"
-                        onchange="toggleInputMode('dropdown')"
-                >
-                <label for="useSamplePrompt">Import the prompt from an existing project</label>
+                    <input
+                            type="radio"
+                            id="useSamplePrompt"
+                            name="mode"
+                            value="dropdown"
+                            onchange="toggleInputMode('dropdown')"
+                    >
+                    <label for="useSamplePrompt">Import instructions from an existing project</label>
+                </div>
             </div>
         </div>
 
@@ -904,7 +962,7 @@
 
         <!-- Textarea for Manual Input -->
         <div class="form-field" id="textContainer">
-            <label for="ai_prompt_text">Enter or Edit Prompt Text</label>
+            <!-- <label for="ai_prompt_text">Enter or Edit Prompt Text</label> -->
             <textarea
                     id="ai_prompt_text"
                     name="ai_prompt_text"
@@ -914,22 +972,10 @@
             >{{ project_details.get('ai_prompt_text', '') }}</textarea>
         </div>
 
-        <!-- Response Frequency -->
-        <div class="form-field">
-            <label></label>
-            <label title="Please edit the response frequency">Response Frequency</label>
-            <input
-                    type="number"
-                    name="response_frequency"
-                    class="response-frequency"
-                    placeholder="Response Frequency (Minutes)"
-                    value="{{ project_details.get('response_frequency', '') }}"
-                    required
-            >
-        </div>
+        
 
         <!-- Submit Button -->
-        <button type="submit" class="btn-primary">Update Project Settings</button>
+        <button type="submit" class="btn-primary">Update Project</button>
     </form>
 
     <div class="back-link">

@@ -235,6 +235,7 @@ def parse_json_field(field, default):
         return json.loads(field) if field else default
     except json.JSONDecodeError:
         return default
+    
 def get_project_data(email):
     try:
         # Fetch project details using the knowledge base
@@ -393,7 +394,7 @@ def update_project():
             logging.info(f"updated_emails 2: {json.dumps(updated_emails)}")
 
             if success:
-                flash("Project details updated successfully.", "success")
+                #flash("Project details updated successfully.", "success")
                 return redirect(url_for('index'))
             else:
                 flash(message, "error")
