@@ -937,7 +937,7 @@
     <div class="right">
         <div class="settings-button">
             <a href="{{ url_for('update_account_profile') }}" class="settings-button">
-                <i class="fas fa-cog icon"></i> Manage Account
+                <i class="fas fa-cog icon"></i> Manage Profile
             </a>
         </div>
         <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
@@ -958,7 +958,7 @@
 
 <div class="sidebar" id="sidebar">
     <div class="sidebar-item" onclick="window.location.href='{{ url_for('user_profiles') }}'">
-        User Profiles
+        Suspect Profiles
     </div>
     <a href="{{ url_for('view_archived_emails') }}" class="sidebar-item">
         Archived Emails
@@ -1036,10 +1036,18 @@
                 {% for key, details in conversations.items() %}
                     <div class="email-chain" data-thread-id="{{ key }}">
                         <div class="email-chain-header" onclick="toggleEmailChain('chain-{{ loop.index }}', this)">
-                            <div class="subject-box" style="width: 70%;">{{ details[0]['subject'].replace('Re: ', '') }}
+                            <div class="subject-box" 
+                            title="The subject of an email thread"  
+                            style="width: 70%;">
+                            Email thread: {{ details[0]['subject'].replace('Re: ', '') }}
+                            <span title="Number of emails in this thread" style="margin-left: 10px; color: #555;">
+                            ({{ details | length }})
+                            </span>
                             </div>
-                            <div class="email-score"  title="The score represents how suspicious that user is or how much the user matches the target profile out of 100" style="width: 20%; text-align: right;">
-                                Score: {{ conversations_score.get(key, '0') }}
+                            <div class="email-score"  
+                            title="The score represents how suspicious that user is or how much the user matches the target profile out of 100" 
+                            style="width: 20%; text-align: right;">
+                            Score: {{ conversations_score.get(key, '0') }}
                             </div>
                             <div class="button-box">
                                 <label class="toggle-switch" title="Click on this to toggle AI response state between automated and manual. (Automated: Green | Manual: Red)">

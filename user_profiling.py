@@ -5,12 +5,12 @@ from knowledge_base import KnowledgeBase
 import json
 from collections import defaultdict
 from datetime import datetime
-from flask import flash
+from flask import flash, session
 
 knowledge_base = KnowledgeBase()
 
 class UserProfiling:
-    def process_user_profile(self, thread_id, user_email, email_content, last_active):
+    def process_user_profile(self, project_id, thread_id, user_email, email_content, last_active):
         """
         Process and manage user profile information.
         Args:
@@ -28,7 +28,7 @@ class UserProfiling:
         
         if user_profile:  # User already exists
             logging.info(user_profile)
-            user_id, primary_email, thread_ids, email_list, contact_numbers, active_user, last_active_db, last_updated = user_profile
+            user_id, primary_email, project_id, thread_ids, email_list, contact_numbers, active_user, last_active_db, last_updated = user_profile
             # if thread_id not in thread_ids:
             #     thread_ids.append(thread_id)
             if contact_number and contact_number not in contact_numbers:
@@ -40,6 +40,7 @@ class UserProfiling:
             contact_numbers = [contact_number] if contact_number else []
             knowledge_base.create_user_profile(
                 user_email=user_email,
+                project_id=project_id,
                 thread_ids=thread_id,
                 email_list="",
                 contact_numbers=contact_numbers,
@@ -60,10 +61,10 @@ class UserProfiling:
         success, all_user_profiles = knowledge_base.get_all_user_profiles()
         # Can include the logic to only send the active users using the active_user field in the all_user_profiles
         if not success:
-            logging.error(f"Error fetching user profiles: {all_user_profiles}")
+            logging.error(f"Error fetching suspect profiles: {all_user_profiles}")
             return []
 
-        # Return the user profiles directly
+        # Return the suspect profiles directly
         return all_user_profiles
 
     def update_user_activity_status(self, user_email):
@@ -73,7 +74,7 @@ class UserProfiling:
             return
         current_time = datetime.now()
         days_since_last_active = (current_time - last_active).days
-        logging.info(f"DEBUG: For user: {user_email}, the days since last active is {days_since_last_active}")
+        logging.info(f"User: {user_email}, was last active since {days_since_last_active} days")
         if days_since_last_active > 30:
             # Mark the user as inactive since 30 days passed since the last reply from the user
             success, result = knowledge_base.update_active_user(user_email, active_user=False)

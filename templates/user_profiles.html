@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-    <title>User Profiles Dashboard</title>
+    <title>Suspect Profiles</title>
     <style>
         /* General Styling */
         body {
@@ -406,7 +406,7 @@
         <!-- Settings Icon with Dropdown -->
         <div class="settings-button">
             <a href="{{ url_for('update_account_profile') }}" class="settings-button">
-                <i class="fas fa-cog icon"></i> Manage Account
+                <i class="fas fa-cog icon"></i> Manage Profile
             </a>
         </div>
         <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
@@ -427,7 +427,7 @@
 
 <div class="sidebar" id="sidebar">
     <div class="sidebar-item" onclick="window.location.href='{{ url_for('user_profiles') }}'">
-        User Profiles
+        Suspect Profiles
     </div>
     <a href="{{ url_for('view_archived_emails') }}" class="sidebar-item">
         Archived Emails
@@ -436,7 +436,7 @@
 
 
 
-<h1>User Profiles</h1>
+<h1>Suspect Profiles</h1>
 
 <div class="filters-container" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
     <label for="last-active-filter" style="font-size: 16px; color: #134258; font-weight: bold;">Filter by Last Active:</label>

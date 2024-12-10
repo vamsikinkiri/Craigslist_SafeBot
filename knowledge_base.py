@@ -761,7 +761,7 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
     
-    def create_user_profile(self, user_email, thread_ids, email_list, contact_numbers, active_user, last_active):
+    def create_user_profile(self, user_email, project_id, thread_ids, email_list, contact_numbers, active_user, last_active):
         """
         Create a new user profile.
         """
@@ -778,12 +778,12 @@ class KnowledgeBase:
             cursor = conn.cursor()
             cursor.execute("""
                 INSERT INTO USER_PROFILES (
-                    USER_ID, PRIMARY_EMAIL, THREAD_IDS, EMAIL_LIST, CONTACT_NUMBERS, 
+                    USER_ID, PRIMARY_EMAIL, PROJECT_ID, THREAD_IDS, EMAIL_LIST, CONTACT_NUMBERS, 
                     ACTIVE_USER, LAST_ACTIVE, LAST_UPDATED
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
             """, (
-                generated_id, user_email, thread_ids, email_list, json.dumps(contact_numbers), active_user, last_active
+                generated_id, user_email, project_id, thread_ids, email_list, json.dumps(contact_numbers), active_user, last_active
             ))
             conn.commit()
             return True, None
@@ -824,11 +824,12 @@ class KnowledgeBase:
             return False, conn_error
         cursor = conn.cursor()
         try:
-            # Query to fetch all user profiles
+            # Query to fetch all suspect profiles
             query = """
             SELECT
                 USER_ID, 
                 PRIMARY_EMAIL, 
+                PROJECT_ID,
                 THREAD_IDS, 
                 EMAIL_LIST, 
                 CONTACT_NUMBERS,
@@ -842,11 +843,11 @@ class KnowledgeBase:
             rows = cursor.fetchall()
 
             if not rows:
-                return False, "No user profiles found."
+                return False, "No suspect profiles found."
 
             user_profiles = []
             for row in rows:
-                user_id, primary_email, thread_ids, email_list, contact_numbers, active_user, last_active, last_updated = row
+                user_id, primary_email, project_id, thread_ids, email_list, contact_numbers, active_user, last_active, last_updated = row
 
                 # Parse THREAD_IDS as a list if it's a JSON-like string
                 parsed_thread_ids = json.loads(thread_ids) if thread_ids and thread_ids.startswith('[') else thread_ids.split(',') if thread_ids else []
@@ -858,6 +859,7 @@ class KnowledgeBase:
                 user_profiles.append({
                     "user_id": user_id,
                     "primary_email": primary_email,
+                    "project_id": project_id,
                     "thread_ids": parsed_thread_ids,
                     "email_list": email_list if email_list else "",
                     "contact_numbers": parsed_contact_numbers if parsed_contact_numbers else [],
@@ -867,7 +869,7 @@ class KnowledgeBase:
                 })
             return True, user_profiles
         except Exception as e:
-            return False, f"Error fetching user profiles: {e}"
+            return False, f"Error fetching suspect profiles: {e}"
         finally:
             cursor.close()
             conn.close()

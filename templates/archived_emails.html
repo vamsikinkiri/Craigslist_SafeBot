@@ -887,7 +887,7 @@
         <!-- Settings Dropdown -->
         <div class="settings-button">
             <a href="{{ url_for('update_account_profile') }}" class="settings-button">
-                <i class="fas fa-cog icon"></i> Manage Account
+                <i class="fas fa-cog icon"></i> Manage Profile
             </a>
         </div>
         <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
@@ -907,7 +907,7 @@
 
 <div class="sidebar" id="sidebar">
     <div class="sidebar-item" onclick="window.location.href='{{ url_for('user_profiles') }}'">
-        User Profiles
+        Suspect Profiles
     </div>
     <a href="{{ url_for('view_archived_emails') }}" class="sidebar-item">
         Archived Emails

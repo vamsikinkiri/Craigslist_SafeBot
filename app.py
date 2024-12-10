@@ -85,7 +85,7 @@ def login():
             # flash("Admin login successful!", "success")
             return redirect(url_for('all_projects_view'))
         else:
-            # flash("Invalid credentials. Please try again.", "error")
+            flash("Invalid credentials. Please try again.", "error")
             return redirect(url_for('login'))
         #     return redirect(url_for('project_account_login'))
         # return redirect(url_for('login'))
@@ -125,10 +125,11 @@ def create_account():
             return redirect(url_for('create_account'))
 
         success, message = knowledge_base.create_admin(password, email_id, phone_number, affiliation)
-        flash(message, "success" if success else "error")
 
         if success:
             return redirect(url_for('login'))
+        else:
+            flash(message, "error")
 
     return render_template('create_account.html')
 
@@ -137,7 +138,7 @@ def create_account():
 def project_creation():
     if request.method == 'POST':
         email = request.form['email']
-        project_name = request.form['project_name']
+        project_name = "Project - " + request.form['project_name']
         app_password = request.form['password']
         ai_prompt_text = request.form.get('ai_prompt_text', '')
         response_frequency_raw = request.form.get('response_frequency', '10').strip()
@@ -440,7 +441,7 @@ def update_account_profile():
             login_id, phone_number, affiliation, email_id)
         logging.info(f"Update status: {success}, message: {message}")
         if success:
-            flash("Account profile updated successfully.", "success")
+            # flash("Account profile updated successfully.", "success")
             return redirect(url_for('index'))
         else:
             flash("Failed to update account profile.", "error")
@@ -453,10 +454,10 @@ def update_account_profile():
 @app.route('/all_projects_view', methods=['GET', 'POST'])
 @login_required
 def all_projects_view():
-    logging.info(f"Session Admin ID: {session.get('admin_id')}")
     """
     Display all projects and allow the user to select or create a new project.
     """
+    logging.info(f"Session Admin ID: {session.get('admin_id')}")
     # Fetch all projects from the database
     success, projects = knowledge_base.fetch_all_projects()
 
@@ -475,7 +476,7 @@ def all_projects_view():
         ]
         # If no matching projects are found, flash an error message
         if not filtered_projects:
-            flash("No projects found. Please create or view another project.", "danger")
+            flash("No projects found. Please create or view another project.", "error")
 
     # Format the filtered projects for rendering
     formatted_projects = [
@@ -494,7 +495,7 @@ def all_projects_view():
         # Fetch project details by email
         success, project_details = knowledge_base.get_project_details(email)
         if not success:
-            flash("Error retrieving project information. Please check your inputs and try again.", "danger")
+            flash("Error retrieving project information. Please check your inputs and try again.", "error")
             return redirect(url_for('all_projects_view'))
 
         # Extract project details
@@ -503,6 +504,7 @@ def all_projects_view():
 
         # Update session with selected project details
         session.update({
+            'project_id': project_id,
             'email': email_id,
             'app_password': app_password,
             'project': project_name,
@@ -528,7 +530,7 @@ def delete_project(project_id):
     # Fetch project details by ID
     success, project_details = knowledge_base.get_project_details_by_id(project_id)
     if not success:
-        flash("Error retrieving project details: " + project_details, "danger")
+        flash("Error retrieving project details: " + project_details, "error")
         return redirect(url_for('all_projects_view'))
 
     # Extract owner_admin_id from project_details tuple
@@ -537,13 +539,13 @@ def delete_project(project_id):
     # Check if the current session's admin_id matches the owner_admin_id
     session_admin_id = session.get('admin_id')
     if session_admin_id != project_owner_admin_id:
-        flash("You do not have permission to delete this project.", "danger")
+        flash("You do not have permission to delete this project.", "error")
         return redirect(url_for('all_projects_view'))
 
     # Delete the project
     delete_success, message = knowledge_base.delete_project(project_id)
     if not delete_success:
-        flash("Error deleting project: " + message, "danger")
+        flash("Error deleting project: " + message, "error")
         return redirect(url_for('all_projects_view'))
 
     # flash("Project deleted successfully.", "success")
@@ -553,14 +555,14 @@ def delete_project(project_id):
 @app.route('/user_profiles', methods=['GET'])
 def user_profiles():
     """
-    Fetch and display user profiles with sorting and filtering by last active time.
+    Fetch and display suspect profiles with sorting and filtering by last active time.
     """
-    # Fetch all user profiles
+    # Fetch all suspect profiles
     all_users = user_profiling.get_all_users()
     success, user_scores = knowledge_base.fetch_scores_at_user_level()
 
     if not all_users:
-        return jsonify({"error": "Error fetching user profiles"}), 500
+        return jsonify({"error": "Error fetching suspect profiles"}), 500
 
     # Handle 'last_active_filter' query parameter
     last_active_filter = request.args.get("last_active_filter", "all")  # Default to 'all'
@@ -575,8 +577,9 @@ def user_profiles():
             all_users = [
                 user for user in all_users
                 if user.get("last_active")
-                   and (current_date - datetime.strptime(user["last_active"], "%Y-%m-%d %H:%M:%S")).days <= days_filter
+                   and (current_date - datetime.strptime(user["last_active"], "%Y-%m-%d %H:%M:%S")).days <= days_filter 
             ]
+            
         except ValueError:
             logging.error("Invalid last_active_filter value. Showing all users.")
 
@@ -589,10 +592,9 @@ def user_profiles():
             "contact_numbers": ", ".join(user.get("contact_numbers", [])),
             "active_user": user.get("active_user", False)
         }
-        for user in all_users
+        for user in all_users if (user.get("project_id") == session['project_id']) # Display users of this project only
     ]
-
-    app.logger.info(f"Merged User Data: {user_data}")
+    logging.info(f"Project suspect Data: {user_data}")
     # Sorting logic
     sort_key = request.args.get("sort", "score")
     order = request.args.get("order", "desc")
@@ -640,6 +642,7 @@ def update_ai_response_state():
     app_password = project_details[3]
     admin_prompt = project_details[4]
     response_frequency = project_details[5]
+    lower_threshold =  project_details[8],
 
     # Handle AI response state update logic
     if new_state == "Manual":
@@ -655,7 +658,8 @@ def update_ai_response_state():
                 session_email=session_email,
                 app_password=app_password,
                 response_frequency=response_frequency,
-                admin_prompt=admin_prompt
+                admin_prompt=admin_prompt,
+                lower_threshold=lower_threshold
             )
         except TypeError as e:
             logging.error(f"Error while switching to automated: {e}")
@@ -737,19 +741,19 @@ def unarchiving_emails():
 
     try:
         # Automatically switch to automated state
-        success, message = email_processor.switch_to_automated(
+        success, message = email_processor.switch_archive_to_automated(
             thread_id=thread_id,
-            session_email=session.get('email'),
-            app_password=session.get('app_password'),
-            response_frequency=response_frequency,
-            admin_prompt=prompt
+            # session_email=session.get('email'),
+            # app_password=session.get('app_password'),
+            # response_frequency=response_frequency,
+            # admin_prompt=prompt
         )
     except Exception as error:
         logging.error(f"Error switching email thread to Automated: {error}")
         return jsonify({"success": False, "message": str(error)}), 500
 
     if success:
-        flash(f"Thread {thread_id} has been unarchived and set to Automated.", "success")
+        # flash(f"Thread {thread_id} has been unarchived and set to Automated.", "success")
         return jsonify({"success": True, "redirect": url_for('index')})
     else:
         return jsonify({"success": False, "message": message}), 500
@@ -773,7 +777,7 @@ def index():
 
     # Check session variables for selected project
     if 'email' not in session or 'app_password' not in session:
-        flash("No project selected. Please select a project.", "danger")
+        # flash("No project selected. Please select a project.", "error")
         return redirect(url_for('all_projects_view'))
 
     # Get the raw conversation data

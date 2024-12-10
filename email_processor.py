@@ -24,7 +24,7 @@ scheduler.start()
 
 class EmailProcessor:
 
-    def process_grouped_emails(self, grouped_emails, session_email, project_keywords):
+    def process_grouped_emails(self, grouped_emails, session_email, project_id, project_keywords):
         for thread_id, emails in grouped_emails.items():
             conversation_history = []
             user_email = ""
@@ -42,7 +42,7 @@ class EmailProcessor:
                     conversation_history.append(f"User sent: {email['content']}")
 
                 self._process_single_email(
-                    email, from_address, thread_id, session_email, project_keywords, conversation_history, len(emails)
+                    email, from_address, thread_id, session_email, project_id, project_keywords, conversation_history, len(emails)
                 )
             
             if user_email != "":
@@ -50,7 +50,7 @@ class EmailProcessor:
             # else:
             #     logging.info(f"This is a manual trigger conversation!!")
 
-    def _process_single_email(self, email, from_address, thread_id, session_email, project_keywords, conversation_history, email_count):
+    def _process_single_email(self, email, from_address, thread_id, session_email, project_id, project_keywords, conversation_history, email_count):
         # Check if the email is already processed
         success, is_email_processed = knowledge_base.is_email_processed(email['message_id'])
         if not success:
@@ -63,6 +63,7 @@ class EmailProcessor:
         content = email['content']
         last_active = email['date'].strftime('%Y-%m-%d %H:%M:%S')
         user_profiling.process_user_profile(
+            project_id=project_id,
             thread_id=thread_id, 
             user_email=from_address, 
             email_content=content, 
@@ -115,7 +116,7 @@ class EmailProcessor:
             flash("Failed to fetch user profile for notification.", "error")
             logging.error("Failed to fetch user profile for notification.")
             return
-        user_id, primary_email, thread_ids, email_list, contact_numbers, active_user, last_active_db, last_updated = user_profile
+        user_id, primary_email, project_id, thread_ids, email_list, contact_numbers, active_user, last_active_db, last_updated = user_profile
         user_details = f"""User primary Email: {primary_email}\nEmail List: {email_list if email_list else 'N/A'}\nContact Numbers: {', '.join(contact_numbers) if contact_numbers else 'N/A'}\nLast Active: {last_active_db}"""
         
         # Extract the admin email
@@ -263,7 +264,7 @@ class EmailProcessor:
         logging.info(f'*'*10 + f"Response successfully sent to {to_address}" + "*"*10)
         return
     
-    def switch_to_automated(self, thread_id, session_email, app_password, response_frequency, admin_prompt):
+    def switch_to_automated(self, thread_id, session_email, app_password, response_frequency, admin_prompt, lower_threshold):
         """
         Switch a conversation's state from Manual to Automated, reset its score,
         and reschedule a response if necessary.
@@ -274,8 +275,8 @@ class EmailProcessor:
             logging.error(f"Failed to switch AI state: {message}")
             return False, message
 
-        # Step 2: Reset the interaction score (e.g., set it to 0)
-        reset_score = 0  # We can also reduce the score by a percentage if needed
+        # Step 2: Reset the interaction score (e.g., set it to lower_threshold)
+        reset_score = lower_threshold  # We can also reduce the score by a percentage if needed
         success, message = knowledge_base.update_email_score(thread_id, reset_score)
         if not success:
             logging.error(f"Failed to reset email score: {message}")
@@ -345,3 +346,10 @@ class EmailProcessor:
 
         # Proceed to archive if it exists
         return knowledge_base.update_ai_response_state(thread_id, 'Archive')
+    
+    def switch_archive_to_automated(self, thread_id):
+        success, message  = knowledge_base.update_ai_response_state(thread_id, 'Automated')
+        if success:
+            return True, "Email thread switched from archive to automated successfully."
+        else:
+            return False, message

@@ -12,7 +12,7 @@ email_processor = EmailProcessor()
 
 class ProjectScheduler:
 
-    def process_project(self, email_id, app_password, project_keywords, filters, project_name=None):
+    def process_project(self, email_id, app_password, project_id, project_keywords, filters, project_name=None):
         if not filters['search_initiated'] and not filters['last_30_days'] and not filters['last_60_days']:
             filters['end_date'] = datetime.now().strftime('%Y-%m-%d')
             filters['start_date'] = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
@@ -33,7 +33,7 @@ class ProjectScheduler:
             emails, grouped_emails, keywords = [], {}, []
 
         # Process the grouped emails
-        email_processor.process_grouped_emails(grouped_emails, session_email=email_id, project_keywords=project_keywords)
+        email_processor.process_grouped_emails(grouped_emails, session_email=email_id, project_id=project_id, project_keywords=project_keywords)
 
         # Initialize dictionaries for latest timestamp and conversation scores
         latest_timestamp = {}
@@ -104,7 +104,7 @@ class ProjectScheduler:
                 #     logging.error(f"Unexpected project tuple length: {len(project)}. Data: {project}")
                 #     continue  # Skip processing this project
                 project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, last_updated = project
-                self.process_project(email_id=email_id, app_password=app_password, project_keywords=keywords_data, filters=filters,project_name=project_name)
+                self.process_project(email_id=email_id, app_password=app_password, project_id=project_id, project_keywords=keywords_data, filters=filters,project_name=project_name)
         else:
             success, project_details = knowledge_base.get_project_details(session_email)
             if not success:
@@ -112,7 +112,7 @@ class ProjectScheduler:
                 return
             project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, last_updated  = project_details
             logging.info(f"Currently processing project: {project_details}")
-            data = self.process_project(email_id=session_email, app_password=app_password, project_keywords=keywords_data, filters=filters, project_name=project_name)
+            data = self.process_project(email_id=session_email, app_password=app_password, project_id=project_id, project_keywords=keywords_data, filters=filters, project_name=project_name)
 
 
             # Divide grouped emails by AI state

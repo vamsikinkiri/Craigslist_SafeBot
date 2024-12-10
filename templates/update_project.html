@@ -45,6 +45,20 @@
             font-size: 34px;
         }
 
+        fieldset {
+            border: none; /* Removes the border */
+            padding: 0; /* Removes extra padding */
+            margin-bottom: 30px; /* Adds spacing between groups */
+        }
+
+        legend {
+            font-size: 18px; /* Adjust font size for the group label */
+            font-weight: bold;
+            color: #333; /* Adjust text color for better visibility */
+            margin-bottom: 10px; /* Adds spacing below the legend */
+            text-align: left; /* Aligns the legend text to the left */
+        }
+
         .menu-icon {
             font-size: 24px;
             cursor: pointer;
@@ -716,7 +730,7 @@
     <div class="header-title">Craigslist Safebot</div>
     <div class="settings-button">
         <a href="{{ url_for('update_account_profile') }}" class="settings-button">
-            <i class="fas fa-cog icon"></i> Manage Account
+            <i class="fas fa-cog icon"></i> Manage Profile
         </a>
     </div>
     <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
@@ -736,7 +750,7 @@
 
 <div class="sidebar" id="sidebar">
     <div class="sidebar-item" onclick="window.location.href='{{ url_for('user_profiles') }}'">
-        User Profiles
+        Suspect Profiles
     </div>
     <a href="{{ url_for('view_archived_emails') }}" class="sidebar-item">
         Archived Emails
@@ -758,59 +772,53 @@
     {% endwith %}
 
     <form action="{{ url_for('update_project') }}" method="POST">
-        <div class="form-field">
 
-            <!-- Response Frequency -->
+        <!-- Response Settings -->
+        <fieldset>
+            <legend>Response Settings</legend>
             <div class="form-field">
-                <label></label>
                 <label>Response Frequency</label>
                 <input
-                        type="number"
-                        name="response_frequency"
-                        class="response-frequency"
-                        placeholder="Response Frequency (Minutes)"
-                        value="{{ project_details.get('response_frequency', '') }}"
-                        title="Edit roughly how often (in minutes) the bot should check for new emails and respond automatically."
-                        required
+                    type="number"
+                    name="response_frequency"
+                    class="response-frequency"
+                    placeholder="Response Frequency in Minutes (Default: 10)"
+                    value="{{ project_details.get('response_frequency', '10') }}"
+                    title="Edit roughly how often (in minutes) the bot should check for new emails and respond automatically."
+                    required
                 >
             </div>
-
-            <!-- Lower Threshold -->
             <div class="form-field">
-                <label></label>
-                <label>Lower Threshold</label>
+                <label>Automated Engagement Threshold</label>
                 <input
-                        type="number"
-                        id="lower-threshold"
-                        name="lower_threshold"
-                        class="response-frequency"
-                        placeholder="Lower Threshold (Default: 0)"
-                        value="{{ project_details.get('lower_threshold', 0) }}"
-                        min="0"
-                        title="Edit the minimum score required to initiate automated responses for this project."
+                    type="number"
+                    name="lower_threshold"
+                    class="response-frequency"
+                    placeholder="Automated engagement threshold (Default: 0)"
+                    value="{{ project_details.get('lower_threshold', 0) }}"
+                    min="0"
+                    title="Edit the minimum score required to initiate automated responses for this project."
                 >
             </div>
-
-            <!-- Upper Threshold -->
             <div class="form-field">
-                <label></label>
-                <label>Upper Threshold</label>
+                <label>Manual Engagement Threshold</label>
                 <input
-                        type="number"
-                        id="upper-threshold"
-                        name="upper_threshold"
-                        class="response-frequency"
-                        placeholder="Upper Threshold (Default: 75)"
-                        value="{{ project_details.get('upper_threshold', 75) }}"
-                        min="1"
-                        title="Edit the score above which the system switches to manual intervention mode and intimate the admins to send responses."
+                    type="number"
+                    name="upper_threshold"
+                    class="response-frequency"
+                    placeholder="Manual Engagement Threshold (Default: 75)"
+                    value="{{ project_details.get('upper_threshold', 75) }}"
+                    min="1"
+                    title="Edit the score above which the system switches to manual intervention mode and intimate the admins to send responses."
                 >
             </div>
+        </fieldset>
 
-            <!-- Keywords -->
+        <!-- Keyword Management -->
+        <fieldset>
+            <legend>Keyword Management</legend>
             <div class="field-wrapper">
                 <!-- Input for Keyword and Frequency -->
-                <label>Project keywords</label>
                 <div class="field-group" >
                     <input type="text" id="keyword-input" class="field-item" placeholder="Keyword" 
                     title="Edit the keywords or add new keywords that the bot will look for in emails to prioritize responses.">
@@ -849,33 +857,14 @@
                     {% endif %}
                 </div>
             </div>
+        </fieldset>
+        <input type="hidden" id="keywords-input" name="keywords_data" value='{}'>
+        
 
-            <!-- Thresholds Section
-            <div class="field-wrapper" title="Please update the lower and upper thresholds if required.">
-                <div class="threshold-group">
-                    <input
-                            type="number"
-                            id="lower-threshold"
-                            class="threshold-input"
-                            placeholder="Lower Threshold (Default: 0)"
-                            value="{{ project_details.get('lower_threshold', 0) }}"
-                            min="0"
-                            title="Edit the minimum score required to initiate automated responses for this project.">
-                    <input
-                            type="number"
-                            id="upper-threshold"
-                            class="threshold-input"
-                            placeholder="Upper Threshold (Default: 75)"
-                            value="{{ project_details.get('upper_threshold', 75) }}"
-                            min="1"
-                            title="Edit the score above which the system switches to manual intervention mode and intimate the admins to send responses.">
-                </div>
-            </div> -->
-
-
-            <!-- Authorized Emails Section -->
+        <!-- Authorization Settings -->
+        <fieldset>
+            <legend>Authorization Settings</legend>
             <div class="field-wrapper">
-                <label>Authorized Emails</label>
                 <div class="email-group">
                     <input
                             type="email"
@@ -907,13 +896,14 @@
                     {% endfor %}
                 </div>
             </div>
+        </fieldset>
+        <input type="hidden" id="authorized-emails-input" name="authorized_emails" value='[]'>
 
-            <input type="hidden" id="keywords-input" name="keywords_data" value='{}'>
-            <input type="hidden" id="authorized-emails-input" name="authorized_emails" value='[]'>
-            
+        <!-- Bot Instructions -->
+        <fieldset>
+            <legend>Instructions to Safebot</legend>
             <div class="field-wrapper">
                 <!-- Mode Selection -->
-                <label title="Edit the specific instructions or preferences for the SafeBot’s behavior and responses. This can include tone, content guidelines, or restrictions.">Instructions to Safebot</label>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <input
                             type="radio"
@@ -935,8 +925,7 @@
                     <label for="useSamplePrompt">Import instructions from an existing project</label>
                 </div>
             </div>
-        </div>
-
+        </fieldset>
         <!-- Dropdown for Projects -->
         <div class="form-field" id="projectDropdownContainer" style="display: none;">
             <label for="project_dropdown"></label>
@@ -949,7 +938,6 @@
                 </select>
             </div>
         </div>
-
         <!-- Dropdown for Prompts -->
         <div class="form-field" id="promptDropdownContainer" style="display: none;">
             <label for="prompt_dropdown"></label>
@@ -959,9 +947,10 @@
                 </select>
             </div>
         </div>
-
         <!-- Textarea for Manual Input -->
-        <div class="form-field" id="textContainer">
+        <div class="form-field" 
+        title="Edit the specific instructions or preferences for the SafeBot’s behavior and responses. This can include tone, content guidelines, or restrictions."
+        id="textContainer">
             <!-- <label for="ai_prompt_text">Enter or Edit Prompt Text</label> -->
             <textarea
                     id="ai_prompt_text"
@@ -971,8 +960,6 @@
                     required
             >{{ project_details.get('ai_prompt_text', '') }}</textarea>
         </div>
-
-        
 
         <!-- Submit Button -->
         <button type="submit" class="btn-primary">Update Project</button>
@@ -1230,8 +1217,8 @@
         }
         document.addEventListener('DOMContentLoaded', () => {
             // Attach event listeners
-            document.querySelector('.add-keyword-btn')?.addEventListener('click', addKeyword);
-            document.querySelector('.add-email-btn')?.addEventListener('click', addEmail);
+            //document.querySelector('.add-keyword-btn')?.addEventListener('click', addKeyword);
+            //document.querySelector('.add-email-btn')?.addEventListener('click', addEmail);
 
             // Sidebar Toggle
             document.querySelector('.menu-icon')?.addEventListener('click', toggleSidebar);

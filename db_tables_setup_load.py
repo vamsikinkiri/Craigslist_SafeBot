@@ -47,6 +47,7 @@ def create_tables(cursor):
         CREATE TABLE IF NOT EXISTS USER_PROFILES (
             USER_ID TEXT PRIMARY KEY,
             PRIMARY_EMAIL TEXT,
+            PROJECT_ID TEXT,
             THREAD_IDS TEXT,
             EMAIL_LIST TEXT,
             CONTACT_NUMBERS JSON,
