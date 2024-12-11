@@ -216,7 +216,6 @@
 
         .email-chain-header:hover {
             background-color: #eaeaea; /* Highlight on hover */
-            padding: 7px;
             border-radius: 10px;
             box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
 
@@ -862,9 +861,64 @@
             }
         }
 
+        .sort-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 90px;
+            margin: -18px 7px;
+            font-size: 16px;
+            color: #134258; /* Match theme color */
+            margin-top: 10px;
+        }
 
+        .sort-button {
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            color: #134258;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
 
+        .sort-button:hover {
+            color: #007195;
+            background-color: #e4e9eb;
+        }
 
+        .sort-button i {
+            font-size: 12px;
+            color: inherit;
+            margin-left: 5px;
+        }
+        .email-thread-label {
+            display: inline-block;
+            font-size: 16px;
+            font-weight: bold;
+            color: #134258; /* Adjust to your theme color */
+            margin: 10px 0;
+            text-decoration: none; /* Optional: for visual indication */
+            position: relative; /* For tooltip positioning */
+            margin-right: 408px;
+        }
+
+        .email-thread-label:hover::after {
+            position: absolute;
+            top: 120%; /* Adjust the position below the label */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333; /* Tooltip background color */
+            color: #fff; /* Tooltip text color */
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap; /* Prevent text wrapping */
+            z-index: 10;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
 
 
     </style>
@@ -952,9 +1006,9 @@
                 <button type="button" onclick="clearFilters()">Clear Filters</button>
                 <button type="button" onclick="handleLogout()">Logout</button>
             </div>
-
         </form>
     </div>
+
     <div class="results-container">
         {% if archived_emails %}
             <div>
@@ -963,7 +1017,8 @@
                         <div class="email-chain-header" onclick="toggleEmailChain('chain-{{ loop.index }}', this)">
                             <div class="subject-box" style="width: 70%;">{{ email_list[0]['subject'] }}
                             </div>
-                            <div class="score-box" style="width: 10%; font-size: small; text-align: center;">
+                            <div class="email-score"
+                                title="The score represents how suspicious that user is or how much the user matches the target profile out of 100">
                                 {% set conversations_score = conversations_score.get(thread_id, 'N/A') %}
                                 <strong>Score:</strong> {{ conversations_score }}
                             </div>
@@ -1211,6 +1266,7 @@
                 });}
 
         function unarchiveEmail(buttonElement) {
+            event.stopPropagation();
             const emailChain = buttonElement.closest('.email-chain');
             if (!emailChain) {
                 console.error('Could not find the email chain container');
@@ -1245,6 +1301,35 @@
                     console.error('Error:', error);
                 });
         }
+
+        function sortBy(field) {
+            const container = document.querySelector('.results-container > div');
+            const emailChains = Array.from(container.querySelectorAll('.email-chain'));
+
+            // Sort logic
+            emailChains.sort((a, b) => {
+                const aValue = field === 'score'
+                    ? parseFloat(a.querySelector('.score-box strong').textContent.split(': ')[1]) || 0
+                    : new Date(a.querySelector('.latest-timestamp').textContent.trim());
+                const bValue = field === 'score'
+                    ? parseFloat(b.querySelector('.score-box strong').textContent.split(': ')[1]) || 0
+                    : new Date(b.querySelector('.latest-timestamp').textContent.trim());
+
+                // Determine direction
+                const isAscending = document.getElementById(`${field}-asc`).style.display === 'none';
+                return isAscending ? (aValue > bValue ? 1 : -1) : (aValue < bValue ? 1 : -1);
+            });
+
+            // Append sorted threads back to the container
+            emailChains.forEach(chain => container.appendChild(chain));
+
+            // Toggle the sort direction icons
+            document.getElementById(`${field}-asc`).style.display =
+                document.getElementById(`${field}-asc`).style.display === 'none' ? 'inline' : 'none';
+            document.getElementById(`${field}-desc`).style.display =
+                document.getElementById(`${field}-desc`).style.display === 'none' ? 'inline' : 'none';
+        }
+
 
 
 

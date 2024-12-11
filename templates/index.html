@@ -233,7 +233,6 @@
         }
         .email-chain-header:hover {
             background-color: #eaeaea; /* Highlight on hover */
-            padding: 7px;
             border-radius: 10px;
             box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
 
@@ -909,15 +908,33 @@
             color: inherit;
             margin-left: 5px;
         }
+        .email-thread-label {
+            display: inline-block;
+            font-size: 16px;
+            font-weight: bold;
+            color: #134258; /* Adjust to your theme color */
+            margin: 10px 0;
+            text-decoration: none; /* Optional: for visual indication */
+            position: relative; /* For tooltip positioning */
+            margin-right: 408px;
+        }
 
-
-
-
-
-
+        .email-thread-label:hover::after {
+            position: absolute;
+            top: 120%; /* Adjust the position below the label */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333; /* Tooltip background color */
+            color: #fff; /* Tooltip text color */
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap; /* Prevent text wrapping */
+            z-index: 10;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
 
     </style>
-
 </head>
 <body>
 
@@ -1016,8 +1033,12 @@
 
         </form>
     </div>
+
     <!-- Sorting Options -->
     <div class="sort-container">
+        <div class="email-thread-label" title="Click below to view the Email Threads.">
+            Email Threads
+        </div>
         <button class="sort-button" onclick="sortBy('score')">
             Score
             <i class="fas fa-arrow-up" id="score-asc" style="display: none;"></i>
@@ -1039,7 +1060,7 @@
                             <div class="subject-box" 
                             title="The subject of an email thread"  
                             style="width: 70%;">
-                            Email thread: {{ details[0]['subject'].replace('Re: ', '') }}
+                            {{ details[0]['subject'].replace('Re: ', '') }}
                             <span title="Number of emails in this thread" style="margin-left: 10px; color: #555;">
                             ({{ details | length }})
                             </span>
@@ -1080,7 +1101,7 @@
                                 <div class="email">
                                     <p>
                                         <strong>From:</strong> {{ email['from'] }}
-                                        {% if email['from'] == session['email'] %}
+                                        {% if email['from'] == session['email']  %}
                                             <i class="fas fa-robot bot-icon" title="This email was sent by the SafeBot"></i>
                                         {% endif %}
                                     </p>
@@ -1266,7 +1287,7 @@
         // Extract the thread ID from the button's parent email chain
         const emailChain = button.closest('.email-chain');
         const threadId = emailChain.getAttribute('data-thread-id');
-
+        event.stopPropagation();
         // Make AJAX request to archive the email thread
         fetch('/archive_email', {
             method: 'POST',
