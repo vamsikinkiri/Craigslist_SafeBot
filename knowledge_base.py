@@ -298,6 +298,34 @@ class KnowledgeBase:
             cursor.close()
             if conn:
                 conn.close()
+    
+    def get_project_id_by_email(self, email_id):
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            logging.error(conn_error)
+            return False, conn_error
+        try:
+            cursor = conn.cursor()
+            # SQL Query to get the project details by ID
+            query = """
+                SELECT PROJECT_ID FROM projects WHERE EMAIL_ID = %s
+            """
+            cursor.execute(query, (email_id,))
+            project_details = cursor.fetchone()
+
+            if not project_details:
+                return False, "Project not found."
+
+            return True, project_details
+
+        except Exception as e:
+            logging.error(f"Error fetching project ID by Email ID: {e}")
+            return False, str(e)
+
+        finally:
+            cursor.close()
+            if conn:
+                conn.close()
 
 
     def fetch_all_projects(self):
@@ -794,7 +822,7 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
 
-    def get_user_profile(self, user_email):
+    def get_user_profile(self, user_email, project_id):
         """
         Retrieve user profile by email.
         """
@@ -806,8 +834,8 @@ class KnowledgeBase:
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT * FROM USER_PROFILES WHERE PRIMARY_EMAIL = %s
-            """, (user_email,))
+                SELECT * FROM USER_PROFILES WHERE PRIMARY_EMAIL = %s AND PROJECT_ID = %s
+            """, (user_email, project_id))
             result = cursor.fetchone()
             return True, result
         except Exception as error:
@@ -874,7 +902,7 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
     
-    def update_user_profile(self, user_email, thread_ids, contact_numbers, active_user, last_active):
+    def update_user_profile(self, project_id, user_email, thread_ids, contact_numbers, active_user, last_active):
         """
         Update THREAD_IDS and LAST_UPDATED for a user.
         """
@@ -888,8 +916,8 @@ class KnowledgeBase:
             cursor.execute("""
                 UPDATE USER_PROFILES
                 SET THREAD_IDS = %s, CONTACT_NUMBERS = %s, ACTIVE_USER = %s, LAST_ACTIVE = %s, LAST_UPDATED = NOW()
-                WHERE PRIMARY_EMAIL = %s
-            """, (thread_ids, json.dumps(contact_numbers), active_user, last_active, user_email))
+                WHERE PRIMARY_EMAIL = %s AND PROJECT_ID = %s
+            """, (thread_ids, json.dumps(contact_numbers), active_user, last_active, user_email, project_id))
             conn.commit()
             return True, None
         except Exception as error:
@@ -899,7 +927,7 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
     
-    def get_user_last_active(self, user_email):
+    def get_user_last_active(self, user_email, project_id):
         """
         Retrieve user profile by email.
         """
@@ -911,8 +939,8 @@ class KnowledgeBase:
         try:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT LAST_ACTIVE FROM USER_PROFILES WHERE PRIMARY_EMAIL = %s
-            """, (user_email,))
+                SELECT LAST_ACTIVE FROM USER_PROFILES WHERE PRIMARY_EMAIL = %s AND PROJECT_ID = %s
+            """, (user_email, project_id))
             result = cursor.fetchone()
             return True, result[0]
         except Exception as error:
@@ -922,7 +950,7 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
     
-    def update_active_user(self, user_email, active_user):
+    def update_active_user(self, user_email, active_user, project_id):
         """
         Update THREAD_IDS and LAST_UPDATED for a user.
         """
@@ -936,8 +964,8 @@ class KnowledgeBase:
             cursor.execute("""
                 UPDATE USER_PROFILES
                 SET ACTIVE_USER = %s, LAST_UPDATED = NOW()
-                WHERE PRIMARY_EMAIL = %s
-            """, (active_user, user_email))
+                WHERE PRIMARY_EMAIL = %s AND PROJECT_ID = %s
+            """, (active_user, user_email, project_id))
             conn.commit()
             return True, None
         except Exception as error:
@@ -1030,14 +1058,21 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
     
-    def fetch_scores_at_user_level(self):
+    def fetch_scores_at_user_level(self, project_id=None):
+        """
+        Fetches user-level scores by joining email_threads and user_profiles.
+        Optionally filters by project_id.
+
+        :param project_id: (str) Project ID to filter users, optional.
+        :return: (bool, dict or str) Success status and user scores or error message.
+        """
         conn, conn_error = self.get_db_connection()
         if not conn:
             return False, conn_error
 
         cursor = conn.cursor()
         try:
-            # Corrected SQL Query
+            # Modified SQL Query with optional project_id filter
             query = """
                 SELECT 
                     up.primary_email AS user_email,
@@ -1049,10 +1084,20 @@ class KnowledgeBase:
                     user_profiles up 
                 ON 
                     et.thread_id = regexp_replace(up.thread_ids, '[\\[\\]\"]', '', 'g')
+                {filter_condition}
                 ORDER BY 
                     et.interaction_score DESC
             """
-            cursor.execute(query)
+            
+            # If project_id is provided, add WHERE clause
+            filter_condition = "WHERE up.project_id = %s" if project_id else ""
+            query = query.format(filter_condition=filter_condition)
+
+            if project_id:
+                cursor.execute(query, (project_id,))
+            else:
+                cursor.execute(query)
+
             rows = cursor.fetchall()
 
             if not rows:
@@ -1073,3 +1118,4 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
+

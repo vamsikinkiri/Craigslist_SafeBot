@@ -19,14 +19,15 @@ class UserProfiling:
             email_content (str): The content of the email for extracting contact number.
         """
         # Check if user already exists in USER_PROFILES
-        success, user_profile = knowledge_base.get_user_profile(user_email)
+        success, user_profile = knowledge_base.get_user_profile(user_email, project_id)
         if not success:
             logging.info(user_profile)
             flash(user_profile, "error")
             return
         contact_number = self.extract_contact_number(email_content)
+        # logging.info(f"First debug log for users. For {user_email} and {project_id}: {user_profile}")
         
-        if user_profile:  # User already exists
+        if user_profile and user_profile[2]==project_id:  # User already exists in this project
             logging.info(user_profile)
             user_id, primary_email, project_id, thread_ids, email_list, contact_numbers, active_user, last_active_db, last_updated = user_profile
             # if thread_id not in thread_ids:
@@ -34,9 +35,9 @@ class UserProfiling:
             if contact_number and contact_number not in contact_numbers:
                 contact_numbers.append(contact_number)
                 # Update the THREAD_IDS, CONTACT_NUMBER and LAST_ACTIVE
-            knowledge_base.update_user_profile(user_email, thread_ids, contact_numbers, active_user=True, last_active=last_active)
+            knowledge_base.update_user_profile(project_id, user_email, thread_ids, contact_numbers, active_user=True, last_active=last_active)
         else: 
-            # New user found. Create a new user profile
+            # New user found for this project. Create a new user profile
             contact_numbers = [contact_number] if contact_number else []
             knowledge_base.create_user_profile(
                 user_email=user_email,
@@ -67,8 +68,8 @@ class UserProfiling:
         # Return the suspect profiles directly
         return all_user_profiles
 
-    def update_user_activity_status(self, user_email):
-        success, last_active = knowledge_base.get_user_last_active(user_email)
+    def update_user_activity_status(self, user_email, project_id):
+        success, last_active = knowledge_base.get_user_last_active(user_email, project_id=project_id)
         if not success:
             logging.error(f"Error fetching user's last active time: {last_active}")
             return
@@ -77,7 +78,7 @@ class UserProfiling:
         logging.info(f"User: {user_email}, was last active since {days_since_last_active} days")
         if days_since_last_active > 30:
             # Mark the user as inactive since 30 days passed since the last reply from the user
-            success, result = knowledge_base.update_active_user(user_email, active_user=False)
+            success, result = knowledge_base.update_active_user(user_email, active_user=False, project_id=project_id)
             if success:
                 logging.info(f"User {user_email} marked as inactive.")
             else:

@@ -559,7 +559,7 @@ def user_profiles():
     """
     # Fetch all suspect profiles
     all_users = user_profiling.get_all_users()
-    success, user_scores = knowledge_base.fetch_scores_at_user_level()
+    success, user_scores = knowledge_base.fetch_scores_at_user_level(project_id=session['project_id'])
 
     if not all_users:
         return jsonify({"error": "Error fetching suspect profiles"}), 500

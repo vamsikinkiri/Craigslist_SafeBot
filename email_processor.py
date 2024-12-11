@@ -46,7 +46,7 @@ class EmailProcessor:
                 )
             
             if user_email != "":
-                user_profiling.update_user_activity_status(user_email=user_email)
+                user_profiling.update_user_activity_status(user_email=user_email, project_id=project_id)
             # else:
             #     logging.info(f"This is a manual trigger conversation!!")
 
@@ -111,7 +111,7 @@ class EmailProcessor:
 
     def _handle_ai_response_state(self, email, thread_id, session_email, project_details, score, conversation_history, from_address):
         # Extract the user profile
-        user_success, user_profile = knowledge_base.get_user_profile(from_address)
+        user_success, user_profile = knowledge_base.get_user_profile(from_address, project_id=project_details[0])
         if not user_success:
             flash("Failed to fetch user profile for notification.", "error")
             logging.error("Failed to fetch user profile for notification.")
