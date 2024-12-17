@@ -1018,7 +1018,7 @@
                             <div class="subject-box" style="width: 70%;">{{ email_list[0]['subject'] }}
                             </div>
                             <div class="email-score"
-                                title="The score represents how suspicious that user is or how much the user matches the target profile out of 100">
+                                title="Indicates how suspicious this thread is based on the target profile (scored out of 100)">
                                 {% set conversations_score = conversations_score.get(thread_id, 'N/A') %}
                                 <strong>Score:</strong> {{ conversations_score }}
                             </div>

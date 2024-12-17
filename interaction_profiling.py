@@ -6,16 +6,13 @@ class InteractionProfiling:
     def calculate_cumulative_score(self, new_email, keywords_scores, seen_keywords):
         """
         Calculates the cumulative normalized score for a conversation based on admin-defined thresholds.
-        
         Args:
             new_email (str): The new email content to process.
             keywords_scores (dict): A dictionary of keywords with the required occurrence thresholds.
                                     Format: {keyword: required_frequency}.
             seen_keywords (dict): A dictionary tracking the frequency of seen keywords in the conversation.
                                 Format: {keyword: seen_frequency}.
-        
-        Returns:
-            tuple: Updated seen_keywords dictionary and the cumulative normalized score out of 100.
+        Returns: tuple: Updated seen_keywords dictionary and the cumulative normalized score out of 100.
         """
 
         # Tokenize and clean the email text
@@ -37,7 +34,6 @@ class InteractionProfiling:
 
         # Normalize the score to 100
         normalized_score = (current_score / max_score) * 100 if max_score > 0 else 0
-
         return seen_keywords, round(normalized_score, 2)
 
 

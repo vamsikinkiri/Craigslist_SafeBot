@@ -45,8 +45,8 @@ class EmailProcessor:
                     email, from_address, thread_id, session_email, project_id, project_keywords, conversation_history, len(emails)
                 )
             
-            if user_email != "":
-                user_profiling.update_user_activity_status(user_email=user_email, project_id=project_id)
+            # if user_email != "":
+            #     user_profiling.update_user_activity_status(user_email=user_email, project_id=project_id)
             # else:
             #     logging.info(f"This is a manual trigger conversation!!")
 
@@ -82,7 +82,7 @@ class EmailProcessor:
             return
         
         # logging.info(f"PROJECT: {project_details}")
-        # project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, last_updated  = project_detailss
+        # project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, last_updated  = project_details
 
         self._update_email_thread(email, thread_id, session_email, project_details, score, seen_keywords)
         # Determine and act on the AI response state
@@ -140,7 +140,7 @@ class EmailProcessor:
             # Notify all the authorized admins
             for admin_email in authorized_emails:
                 self._notify_admin(project_name, admin_email, session_email, app_password, email, user_details, score, thread_id)
-        elif ai_state == 'Automated' and score > lower_threshold:
+        elif ai_state == 'Automated' and score >= lower_threshold:
             if score < upper_threshold:
                 self.schedule_or_send_reply(email, conversation_history, session_email, app_password, response_frequency, admin_prompt)
             else:
@@ -161,7 +161,9 @@ class EmailProcessor:
             f"Attention Required: {action} for project {project_name}.\n\n"
             f"User Profile:\n{user_details}\n"
             f"Interaction Score: {score}\n"
-            f"Please login to the email account associated with {session_email} and continue the conversation with the subject: \"{email['subject']}\".\n"
+            f"Please login to the email account associated with {session_email} and continue the conversation with the subject: \"{email['subject']}\".\n\n"
+            f"Best regards,\n"
+            f"Craigslist SafeBot Team"
         )
 
         email_handler.send_email(

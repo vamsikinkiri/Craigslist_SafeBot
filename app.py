@@ -80,6 +80,8 @@ def login():
             session['admin_id'] = result.get("admin_id")
             #session['admin_email'] = email_id
             session['admin_email'] = result.get('email_id')  # Store admin email in session
+            session['admin_affiliation'] = result.get('affiliation')
+            session['admin_contact_number'] = result.get('contact_number')
             user = User(id=email_id)
             login_user(user)
             # flash("Admin login successful!", "success")
@@ -150,6 +152,17 @@ def project_creation():
         lower_threshold = 0 if not lower_threshold_raw.isdigit() else int(lower_threshold_raw)
         upper_threshold = 75 if not upper_threshold_raw.isdigit() else int(upper_threshold_raw)
         authorized_emails = request.form.get('authorized_emails', '[]')
+        posed_name = "Karen"
+        posed_age = 16
+        posed_sex = "Female"
+        posed_location = "Riverside"
+        switch_manual_criterias = [
+            "The suspect inquires about age, we disclose being underage, and the suspect continues the conversation without hesitation.",
+            "The suspect requests a photograph of the underage person we are pretending to be.",
+            "The suspect suggests communicating via phone number or alternative platforms.",
+            "The conversation shifts toward explicit or sexual content."
+        ]
+
         try:
             authorized_emails_list = json.loads(authorized_emails)
             if not isinstance(authorized_emails_list, list):
@@ -157,6 +170,13 @@ def project_creation():
         except json.JSONDecodeError:
             return jsonify({"error": "Invalid email format"}), 400
         # authorized_emails=["vamsikinkiri@gmail.com", "kinkiriv@gmail.com"]
+
+        # try:
+        #     switch_manual_criterias_list = json.loads(switch_manual_criterias)
+        #     if not isinstance(switch_manual_criterias_list, list):
+        #         raise ValueError("Switch manual criterias must be a list.")
+        # except json.JSONDecodeError:
+        #     return jsonify({"error": "Invalid criterias format"}), 400
 
         project_success, message = knowledge_base.is_email_unique_in_projects(email)
         if not project_success:
@@ -180,7 +200,7 @@ def project_creation():
             flash("Invalid keywords data", "error")
             return redirect(url_for('project_creation'))
 
-        # Insert the project using the create_project method from KnowledgeBase
+        # Insert the project into KnowledgeBase
         success, message = knowledge_base.create_project(email_id=email,
                                                          project_name=project_name,
                                                          app_password=app_password,
@@ -191,7 +211,11 @@ def project_creation():
                                                          lower_threshold=lower_threshold,
                                                          upper_threshold=upper_threshold,
                                                          authorized_emails=authorized_emails_list,
-                                                         last_updated=None
+                                                         posed_name=posed_name,
+                                                         posed_age=posed_age,
+                                                         posed_sex=posed_sex,
+                                                         posed_location=posed_location,
+                                                         switch_manual_criterias=switch_manual_criterias,
                                                          )
 
         if success:
@@ -205,7 +229,7 @@ def project_creation():
 @app.route('/api/update_projects', methods=['GET'])
 @login_required
 def update_projects():
-    # Use the fetch_all_projects function to get all projects
+    # Use the function in knowledge base to get all projects
     success, projects = knowledge_base.fetch_all_projects()
     if not success:
         return jsonify({"success": False, "message": projects}), 500
@@ -277,7 +301,12 @@ def get_project_data(email):
             "lower_threshold": project_info[8],
             "upper_threshold": project_info[9],
             "authorized_emails": authorized_emails,
-            "last_updated": project_info[11],
+            "posed_name": project_info[11],
+            "posed_age": project_info[12],
+            "posed_sex": project_info[13],
+            "posed_location": project_info[14],
+            "switch_manual_criterias": project_info[15],
+            "last_updated": project_info[16]
         }
         logging.info(f"Successfully processed project data for email: {email}")
         return True, project_data
@@ -390,6 +419,12 @@ def update_project():
                 lower_threshold=lower_threshold,
                 upper_threshold=upper_threshold,
                 authorized_emails=json.dumps(updated_emails),  # Ensure data is serialized
+                # Make sure to update these after frontend changes are done
+                posed_name="Karen",
+                posed_age=16,
+                posed_sex="Female",
+                posed_location="Riverside",
+                switch_manual_criterias=[]
             )
 
             logging.info(f"updated_emails 2: {json.dumps(updated_emails)}")
@@ -468,6 +503,19 @@ def all_projects_view():
     search_query = request.args.get('search_query')
     filtered_projects = projects
 
+    authorized_projects, unauthorized_projects = [], []
+
+    # Check if the current admin's email id is present in the authorized emails of a project
+    for project in filtered_projects:
+        authorized_projects.append(project) if session['admin_email'] in project[10] else unauthorized_projects.append(project)
+    
+    # for details in unauthorized_projects:
+    #     project_scheduler.notify_admins_of_access_request(project_details=details)
+    # filtered_projects = authorized_projects
+    
+    logging.info(f"Authorized Projects created are: {authorized_projects}")
+    logging.info(f"Unauthorized Projects created are: {unauthorized_projects}")
+
     if search_query:
         # Filter projects based on the query
         filtered_projects = [
@@ -484,7 +532,7 @@ def all_projects_view():
             "id": project[0],  # project_id
             "email": project[1],  # email_id
             "name": project[2],  # project_name
-            "last_updated": project[11],  # last_updated as date,
+            "last_updated": project[16],  # last_updated as date,
             "owner_admin_id": project[7],  # owner_admin_id
         }
         for project in filtered_projects
@@ -499,7 +547,7 @@ def all_projects_view():
             return redirect(url_for('all_projects_view'))
 
         # Extract project details
-        project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, last_updated = project_details
+        project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, last_updated  = project_details
         logging.info(f"Project Owner ID: {owner_admin_id}, Session Admin ID: {session.get('admin_id')}")
 
         # Update session with selected project details
@@ -533,12 +581,12 @@ def delete_project(project_id):
         flash("Error retrieving project details: " + project_details, "error")
         return redirect(url_for('all_projects_view'))
 
-    # Extract owner_admin_id from project_details tuple
-    _, _, _, _, _, _, _, project_owner_admin_id, _, _, _, _ = project_details
+    # Extract owner_admin_id from project_details tuple owner_admin_id
+    project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, last_updated  = project_details
 
     # Check if the current session's admin_id matches the owner_admin_id
     session_admin_id = session.get('admin_id')
-    if session_admin_id != project_owner_admin_id:
+    if session_admin_id != owner_admin_id:
         flash("You do not have permission to delete this project.", "error")
         return redirect(url_for('all_projects_view'))
 

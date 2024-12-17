@@ -145,7 +145,7 @@
         }
         /* Icon inside the input-wrapper */
         .info-icon {
-            position: relative; /* Changes positioning to relative */
+            /* position: relative; Changes positioning to relative */
             top: auto; /* Removes fixed vertical positioning */
             transform: none; /* Removes transform property */
             right: 0; /* Aligns it properly with the input field */
@@ -268,7 +268,7 @@
         .input-wrapper {
             display: flex; /* Aligns the input and info-icon side by side */
             align-items: center; /* Centers elements vertically */
-            position: relative; /* Keeps .info-icon relative to this wrapper */
+            /* position: relative; Keeps .info-icon relative to this wrapper */
             margin: 10px 0; /* Ensures consistent spacing for input fields */
         }
 
@@ -766,7 +766,7 @@
         const keywordFrequencyInput = document.getElementById("keyword-frequency");
         const addedKeywordsContainer = document.getElementById("added-keywords-container");
 
-        const keyword = keywordInput.value.trim();
+        const keyword = keywordInput.value.trim().toLowerCase(); // Convert to lowercase
         const frequency = parseInt(keywordFrequencyInput.value);
 
         if (keyword && frequency > 0) {

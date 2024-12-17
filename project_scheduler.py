@@ -98,19 +98,19 @@ class ProjectScheduler:
             return
 
         if not session_email and not session_password:
-            for project in projects:
-                logging.info(f"Currently processing project: {project}")
-                # if len(project) != 12:  # Expecting 12 fields now
-                #     logging.error(f"Unexpected project tuple length: {len(project)}. Data: {project}")
+            for project_details in projects:
+                logging.info(f"Currently processing project: {project_details}")
+                # if len(project_details) != 12:  # Expecting 12 fields now
+                #     logging.error(f"Unexpected project_details tuple length: {len(project_details)}. Data: {project_details}")
                 #     continue  # Skip processing this project
-                project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, last_updated = project
+                project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, last_updated  = project_details
                 self.process_project(email_id=email_id, app_password=app_password, project_id=project_id, project_keywords=keywords_data, filters=filters,project_name=project_name)
         else:
             success, project_details = knowledge_base.get_project_details(session_email)
             if not success:
                 logging.error(f"Error retrieving project information. Please check your inputs and try again.")
                 return
-            project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, last_updated  = project_details
+            project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, last_updated  = project_details
             logging.info(f"Currently processing project: {project_details}")
             data = self.process_project(email_id=session_email, app_password=app_password, project_id=project_id, project_keywords=keywords_data, filters=filters, project_name=project_name)
 
@@ -155,3 +155,52 @@ class ProjectScheduler:
             #                     last_60_days=last_60_days, conversations=grouped_emails,
             #                     conversations_score=conversations_score,
             #                     start_date=start_date, end_date=end_date)
+
+
+    def notify_admins_of_access_request(self, project_details):
+        """
+        Notify authorized admins when an unauthorized admin in the current session requests access to a project.
+        Args:
+            project_details (dict): A dictionary containing project information.
+            send_email (function): The function to send an email notification.
+        """
+        # Extract project-specific details
+        _, project_email_id, project_name, app_password, _, _, _, _, _, _, authorized_emails, _, _, _, _, _, _  = project_details
+
+        # Verify if authorized_admins is a valid list
+        if not isinstance(authorized_emails, list) or not authorized_emails:
+            logging.warning(f"No authorized admins found for project '{project_name}'.")
+            return
+
+        # Prepare email content
+        subject = f"Access Request Alert: '{project_name} - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}'"
+        content = (
+        f"Dear Admin,\n\n"
+        f"An unauthorized admin has requested access to the project - '{project_name}'.\n\n"
+        f"Requesting Admin Details:\n"
+        f"    - Email ID: {session['admin_email']}\n"
+        f"    - Affiliation: {session['admin_affiliation'] if session['admin_affiliation'] else 'Not provided'}\n"
+        f"    - Contact Number: {session['admin_contact_number'] if session['admin_contact_number'] else 'Not provided'}\n\n"
+        f"Project Details:\n"
+        f"    - Project Name: {project_name}\n"
+        f"    - Project Email: {project_email_id}\n\n"
+        f"If you want to provide access to this admin, kindly log in to the Craigslist SafeBot system, "
+        f"navigate to the Project Settings page for '{project_name}', and add the admin's email ID to the Authorized Emails section.\n\n"
+        f"Please review this request and take appropriate action.\n\n"
+        f"Best regards,\n"
+        f"Craigslist SafeBot Team"
+        )
+
+        # Send an email to each authorized admin
+        for admin_email in authorized_emails:
+            try:
+                email_handler.send_email(
+                    from_address=project_email_id,
+                    app_password=app_password,
+                    to_address=admin_email,
+                    content=content,
+                    subject=subject
+                )
+                logging.info(f"Access request email sent successfully to {admin_email}.")
+            except Exception as e:
+                logging.error(f"Failed to send email to {admin_email}: {e}")

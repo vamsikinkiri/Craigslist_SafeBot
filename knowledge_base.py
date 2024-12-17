@@ -193,7 +193,7 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
 
-    def create_project(self, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, last_updated):
+    def create_project(self, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias):
         conn, conn_error = self.get_db_connection()
         if not conn:
             return False, conn_error
@@ -209,10 +209,10 @@ class KnowledgeBase:
                 INSERT INTO projects(
                 project_id, email_id, project_name, app_password, ai_prompt_text, 
                 response_frequency, keywords_data, owner_admin_id, lower_threshold, 
-                upper_threshold, authorized_emails, last_updated) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s::jsonb, NOW())
+                upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, last_updated) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s, %s, %s, %s::jsonb, NOW())
                 ''', 
-                (generated_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, json.dumps(authorized_emails)))
+                (generated_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, json.dumps(authorized_emails), posed_name, posed_age, posed_sex, posed_location, json.dumps(switch_manual_criterias)))
             conn.commit()
             return True, "Project created successfully!"
         except Exception as e:
@@ -337,7 +337,7 @@ class KnowledgeBase:
             return False, conn_error
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, date(last_updated) as Last_Updated FROM projects")
+            cursor.execute("SELECT project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, date(last_updated) as Last_Updated FROM projects")
             projects = cursor.fetchall()
             return True, projects
         except Exception as error:
@@ -380,7 +380,12 @@ class KnowledgeBase:
                         "lower_threshold": project[8],
                         "upper_threshold": project[9],
                         "authorized_emails": project[10],
-                        "last_updated": project[11]
+                        "posed_name": project[11],
+                        "posed_age": project[12],
+                        "posed_sex": project[13],
+                        "posed_location": project[14],
+                        "switch_manual_criterias": project[15],
+                        "last_updated": project[16]
                     }
                     for project in projects
                 ]
@@ -395,7 +400,8 @@ class KnowledgeBase:
         finally:
             conn.close()
             cursor.close()
-    def update_project(self, email, project_name, ai_prompt_text, response_frequency, keywords_data, lower_threshold, upper_threshold, authorized_emails):
+
+    def update_project(self, email, project_name, ai_prompt_text, response_frequency, keywords_data, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias):
         # Get database connection
         conn, conn_error = self.get_db_connection()
         if conn is None:
@@ -419,9 +425,14 @@ class KnowledgeBase:
                     lower_threshold = %s,
                     upper_threshold = %s,
                     authorized_emails = %s,
+                    posed_name = %s,
+                    posed_age = %s,
+                    posed_sex = %s,
+                    posed_location = %s,
+                    switch_manual_criterias = %s,
                     last_updated = NOW()
                 WHERE email_id = %s AND project_name = %s
-            """, (ai_prompt_text, response_frequency, keywords_data, lower_threshold, upper_threshold, authorized_emails, email, project_name))
+            """, (ai_prompt_text, response_frequency, keywords_data, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, email, project_name))
 
             if cursor.rowcount == 0:
                 logging.warning(f"No matching project found for email={email} and project_name={project_name}.")

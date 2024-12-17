@@ -79,8 +79,15 @@ def create_tables(cursor):
             LOWER_THRESHOLD INTEGER,
             UPPER_THRESHOLD INTEGER,
             AUTHORIZED_EMAILS JSONB,
+            POSED_NAME VARCHAR(255),
+            POSED_AGE INTEGER, -- Age of the young person being posed
+            POSED_SEX VARCHAR(10), -- Sex of the young person being posed
+            POSED_LOCATION VARCHAR(255), -- Geographical location being posed
+            SWITCH_MANUAL_CRITERIAS JSONB,
             LAST_UPDATED TIMESTAMP
         );
+
+
         """
     ]
     for query in create_tables_queries:
