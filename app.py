@@ -157,10 +157,9 @@ def project_creation():
         posed_sex = "Female"
         posed_location = "Riverside"
         switch_manual_criterias = [
-            "The suspect inquires about age, we disclose being underage, and the suspect continues the conversation without hesitation.",
-            "The suspect requests a photograph of the underage person we are pretending to be.",
+            "The suspect did not stop the conversation after discovering our age.",
+            "The suspect requests a photograph of the person we are pretending to be.",
             "The suspect suggests communicating via phone number or alternative platforms.",
-            "The conversation shifts toward explicit or sexual content."
         ]
 
         try:
@@ -702,6 +701,7 @@ def update_ai_response_state():
         # Switch to automated mode with necessary parameters
         try:
             success, message = email_processor.switch_to_automated(
+                project_details=project_details,
                 thread_id=thread_id,
                 session_email=session_email,
                 app_password=app_password,

@@ -39,7 +39,7 @@ class EmailProcessor:
                     continue  # Ignore the emails the chatbot sent
                 else:
                     user_email = from_address
-                    conversation_history.append(f"User sent: {email['content']}")
+                    conversation_history.append(f"Suspect sent: {email['content']}")
 
                 self._process_single_email(
                     email, from_address, thread_id, session_email, project_id, project_keywords, conversation_history, len(emails)
@@ -118,9 +118,6 @@ class EmailProcessor:
             return
         user_id, primary_email, project_id, thread_ids, email_list, contact_numbers, active_user, last_active_db, last_updated = user_profile
         user_details = f"""User primary Email: {primary_email}\nEmail List: {email_list if email_list else 'N/A'}\nContact Numbers: {', '.join(contact_numbers) if contact_numbers else 'N/A'}\nLast Active: {last_active_db}"""
-        
-        # Extract the admin email
-        # admin_success, admin_email = knowledge_base.get_email_by_admin_id(admin_id=project_details[7])
 
         # Extract the AI response state
         ai_success, ai_state = knowledge_base.get_ai_response_state(thread_id)
@@ -130,7 +127,6 @@ class EmailProcessor:
 
         project_name = project_details[2]
         app_password = project_details[3]
-        admin_prompt = project_details[4] 
         response_frequency = project_details[5]
         lower_threshold = project_details[8]
         upper_threshold = project_details[9]
@@ -142,7 +138,7 @@ class EmailProcessor:
                 self._notify_admin(project_name, admin_email, session_email, app_password, email, user_details, score, thread_id)
         elif ai_state == 'Automated' and score >= lower_threshold:
             if score < upper_threshold:
-                self.schedule_or_send_reply(email, conversation_history, session_email, app_password, response_frequency, admin_prompt)
+                self.schedule_or_send_reply(email, conversation_history, session_email, project_details, response_frequency, thread_id, score)
             else:
                 # Notify all the authorized admins
                 for admin_email in authorized_emails:
@@ -175,7 +171,7 @@ class EmailProcessor:
         )
         logging.info('*'*10 + "Email sent successfully to Admin" + "*"*10)               
 
-    def schedule_or_send_reply(self, email, conversation_history, session_email, app_password, response_frequency, admin_prompt):
+    def schedule_or_send_reply(self, email, conversation_history, session_email, project_details, response_frequency, thread_id, score):
         """
         Schedule or send an email reply based on response frequency, ensuring emails are sent during normal hours.
         """
@@ -201,47 +197,109 @@ class EmailProcessor:
 
         if (send_time - current_time).total_seconds() <= 0:
             # If delay is negative or zero, send the reply immediately
-            self.generate_and_send_response(email, conversation_history, session_email, app_password, admin_prompt)
+            self.generate_and_send_response(project_details, email, conversation_history, session_email, thread_id, score)
         else:
             # Schedule the email to be sent later
             scheduler.add_job(
                 func=self.generate_and_send_response,
                 trigger=DateTrigger(run_date=send_time),
-                args=[email, conversation_history, session_email, app_password, admin_prompt],
+                args=[project_details, email, conversation_history, session_email, thread_id, score],
                 id=f"send_reply_{email['message_id']}",
                 replace_existing=True
             )
             logging.info(f"Scheduled reply for email {email['message_id']} at {send_time}")
 
 
-    def generate_and_send_response(self, email, conversation_history, session_email, app_password, admin_prompt):
-        # Step 1: Combine conversation history into a single string
+    def generate_and_send_response(self, project_details, email, conversation_history, session_email, thread_id, score):
+        # Step 1: Extract project details and combine conversation history into a single string
+        project_name = project_details[2]
+        app_password = project_details[3]
+        admin_prompt = project_details[4] 
+        authorized_emails = project_details[10]
+        switch_manual_criterias = project_details[15]
+        posed_details = self.get_posed_details(project=project_details)
         previous_conversations = "\n".join(conversation_history)
 
-        # Step 2: Get the content of the current email
+        # Step 2: Get the content of the current email, generate the prompts and call the LLM
         email_content = email['content']
 
-        # Step 3: Generate response using the prompt
-        full_prompt = (
+        base_prompt = (
             f"{admin_prompt}\n\n"
-            f"The following is a email conversation between a user (potential criminal) and an AI assistant (user doesn't know that he is having a conversation with an AI assistant):\n\n"
-            f"{previous_conversations}\n\n"
-            f"The last email is the latest email the user has sent. Attaching that email content alone here:\n{email_content}\n\n"
-            f"Please understand the entire context and generate a reply to the latest email in a way that seems human, and showing interest in the offer but not too eager. "
-            f"Only reply the content of the reply and nothing else. Start the reponse with 'Hello', and then start the content of the email. End the email with Best, Jay. Make sure the response continues the facade that you are a human buyer interested in the watches."
+            f"The following is an email conversation between the suspect (potential criminal) and an AI assistant. "
+            f"The suspect does not know they are having a conversation with an AI assistant.\n\n"
+            f"{previous_conversations}\n\n"  
         )
-        #logging.info(full_prompt)
-        #prompt = "You are a police detective and posted an ad saying you are looking to buy watches at a cheap price in the hope of catching some criminals."
-        response_text = response_generator.generate_response(full_prompt)
-        # logging.info(response_text)
 
-        # Step 4: Send the response as a reply and include the original email as quoted content
+        scenario_prompt, response_prompt = base_prompt, base_prompt
+
+        scenario_prompt += (
+            "TASK: Check for Manual Switch Scenarios (No need to generate a response email)\n"
+            "\nINSTRUCTIONS FOR THE TASK\n"
+            "Carefully read the entire conversation provided and evaluate ONLY the current content of the conversation. "
+            "DO NOT make predictions or assumptions about what might happen in future conversations.\n\n"
+            "Just check the scenario as it is, do not think on your own whether it is a red flag or not. " 
+            "If the exact scenario happens, for example the suspect did not stop the conversation after discovering our age (asking does not imply discovering) or if the suspect asks for our picture, it is a red flag. "  
+            "IMPORTANT: If there is even the slightest doubt, you must assume the scenario has NOT occurred.\n"
+        )
+
+        for i, criteria in enumerate(switch_manual_criterias, 1):
+            scenario_prompt += f"{i}. {criteria}\n"
+
+        scenario_prompt += (
+            "These are the instructions to what I am expecting from you: \n"
+            "1. If one or more of the above scenarios have occurred, print exactly the phrase: 'Manual Switch needs to happen' ONLY if at least one scenario has occurred.\n" 
+            "2. If no scenarios have occurred, print exactly the phrase: 'Automated reply should be generated' ONLY if no scenarios has occurred. Then ignore the rest of this prompt and finish the task.\n"
+            "3. Explain where exactly the scenarios happened.\n"
+            "4. Immediately after this, list the specific scenario(s) that occurred.\n"
+        )
+
+        response_text = response_generator.generate_response(scenario_prompt)
+
+        logging.info(f"!!!!!!!!!!!!!!!!!!!!!!!!!! LLM Evaluation Result: !!!!!!!!!!!!!!!!!!!!!!!!!!\n{response_text}")
+
+        if "Manual Switch needs to happen" in response_text:
+            # Print matching scenarios
+            logging.info("One or more switch_manual_criterias matched:")
+            matching_scenarios = []
+            for criteria in switch_manual_criterias:
+                if criteria in response_text:
+                    matching_scenarios.append(criteria)
+
+            print("Manual Switch needs to happen")
+            for scenario in matching_scenarios:
+                print(scenario)
+            # Switch to manual mode and notify admins
+            knowledge_base.update_ai_response_state(thread_id, 'Manual')
+            for admin_email in authorized_emails:
+                self._notify_admin(project_name, admin_email, session_email, app_password, email, "", score, thread_id, threshold_exceeded=True)
+            return
+
+        response_prompt += (
+            "TASK: Generate a Response Email.\n"
+            "INSTRUCTIONS FOR TASK:\n"
+            f"IMPORTANT: You are pretending to be this person: {posed_details}. If the suspect asks for personal information, "
+            f"you are responding as this individual. Maintain this persona in all your replies.\n\n"
+            "1. Use the following email content as the suspect's latest message:\n"
+            f"{email_content}\n\n"
+            "2. Understand the entire conversation and generate a response that seems natural, human-like, and appropriate for a young person.\n"
+            "3. The response should:\n"
+            "   - Continue the facade that you are a young person looking to have a good time.\n"
+            "   - Show interest in the conversation, but not be overly eager.\n"
+            "4. Start the response with 'Hello', followed by the content of the email.\n"
+            "5. Very Important: Only output the response content to be sent, and nothing else.\n\n"            
+        )
+
+        response_text = response_generator.generate_response(response_prompt)
+
+        # logging.info(f"!!!!!!!!!!!!!!!!!!!!!!!!!! LLM Evaluation Result !!!!!!!!!!!!!!!!!!!!!!!!!!:\n{response_text}")
+
+        # Step 3: Send the response as a reply and include the original email as quoted content
         quoted_conversation = ""
         for msg in reversed(conversation_history):
             if "We replied:" in msg:
                 quoted_conversation += f"On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, you wrote:\n"
                 quoted_conversation += f"> {msg.replace('We replied:', '').strip()}\n"
-            elif "User sent:" in msg:
+            elif "Suspect sent:" in msg:
                 quoted_conversation += f"On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, they wrote:\n"
                 quoted_conversation += f"> {msg.replace('User sent:', '').strip()}\n"
 
@@ -264,9 +322,16 @@ class EmailProcessor:
             subject="Re: " + subject
         )
         logging.info(f'*'*10 + f"Response successfully sent to {to_address}" + "*"*10)
-        return
     
-    def switch_to_automated(self, thread_id, session_email, app_password, response_frequency, admin_prompt, lower_threshold):
+    def get_posed_details(self, project):
+        return {
+            "posed_name": project[11],
+            "posed_age": project[12],
+            "posed_sex": project[13],
+            "posed_location": project[14],
+        }
+    
+    def switch_to_automated(self, project_details, thread_id, session_email, app_password, response_frequency, admin_prompt, lower_threshold):
         """
         Switch a conversation's state from Manual to Automated, reset its score,
         and reschedule a response if necessary.
@@ -324,9 +389,10 @@ class EmailProcessor:
             email=latest_email,
             conversation_history=conversation_history,
             session_email=session_email,
-            app_password=app_password,
+            project_details=project_details,
             response_frequency=response_frequency,
-            admin_prompt=admin_prompt
+            thread_id=thread_id,
+            score=reset_score
         )
 
         return True, "Successfully switched to Automated and rescheduled the response."
