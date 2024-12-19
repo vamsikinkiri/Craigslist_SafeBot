@@ -10,9 +10,6 @@
     <title>Project Creation</title>
     <style>
 
-        #criteria-list, #criteria-list span {
-            font-family: 'Dancing Script', cursive;
-        }
         /* Global Reset */
         *{
             box-sizing: border-box;
@@ -130,7 +127,8 @@
 
         input[type="text"],
         input[type="password"],
-        textarea {
+        textarea
+         {
             width: 100%;
             padding: 12px;
             margin: 10px 0;
@@ -642,7 +640,7 @@
         #criteria-list {
             text-align: left;
             margin-top: 10px;
-            font-family: 'Dancing Script', cursive !important; /* Force cursive font */
+            font-family: 'Sans Serif';
             font-size: 16px;
             color: #333;
         }
@@ -735,7 +733,7 @@
         <fieldset>
             <legend>Safe Bot Settings</legend>
             <textarea name="ai_prompt_text" rows="3" placeholder="Instructions to Safe Bot"
-                      title="Provide specific instructions or preferences for the SafeBot’s behavior and responses. This can include tone, content guidelines, or restrictions."></textarea>
+            title="Provide specific instructions or preferences for the SafeBot’s behavior and responses. This can include tone, content guidelines, or restrictions.">You are a police detective posing as a young person (e.g., a teenager) to catch online predators. You have posted an ad or initiated a conversation to lure individuals who may have inappropriate intentions.</textarea>
             <div class="input-wrapper">
                 <input type="number" id="response_frequency" name="response_frequency" placeholder="Response Frequency in Minutes (Default: 10)" min="1"
                        title="Specify roughly how often (in minutes) the bot should check for new emails and respond automatically." style="margin-top: 10px;">
@@ -807,7 +805,7 @@
                            class="custom-input" title="Provide the age to be posed during interaction.">
                     <!-- Posed Sex -->
                     <select id="posed_sex" name="posed_sex" class="custom-input custom-select" title="Provide the gender to be posed during interaction.">
-                        <option value="" disabled selected>Select</option>
+                        <option value="" disabled selected>Choose gender</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
                         <option value="Other">Other</option>

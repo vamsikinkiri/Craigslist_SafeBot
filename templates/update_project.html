@@ -607,7 +607,7 @@
         .add-email-btn{
             background-color: #003a8d;
             color: white;
-            margin: 20px;
+
             border: none;
             border-radius: 50%; /* Makes the button round */
             cursor: pointer;
@@ -741,19 +741,35 @@
             text-decoration: underline;
         }
 
+        .custom-input-others{
+            width: 94%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ffffff;
+            border-radius: 10px;
+            font-size: 14px;
+            background-color: #e7eef0;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        .custom-input-others:focus {
+            border-color: #ffffff;
+            background-color: #eef5ff;
+            outline: none;
+        }
+
         .custom-input, .custom-select {
             width: 100%;
             padding: 12px;
             margin: 10px 0;
-            border: 1px solid #ccc;
+            border: 1px solid #ffffff;
             border-radius: 10px;
-            font-size: 16px;
+            font-size: 14px;
             background-color: #e7eef0;
             transition: border-color 0.3s, background-color 0.3s;
         }
 
         .custom-input:focus, .custom-select:focus {
-            border-color: #007bff;
+            border-color: #ffffff;
             background-color: #eef5ff;
             outline: none;
         }
@@ -774,6 +790,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 10px;
+            margin-right: 10px;
         }
 
         .list-container {
@@ -987,7 +1004,8 @@
                     name="posed_name"
                     value="{{ project_details.get('posed_name', '') }}"
                     placeholder="Enter posed name"
-                    class="custom-input"
+                    title="Enter the alias or name being used for interaction."
+                    class="custom-input-others"
             >
 
             <!-- Posed Age -->
@@ -998,12 +1016,13 @@
                     name="posed_age"
                     value="{{ project_details.get('posed_age', '') }}"
                     placeholder="Enter posed age"
-                    class="custom-input"
+                    title="Provide the age to be posed during interaction."
+                    class="custom-input-others"
             >
 
             <!-- Posed Sex -->
             <label for="posed_sex">Posed Sex</label>
-            <select id="posed_sex" name="posed_sex" class="custom-select custom-input">
+            <select id="posed_sex" name="posed_sex" class="custom-select custom-input" title="Provide the gender to be posed during interaction.">
                 <option value="Male" {% if project_details.get('posed_sex') == 'Male' %}selected{% endif %}>Male</option>
                 <option value="Female" {% if project_details.get('posed_sex') == 'Female' %}selected{% endif %}>Female</option>
                 <option value="Other" {% if project_details.get('posed_sex') == 'Other' %}selected{% endif %}>Other</option>
@@ -1017,7 +1036,8 @@
                     name="posed_location"
                     value="{{ project_details.get('posed_location', '') }}"
                     placeholder="Enter posed location"
-                    class="custom-input"
+                    title="Enter the location being used in the interaction."
+                    class="custom-input-others"
             >
 
             <fieldset>
@@ -1028,7 +1048,7 @@
                         <input
                                 type="text"
                                 id="criteria-input"
-                                class="custom-input"
+                                class="custom-input-others"
                                 placeholder="Add new criterion"
                                 title="Add a new manual switch criterion"
                         >
