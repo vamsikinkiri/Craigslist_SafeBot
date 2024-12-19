@@ -277,7 +277,7 @@
         fieldset {
             border: none; /* Removes the border */
             padding: 0; /* Removes extra padding */
-            margin-bottom: 20px; /* Adds spacing between groups */
+            margin-bottom: 30px; /* Adds spacing between groups */
         }
 
         legend {
@@ -816,31 +816,33 @@
             <!-- Posed Location -->
             <input type="text" id="posed_location" name="posed_location" placeholder="Enter posed location"
                    title="Enter the location being used in the interaction.">
+        </fieldset>
 
-                <legend>Switch Manual Criterias:</legend>
-                <div id="criteria-list">
-                    <!-- Render default criteria -->
-                    {% for criteria in default_switch_manual_criterias %}
-                        <div>
-                            <span class="bullet">•</span>
-                            <span>{{ criteria }}</span>
-                        </div>
-                    {% endfor %}
-                </div>
+        <fieldset>
+            <legend>Criterias for Manual Switch</legend>
+            <!-- Add Custom Condition -->
+            <div class="keyword-frequency-wrapper" style="margin-top: 10px;">
+                <!-- Text Input for New Criteria -->
+                <input type="text" id="new_criteria" placeholder="Add a new condition" class="keyword-box"
+                        title="Enter additional scenarios where you would like to switch the response state from automated to manual.">
+                <!-- Add Button -->
+                <button type="button" class="add-keyword-btn" onclick="addManualCriteria()">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
 
-                <!-- Add Custom Condition -->
-                <div class="keyword-frequency-wrapper" style="margin-top: 10px;">
-                    <!-- Text Input for New Criteria -->
-                    <input type="text" id="new_criteria" placeholder="Add a new condition" class="keyword-box"
-                           title="Enter additional manual switch conditions.">
-                    <!-- Add Button -->
-                    <button type="button" class="add-keyword-btn" onclick="addManualCriteria()">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
+            <div id="criteria-list">
+                <!-- Render default criteria -->
+                {% for criteria in default_switch_manual_criterias %}
+                    <div>
+                        <span class="bullet">•</span>
+                        <span>{{ criteria }}</span>
+                    </div>
+                {% endfor %}
+            </div>
 
-                <!-- Hidden Input to Store All Criteria -->
-                <input type="hidden" id="criteria-data" name="criteria_data" value="[]">
+            <!-- Hidden Input to Store All Criteria -->
+            <input type="hidden" id="criteria-data" name="criteria_data" value="[]">
         </fieldset>
 
         <div class="button-container">
