@@ -909,14 +909,15 @@
             margin-left: 5px;
         }
         .email-thread-label {
-            display: inline-block;
+            display: flex;
             font-size: 16px;
             font-weight: bold;
-            color: #134258; /* Adjust to your theme color */
+            color: #134258;
             margin: 10px 0;
-            text-decoration: none; /* Optional: for visual indication */
-            position: relative; /* For tooltip positioning */
-            margin-right: 408px;
+            text-decoration: none;
+            position: relative;
+            flex-wrap: wrap;
+            width: 100%;
         }
 
         .email-thread-label:hover::after {

@@ -207,10 +207,68 @@
             .projects-container {
                 padding: 20px; /* Adjusted padding for mobile */
             }
+
+            .request-access-btn {
+                background-color: #0a7324; /* Orange */
+                color: white;
+            }
+
+            .request-access-btn:hover {
+                background-color: #093b15; /* Darker orange on hover */
+            }
+        }
+
+        .flash-messages {
+            display: flex;
+            justify-content: center; /* Center horizontally */
+            align-items: center;    /* Center vertically if needed */
+            margin: 20px auto;
+            max-width: 800px;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .alert {
+            width: 100%; /* Ensure the alert spans the container width */
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px; /* Space between icon and text */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add slight shadow for visibility */
+        }
+
+        .alert-info {
+            background-color: #e0f7fa;
+            color: #00796b;
+        }
+
+        .alert-error {
+            background-color: #fdecea;
+            color: #b71c1c;
+        }
+
+        .alert-success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        @media (max-width: 768px) {
+            .flash-messages {
+                width: 90%; /* Use most of the screen width */
+            }
+
+            .alert {
+                font-size: 14px; /* Slightly smaller text for smaller screens */
+            }
         }
     </style>
 </head>
 <body>
+
+
 <header class="header">
     <div class="header-title">Craigslist Safebot</div>
     <!-- Logout Button on the right -->
@@ -223,8 +281,29 @@
 
 <div class="projects-header">
     <h2>Active Projects</h2>
-    <!-- <p class="subtext">Click on the below projects to log in</p> -->
 </div>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {% if category == "info" %}
+                        <i class="fas fa-info-circle"></i> <!-- Info Icon -->
+                    {% elif category == "error" %}
+                        <i class="fas fa-times-circle"></i> <!-- Error Icon -->
+                    {% elif category == "success" %}
+                        <i class="fas fa-check-circle"></i> <!-- Success Icon -->
+                    {% endif %}
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+
 <div class="search-bar-container">
     <form method="GET" action="{{ url_for('all_projects_view') }}" style="display: flex; gap: 10px; align-items: center;">
         <input
@@ -242,40 +321,50 @@
     </form>
 </div>
 
-
+{% block content %}
 <div class="projects-container">
-    {% if projects %}
-        {% for project in projects %}
-            <form method="POST" action="{{ url_for('all_projects_view') }}">
-                <div class="project-card">
-                    <div class="project-header">
-                        <h3>{{ project.name }}</h3>
-                    </div>
-                    <div class="project-body">
-                        <p><strong>Email:</strong> {{ project.email }}</p>
-                        <p><strong>Last Updated:</strong> {{ project.last_updated }}</p>
-                    </div>
-
-                    <div class="project-actions">
-                        <form action="{{ url_for('all_projects_view') }}" method="POST">
-                            <input type="hidden" name="email" value="{{ project.email }}">
-                            <button type="submit" class="btn">Open Project</button>
-                        </form>
-                        {% if project.owner_admin_id == current_admin_id %}
-                            <form action="{{ url_for('delete_project', project_id=project.id) }}" method="POST" onsubmit="return confirmDelete();">
-                                <button type="submit" class="btn btn-danger">Delete Project</button>
-                            </form>
-                        {% endif %}
-
-                    </div>
-                </div>
-            </form>
-        {% endfor %}
-    {% else %}
-        <!-- Displayed only if no projects match -->
-    {% endif %}
+    {% for project in authorized_projects %}
+        <div class="project-card">
+            <div class="project-header">
+                <h3>{{ project[2] }}</h3> <!-- project[2] = project_name -->
+            </div>
+            <div class="project-body">
+                <p><strong>Email:</strong> {{ project[1] }}</p> <!-- project[1] = email_id -->
+                <p><strong>Last Updated:</strong> {{ project[16] }}</p> <!-- project[16] = last_updated -->
+            </div>
+            <div class="project-actions">
+                <form method="POST" action="{{ url_for('all_projects_view') }}">
+                    <input type="hidden" name="email" value="{{ project[1] }}"> <!-- project[1] = email_id -->
+                    <button type="submit" class="btn">Open Project</button>
+                </form>
+                <form action="{{ url_for('delete_project', project_id=project[0]) }}" method="POST" onsubmit="return confirmDelete();">
+                    <button type="submit" class="btn btn-danger">Delete Project</button>
+                </form>
+            </div>
+        </div>
+    {% endfor %}
 </div>
 
+<div class="projects-container">
+    {% for project in unauthorized_projects %}
+        <div class="project-card">
+            <div class="project-header">
+                <h3>{{ project[2] }}</h3> <!-- project[2] = project_name -->
+            </div>
+            <div class="project-body">
+                <p><strong>Email:</strong> {{ project[1] }}</p> <!-- project[1] = email_id -->
+                <p><strong>Last Updated:</strong> {{ project[16] }}</p> <!-- project[16] = last_updated -->
+            </div>
+            <div class="project-actions">
+                <form method="POST" action="{{ url_for('all_projects_view') }}">
+                    <input type="hidden" name="project_id" value="{{ project[0] }}"> <!-- project[0] = project_id -->
+                    <button type="submit" class="btn btn-warning request-access-btn">Request Access</button>
+                </form>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
 <script>
     function searchProjects() {
         const searchQuery = document.getElementById("project-search").value.toLowerCase();

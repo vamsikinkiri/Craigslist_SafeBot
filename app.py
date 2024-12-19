@@ -20,6 +20,9 @@ from project_scheduler import ProjectScheduler
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))  # Use environment variable or random key
 
+# Secure session cookies
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to cookies
+
 # Configure logging centrally
 logging.basicConfig(
     level=logging.INFO,
@@ -138,6 +141,12 @@ def create_account():
 @app.route('/project_creation', methods=['GET', 'POST'])
 @login_required
 def project_creation():
+    # Define the default criteria outside the conditional blocks
+    default_switch_manual_criterias = [
+        "The suspect did not stop the conversation after discovering our age.",
+        "The suspect requests a photograph of the person we are pretending to be.",
+        "The suspect suggests communicating via phone number or alternative platforms.",
+    ]
     if request.method == 'POST':
         email = request.form['email']
         project_name = "Project - " + request.form['project_name']
@@ -152,15 +161,28 @@ def project_creation():
         lower_threshold = 0 if not lower_threshold_raw.isdigit() else int(lower_threshold_raw)
         upper_threshold = 75 if not upper_threshold_raw.isdigit() else int(upper_threshold_raw)
         authorized_emails = request.form.get('authorized_emails', '[]')
-        posed_name = "Karen"
-        posed_age = 16
-        posed_sex = "Female"
-        posed_location = "Riverside"
-        switch_manual_criterias = [
-            "The suspect did not stop the conversation after discovering our age.",
-            "The suspect requests a photograph of the person we are pretending to be.",
-            "The suspect suggests communicating via phone number or alternative platforms.",
-        ]
+        POSED_NAME_DEFAULT = "Karen"
+        POSED_AGE_DEFAULT = 16
+        POSED_SEX_DEFAULT = "Female"
+        POSED_LOCATION_DEFAULT = "Riverside"
+        posed_name = request.form.get('posed_name', POSED_NAME_DEFAULT)
+        posed_age = int(request.form.get('posed_age_default', POSED_AGE_DEFAULT))
+        posed_sex = request.form.get('posed_sex', POSED_SEX_DEFAULT)
+        posed_location = request.form.get('posed_location', POSED_LOCATION_DEFAULT)
+
+        # Process additional criteria from form
+        try:
+            new_criterias_raw = request.form.get('criteria_data', '[]')  # Hidden input field
+            new_criterias = parse_json_field(new_criterias_raw, [])
+            if not isinstance(new_criterias, list):
+                raise ValueError("Criteria must be a list.")
+        except json.JSONDecodeError:
+            flash("Invalid criteria format", "error")
+            return redirect(url_for('project_creation'))
+
+        # Combine default and user-added criteria
+        switch_manual_criterias = default_switch_manual_criterias + new_criterias
+
 
         try:
             authorized_emails_list = json.loads(authorized_emails)
@@ -218,12 +240,14 @@ def project_creation():
                                                          )
 
         if success:
-            # return redirect(url_for('project_account_login'))
             return redirect(url_for('all_projects_view'))
         else:
             flash(message, "error")
 
-    return render_template('project_creation.html')
+    return render_template(
+        'project_creation.html',
+        default_switch_manual_criterias=default_switch_manual_criterias
+    )
 
 @app.route('/api/update_projects', methods=['GET'])
 @login_required
@@ -233,16 +257,6 @@ def update_projects():
     if not success:
         return jsonify({"success": False, "message": projects}), 500
 
-    # Prepare data in a JSON-friendly format
-    # projects_list = []
-    # for project in projects:
-    #     project_info = {
-    #         "project_id": project[0],
-    #         "project_name": project[2],
-    #         "ai_prompt_text": project[4]
-    #     }
-    #     projects_list.append(project_info)
-
     projects_list = [
         {
             "project_id": project[0],
@@ -251,7 +265,6 @@ def update_projects():
         }
         for project in projects
     ]
-
     return jsonify({"success": True, "projects": projects_list})
 
 def parse_json_field(field, default):
@@ -282,11 +295,15 @@ def get_project_data(email):
                 authorized_emails = json.loads(project_info[10])
             else:
                 authorized_emails = []
+
+
+
         except Exception as parse_error:
             logging.error(f"Error parsing JSON fields for project: {project_info[0]} - {parse_error}")
             return False, "Error parsing project JSON fields."
         logging.info(f"Get data 1: {keywords_data}")
         logging.info(f"Get email 1: {authorized_emails}")
+
         # Build and return project data
         project_data = {
             "project_id": project_info[0],
@@ -308,6 +325,7 @@ def get_project_data(email):
             "last_updated": project_info[16]
         }
         logging.info(f"Successfully processed project data for email: {email}")
+        logging.info(f"Get criterias 1: {project_info[15]}")
         return True, project_data
 
     except Exception as e:
@@ -321,7 +339,6 @@ def update_project():
     if 'email' not in session or 'project' not in session:
         flash("You need to be logged in to update project details.", "error")
         return redirect(url_for('all_projects_view'))
-
     email = session['email']
     project_name = session['project']
 
@@ -333,11 +350,8 @@ def update_project():
                 flash(project_details, "error")
                 return redirect(url_for('index'))
 
-            # breakpoint()
-
             # Log project details for debugging
             logging.info(f"Fetched project details: {project_details}")
-
             # Fetch all projects for prompts
             all_projects_success, all_projects = knowledge_base.fetch_all_projects()
             if not all_projects_success:
@@ -380,27 +394,50 @@ def update_project():
             response_frequency = int(request.form.get('response_frequency', project_info.get('response_frequency', 0)))
             lower_threshold = int(request.form.get('lower_threshold', project_info.get('lower_threshold', 0)))
             upper_threshold = int(request.form.get('upper_threshold', project_info.get('upper_threshold', 100)))
-
             # Validate thresholds
             if lower_threshold >= upper_threshold:
                 flash(f"Lower threshold ({lower_threshold}) must be less than upper threshold ({upper_threshold}).", "error")
                 return redirect(url_for('update_project'))
 
-            # Parse the updated keywords if provided in JSON format
-            new_keywords = request.form.get('keywords_data', None)
-            existing_keywords = project_info.get('keywords_data', {})
-            if new_keywords:
-                parsed_keywords = parse_json_field(new_keywords, {})
-                existing_keywords.update(parsed_keywords)
-            updated_keywords = existing_keywords
+            # Parse updated keywords from the form
+            updated_keywords_data = request.form.get('keywords_data', '{}')
+            updated_keywords_raw = parse_json_field(updated_keywords_data, {})  # Parse updated keywords from the frontend
+            existing_keywords = project_info.get('keywords_data', {})  # Existing keywords in the backend
+            final_keywords = {
+                key: updated_keywords_raw[key]  # Use updated value if it exists in the frontend
+                for key in updated_keywords_raw }
+            for key in existing_keywords:
+                if key not in updated_keywords_raw:  # If the key is not in the updated list, retain it
+                    final_keywords[key] = existing_keywords[key]
+            updated_keywords = final_keywords  # Final result for backend storage
 
-            new_emails = request.form.get('authorized_emails', None)
-            existing_emails = project_info['authorized_emails']
-            if new_emails:
-                parsed_emails = parse_json_field(new_emails, [])
-                existing_emails = list(set(existing_emails + parsed_emails))
-            updated_emails = existing_emails
-            logging.info(f"updated_emails: {updated_emails}")
+            # Parse updated emails from the form
+            updated_emails_data = request.form.get('authorized_emails', '[]')
+            updated_emails_raw = parse_json_field(updated_emails_data, [])
+            updated_emails = list(set(updated_emails_raw))
+
+            # logging.info(f"Form data received: {request.form}")
+            # logging.info(f"Raw switch_manual_criterias: {new_switch_manual_criterias}, type: {type(new_switch_manual_criterias)}")
+            existing_criterias = project_info.get('switch_manual_criterias', '[]')
+            if isinstance(existing_criterias, str):
+                existing_criterias = parse_json_field(existing_criterias, [])
+
+            new_switch_manual_criterias = request.form.get('switch_manual_criterias', '[]')
+            if new_switch_manual_criterias:
+                try:
+                    # Parse JSON from the request form field
+                    parsed_criterias = parse_json_field(new_switch_manual_criterias, []) if isinstance(new_switch_manual_criterias, str) else new_switch_manual_criterias
+
+                    if not isinstance(parsed_criterias, list):
+                        raise ValueError(f"Parsed criterias must be a list, got {type(parsed_criterias)} instead.")
+                    updated_criterias = list(set(parsed_criterias))
+                except ValueError as e:
+                    logging.error(f"Failed to parse switch_manual_criterias: {e}")
+                    updated_criterias  = []
+            else:
+                updated_criterias = existing_criterias
+            # Final updated criterias
+            switch_manual_criterias = updated_criterias
 
             # Handle AI prompt text
             ai_prompt_text = (
@@ -408,6 +445,12 @@ def update_project():
                 else request.form.get('sample_prompt', project_info.get('ai_prompt_text', ''))
             )
 
+            posed_name = request.form.get('posed_name', project_info.get('posed_name', ''))
+            posed_age = int(request.form.get('posed_age', project_info.get('posed_age', 0)))
+            posed_sex = request.form.get('posed_sex', project_info.get('posed_sex', ''))
+            posed_location = request.form.get('posed_location', project_info.get('posed_location', ''))
+
+            # Parse and process manual criteria
             # Update project details in the knowledge base
             success, message = knowledge_base.update_project(
                 email=email,
@@ -419,14 +462,12 @@ def update_project():
                 upper_threshold=upper_threshold,
                 authorized_emails=json.dumps(updated_emails),  # Ensure data is serialized
                 # Make sure to update these after frontend changes are done
-                posed_name="Karen",
-                posed_age=16,
-                posed_sex="Female",
-                posed_location="Riverside",
-                switch_manual_criterias=[]
+                posed_name=posed_name,
+                posed_age=posed_age,
+                posed_sex=posed_sex,
+                posed_location=posed_location,
+                switch_manual_criterias=json.dumps(switch_manual_criterias)
             )
-
-            logging.info(f"updated_emails 2: {json.dumps(updated_emails)}")
 
             if success:
                 #flash("Project details updated successfully.", "success")
@@ -434,7 +475,6 @@ def update_project():
             else:
                 flash(message, "error")
                 return redirect(url_for('update_project'))
-
         except json.JSONDecodeError as json_error:
             logging.error(f"JSON decoding error: {json_error}")
             flash("An error occurred while processing the project data.", "error")
@@ -497,33 +537,28 @@ def all_projects_view():
 
     if not success:
         return render_template('error.html', message=projects), 500  # Display error if fetch fails
-
     # Get search query from the request
     search_query = request.args.get('search_query')
     filtered_projects = projects
 
-    authorized_projects, unauthorized_projects = [], []
+    authorized_projects = [project for project in projects if session['admin_email'] in project[10]]
+    unauthorized_projects = [project for project in projects if session['admin_email'] not in project[10]]
 
-    # Check if the current admin's email id is present in the authorized emails of a project
-    for project in filtered_projects:
-        authorized_projects.append(project) if session['admin_email'] in project[10] else unauthorized_projects.append(project)
-    
-    # for details in unauthorized_projects:
-    #     project_scheduler.notify_admins_of_access_request(project_details=details)
-    # filtered_projects = authorized_projects
-    
     logging.info(f"Authorized Projects created are: {authorized_projects}")
     logging.info(f"Unauthorized Projects created are: {unauthorized_projects}")
 
+    search_query = request.args.get('search_query', "").strip().lower()
     if search_query:
-        # Filter projects based on the query
-        filtered_projects = [
-            project for project in projects
-            if search_query.lower() in project[2].lower() or search_query.lower() in project[1].lower()
+        authorized_projects = [
+            project for project in authorized_projects
+            if search_query in project[2].lower() or search_query in project[1].lower()
         ]
-        # If no matching projects are found, flash an error message
-        if not filtered_projects:
-            flash("No projects found. Please create or view another project.", "error")
+        unauthorized_projects = [
+            project for project in unauthorized_projects
+            if search_query in project[2].lower() or search_query in project[1].lower()
+        ]
+        if not authorized_projects and not unauthorized_projects:
+            flash("No projects found. Please try a different search.", "error")
 
     # Format the filtered projects for rendering
     formatted_projects = [
@@ -537,36 +572,53 @@ def all_projects_view():
         for project in filtered_projects
     ]
     if request.method == 'POST':
-        # Get selected project's email from the form
-        email = request.form['email']
-        # Fetch project details by email
-        success, project_details = knowledge_base.get_project_details(email)
-        if not success:
-            flash("Error retrieving project information. Please check your inputs and try again.", "error")
-            return redirect(url_for('all_projects_view'))
+        # Handle 'Request Access' or 'Open Project' actions
+        project_id = request.form.get('project_id')
+        email = request.form.get('email')
+        logging.info(f"POST action with project_id: {project_id}, email: {email}")
 
-        # Extract project details
-        project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, last_updated  = project_details
-        logging.info(f"Project Owner ID: {owner_admin_id}, Session Admin ID: {session.get('admin_id')}")
+        if project_id:
+            # Request Access: Notify admins for unauthorized projects
+            project = next((p for p in unauthorized_projects if p[0] == project_id), None)
+            if project:
+                project_scheduler.notify_admins_of_access_request(project_details=project)
+                flash("Access request sent to project admins.", "info")
+            else:
+                flash("Project not found in unauthorized projects.", "error")
+        elif email:
+            # Open Project: Update session and redirect
+            success, project_details = knowledge_base.get_project_details(email)
+            if success and project_details:
+                # Extract project details
+                (
+                    project_id, email_id, project_name, app_password, ai_prompt_text,
+                    response_frequency, keywords_data, owner_admin_id, lower_threshold,
+                    upper_threshold, authorized_emails, posed_name, posed_age, posed_sex,
+                    posed_location, switch_manual_criterias, last_updated
+                ) = project_details
 
-        # Update session with selected project details
-        session.update({
-            'project_id': project_id,
-            'email': email_id,
-            'app_password': app_password,
-            'project': project_name,
-            'project_keywords': keywords_data
-        })
-
-        logging.info(f"Session variables updated: {session}")
-        user = User(id=email_id)
-        login_user(user)
-
-        # Redirect to the main dashboard (index)
-        return redirect(url_for('index'))
-    current_admin_id = session.get('admin_id')
-
-    return render_template('all_projects_view.html', projects=formatted_projects, search_query=search_query, current_admin_id=current_admin_id)
+                # Update session variables
+                session.update({
+                    'project_id': project_id,
+                    'email': email_id,
+                    'app_password': app_password,
+                    'project': project_name,
+                    'project_keywords': keywords_data
+                })
+                logging.info(f"Session updated: {session}")
+                return redirect(url_for('index'))
+            else:
+                flash("Error retrieving project information. Please try again.", "error")
+        else:
+            flash("No valid action selected. Please try again.", "error")
+        current_admin_id = session.get('admin_id')
+    return render_template(
+        'all_projects_view.html',
+        authorized_projects=authorized_projects,
+        unauthorized_projects=unauthorized_projects,
+        search_query=search_query,
+        current_admin_id=session.get('admin_id')
+    )
 
 @app.route('/delete_project/<string:project_id>', methods=['POST'])
 @login_required

@@ -2,12 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Settings</title>
-        <html lang="en">
-        <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>CRAIGSLIST SAFEBOT</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -577,6 +573,37 @@
             margin: -10px;
         }
 
+        .add-criteria-btn{
+            background-color: #003a8d;
+            color: white;
+            margin: 20px;
+            border: none;
+            border-radius: 50%; /* Makes the button round */
+            cursor: pointer;
+            font-size: 16px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+
+        .remove-criteria-btn{
+            background-color: #003a8d;
+            color: white;
+            border: none;
+            border-radius: 50%; /* Makes the button round */
+            cursor: pointer;
+            font-size: 16px; /* Increases icon size */
+            width: 18px; /* Adjust size as needed */
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+
         .add-email-btn{
             background-color: #003a8d;
             color: white;
@@ -714,7 +741,55 @@
             text-decoration: underline;
         }
 
+        .custom-input, .custom-select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 16px;
+            background-color: #e7eef0;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
 
+        .custom-input:focus, .custom-select:focus {
+            border-color: #007bff;
+            background-color: #eef5ff;
+            outline: none;
+        }
+
+        textarea.custom-input {
+            resize: vertical; /* Allow vertical resizing only */
+            height: 100px; /* Set consistent height for textarea */
+        }
+
+        label {
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0;
+            font-weight: bold;
+            display: block;
+        }
+        .field-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .list-container {
+            margin-top: 10px;
+        }
+
+        .list-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #e7eef0;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
 
     </style>
 </head>
@@ -771,6 +846,7 @@
         {% endif %}
     {% endwith %}
 
+
     <form action="{{ url_for('update_project') }}" method="POST">
 
         <!-- Response Settings -->
@@ -779,37 +855,37 @@
             <div class="form-field">
                 <label>Response Frequency</label>
                 <input
-                    type="number"
-                    name="response_frequency"
-                    class="response-frequency"
-                    placeholder="Response Frequency in Minutes (Default: 10)"
-                    value="{{ project_details.get('response_frequency', '10') }}"
-                    title="Edit roughly how often (in minutes) the bot should check for new emails and respond automatically."
-                    required
+                        type="number"
+                        name="response_frequency"
+                        class="response-frequency"
+                        placeholder="Response Frequency in Minutes (Default: 10)"
+                        value="{{ project_details.get('response_frequency', '10') }}"
+                        title="Edit roughly how often (in minutes) the bot should check for new emails and respond automatically."
+                        required
                 >
             </div>
             <div class="form-field">
                 <label>Automated Engagement Threshold</label>
                 <input
-                    type="number"
-                    name="lower_threshold"
-                    class="response-frequency"
-                    placeholder="Automated engagement threshold (Default: 0)"
-                    value="{{ project_details.get('lower_threshold', 0) }}"
-                    min="0"
-                    title="Edit the minimum score required to initiate automated responses for this project."
+                        type="number"
+                        name="lower_threshold"
+                        class="response-frequency"
+                        placeholder="Automated engagement threshold (Default: 0)"
+                        value="{{ project_details.get('lower_threshold', 0) }}"
+                        min="0"
+                        title="Edit the minimum score required to initiate automated responses for this project."
                 >
             </div>
             <div class="form-field">
                 <label>Manual Engagement Threshold</label>
                 <input
-                    type="number"
-                    name="upper_threshold"
-                    class="response-frequency"
-                    placeholder="Manual Engagement Threshold (Default: 75)"
-                    value="{{ project_details.get('upper_threshold', 75) }}"
-                    min="1"
-                    title="Edit the score above which the system switches to manual intervention mode and intimate the admins to send responses."
+                        type="number"
+                        name="upper_threshold"
+                        class="response-frequency"
+                        placeholder="Manual Engagement Threshold (Default: 75)"
+                        value="{{ project_details.get('upper_threshold', 75) }}"
+                        min="1"
+                        title="Edit the score above which the system switches to manual intervention mode and intimate the admins to send responses."
                 >
             </div>
         </fieldset>
@@ -819,26 +895,26 @@
             <legend>Keyword Management</legend>
             <div class="field-wrapper">
                 <!-- Input for Keyword and Frequency -->
+                <label>Project keywords</label>
                 <div class="field-group" >
-                    <input type="text" id="keyword-input" class="field-item" placeholder="Keyword" 
-                    title="Edit the keywords or add new keywords that the bot will look for in emails to prioritize responses.">
+                    <input type="text" id="keyword-input" class="field-item" placeholder="Keyword"
+                           title="Edit the keywords or add new keywords that the bot will look for in emails to prioritize responses.">
                     <input type="number" id="keyword-frequency" class="field-item" placeholder="Frequency"
-                    title="Edit the maximum number of times the keyword needs to appear in email threads.">
+                           title="Edit the maximum number of times the keyword needs to appear in email threads.">
                     <button type="button" class="add-keyword-btn" onclick="addKeyword()">+</button>
                 </div>
+
 
                 <!-- Display Existing Keywords -->
                 <div id="keywords-list" class="list-container">
                     {% if project_details['keywords_data'] %}
                         {% if project_details['keywords_data'] is mapping %}
-                            <!-- If it's a dictionary -->
                             {% for keyword, frequency in project_details.get('keywords_data', {}).items() %}
                                 <div class="list-entry">
                                     <span>{{ keyword }}: {{ frequency }}</span>
-                                    <button type="button" class="remove-keyword-btn" data-keyword="{{ keyword }}" onclick="removeKeyword(this)">
+                                    <button type="button" class="remove-keyword-btn" onclick="removeKeyword('{{ keyword }}')">
                                         <i class="fas fa-minus"></i>
                                     </button>
-
                                 </div>
                             {% endfor %}
 
@@ -858,8 +934,6 @@
                 </div>
             </div>
         </fieldset>
-        <input type="hidden" id="keywords-input" name="keywords_data" value='{}'>
-        
 
         <!-- Authorization Settings -->
         <fieldset>
@@ -890,16 +964,100 @@
                                     type="button"
                                     class="remove-email-btn"
                                     onclick="removeEmail('{{ email }}')">
-                                <i class="fas fa-minus"></i> <!-- Font Awesome '-' icon -->
+                                <i class="fas fa-minus"></i>
                             </button>
                         </div>
                     {% endfor %}
                 </div>
             </div>
-        </fieldset>
-        <input type="hidden" id="authorized-emails-input" name="authorized_emails" value='[]'>
+{#            <input type="hidden" id="keywords-input" name="keywords_data" value='{}'>#}
+            <input type="hidden" id="keywords-input" name="keywords_data" value='{{ project_details.get("keywords_data", {}) | tojson | safe }}'>
+            {#            <input type="hidden" id="authorized-emails-input" name="authorized_emails" value='[]'>#}
+            <input type="hidden" id="authorized-emails-input" name="authorized_emails" value='{{ project_details.get("authorized_emails", []) | tojson | safe }}'>
 
-        <!-- Bot Instructions -->
+        </fieldset>
+
+        <fieldset>
+            <legend>Interaction Settings</legend>
+            <!-- Posed Name -->
+            <label for="posed_name">Posed Name</label>
+            <input
+                    type="text"
+                    id="posed_name"
+                    name="posed_name"
+                    value="{{ project_details.get('posed_name', '') }}"
+                    placeholder="Enter posed name"
+                    class="custom-input"
+            >
+
+            <!-- Posed Age -->
+            <label for="posed_age">Posed Age</label>
+            <input
+                    type="number"
+                    id="posed_age"
+                    name="posed_age"
+                    value="{{ project_details.get('posed_age', '') }}"
+                    placeholder="Enter posed age"
+                    class="custom-input"
+            >
+
+            <!-- Posed Sex -->
+            <label for="posed_sex">Posed Sex</label>
+            <select id="posed_sex" name="posed_sex" class="custom-select custom-input">
+                <option value="Male" {% if project_details.get('posed_sex') == 'Male' %}selected{% endif %}>Male</option>
+                <option value="Female" {% if project_details.get('posed_sex') == 'Female' %}selected{% endif %}>Female</option>
+                <option value="Other" {% if project_details.get('posed_sex') == 'Other' %}selected{% endif %}>Other</option>
+            </select>
+
+            <!-- Posed Location -->
+            <label for="posed_location">Posed Location</label>
+            <input
+                    type="text"
+                    id="posed_location"
+                    name="posed_location"
+                    value="{{ project_details.get('posed_location', '') }}"
+                    placeholder="Enter posed location"
+                    class="custom-input"
+            >
+
+            <fieldset>
+                <legend>Manual Switch Criteria</legend>
+                <div class="field-wrapper">
+                    <!-- Input for New Criterion -->
+                    <div class="field-group">
+                        <input
+                                type="text"
+                                id="criteria-input"
+                                class="custom-input"
+                                placeholder="Add new criterion"
+                                title="Add a new manual switch criterion"
+                        >
+                        <button type="button" class="add-criteria-btn" onclick="addManualCriteria()">+</button>
+                    </div>
+
+                    <!-- Existing Criteria List -->
+                    <div id="manual-criteria-list" class="list-container">
+                        {% for criteria in project_details.get('switch_manual_criterias', []) %}
+                            <div class="list-entry">
+                                <span>{{ criteria }}</span>
+                                <button
+                                        type="button"
+                                        class="remove-criteria-btn"
+                                        data-index="{{ loop.index0 }}"
+                                        onclick="removeManualCriteria({{ loop.index0 }})"
+                                >
+                                    <i class="fas fa-minus"></i>
+                                </button>
+
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <input type="hidden" id="criteria-data" name="switch_manual_criterias" value='{{ project_details.get("switch_manual_criterias", []) | tojson | safe }}'>
+
+        </fieldset>
+
+            <!-- Bot Instructions -->
         <fieldset>
             <legend>Instructions to Safebot</legend>
             <div class="field-wrapper">
@@ -948,9 +1106,9 @@
             </div>
         </div>
         <!-- Textarea for Manual Input -->
-        <div class="form-field" 
-        title="Edit the specific instructions or preferences for the SafeBot’s behavior and responses. This can include tone, content guidelines, or restrictions."
-        id="textContainer">
+        <div class="form-field"
+             title="Edit the specific instructions or preferences for the SafeBot’s behavior and responses. This can include tone, content guidelines, or restrictions."
+             id="textContainer">
             <!-- <label for="ai_prompt_text">Enter or Edit Prompt Text</label> -->
             <textarea
                     id="ai_prompt_text"
@@ -963,17 +1121,17 @@
 
         <!-- Submit Button -->
         <button type="submit" class="btn-primary">Update Project</button>
+        <div class="back-link">
+            <p><a href="{{ url_for('index') }}">Back to Dashboard</a></p>
+        </div>
     </form>
-
-    <div class="back-link">
-        <p><a href="{{ url_for('index') }}">Back to Dashboard</a></p>
-    </div>
-
     <script>
 
-        const keywords = JSON.parse('{{ project_details.get("keywords", {})|tojson|safe }}');
-        const authorizedEmails = JSON.parse('{{ project_details.get("authorized_emails", [])|tojson|safe }}');
+        let keywords = JSON.parse('{{ project_details.get("keywords", {})|tojson|safe }}') || {};
+        {#let authorizedEmails = JSON.parse('{{ project_details.get("authorized_emails", [])|tojson|safe }}') || [];#}
+        let authorizedEmails = JSON.parse(document.getElementById("authorized-emails-input").value || "[]");
 
+        let customCriteria = JSON.parse(document.getElementById('criteria-data').value || '[]');            // Initialize the manual criteria list
 
         // Toggle sidebar visibility
         function toggleSidebar() {
@@ -1105,127 +1263,174 @@
             document.getElementById('ai_prompt_text').value = selectedPrompt;
         }
 
+        function addKeyword() {
+            const keywordInput = document.getElementById("keyword-input");
+            const frequencyInput = document.getElementById("keyword-frequency");
+            const keywordsInput = document.getElementById("keywords-input");
 
-            // Manage Keywords
-    function addKeyword() {
-        const keywordInput = document.getElementById("keyword-input");
-        const keywordFrequencyInput = document.getElementById("keyword-frequency");
+            const keyword = keywordInput.value.trim();
+            const frequency = parseInt(frequencyInput.value);
 
-        const keyword = keywordInput.value.trim().toLowerCase();
+            if (!keyword || isNaN(frequency) || frequency <= 0) {
+                alert("Enter a valid keyword and frequency.");
+                return;
+            }
 
-        const frequency = parseInt(keywordFrequencyInput.value, 10);
-
-        if (keyword && frequency > 0) {
-            // Update the keywords object
-            keywords[keyword] = frequency;
-            document.getElementById("keywords-input").value = JSON.stringify(keywords);
+            let currentKeywords = JSON.parse(keywordsInput.value || "{}");
+            currentKeywords[keyword] = frequency;  // Add or update the keyword
+            keywordsInput.value = JSON.stringify(currentKeywords);  // Update the hidden field
 
             // Update the UI
-            const addedKeywords = document.getElementById("keywords-list");
+            const list = document.getElementById("keywords-list");
             const entry = document.createElement("div");
             entry.classList.add("list-entry");
-
             entry.innerHTML = `
-    <span>${keyword}: ${frequency}</span>
-    <button type="button" class="remove-keyword-btn" onclick="removeKeyword('${keyword}')">-</button>
-`;
-            addedKeywords.appendChild(entry);
+        <span>${keyword}: ${frequency}</span>
+        <button type="button" class="remove-keyword-btn" onclick="removeKeyword('${keyword}')">-</button>
+    `;
+            list.appendChild(entry);
 
-            // Clear the input fields
             keywordInput.value = "";
-            keywordFrequencyInput.value = "";
-        } else {
-            alert("Please enter a valid keyword and frequency.");
+            frequencyInput.value = "";
         }
-    }
-
-    function removeKeyword(keyword) {
-        // Remove the keyword from the keywords object
-        delete keywords[keyword];
-        document.getElementById("keywords-input").value = JSON.stringify(keywords);
-
-        // Update the UI
-        const addedKeywords = document.getElementById("keywords-list");
-        Array.from(addedKeywords.children).forEach(entry => {
-            if (entry.textContent.includes(keyword)) {
-                addedKeywords.removeChild(entry);
-            }
-        });
-    }
-
-// Manage Authorized Emails
         function addEmail() {
+            const emailInput = document.getElementById("email-input");
+            const emailValue = emailInput.value.trim();
+            const authorizedEmailsInput = document.getElementById("authorized-emails-input");
+            const emailListContainer = document.getElementById("email-list-container");
 
-            const emailInput = document.getElementById('email-input');
-            const emailValue = emailInput.value.trim().toLowerCase();
-
-
-            const authorizedEmailsInput = document.getElementById('authorized-emails-input');
-            const emailListContainer = document.getElementById('email-list-container');
-
-            if (!emailValue) {
-                alert('Please enter a valid email address.');
-                return;
-            }
-            let currentEmails = [];
-            try {
-                currentEmails = JSON.parse(authorizedEmailsInput.value || "[]");
-            } catch (e) {
-                console.error("Error parsing authorized emails:", e);
-                currentEmails = [];
-            }
-
-
-            // Prevent duplicate emails
-            if (currentEmails.includes(emailValue)) {
-                alert('This email is already added.');
+            if (!emailValue || !validateEmail(emailValue)) {
+                alert("Please enter a valid email address.");
                 return;
             }
 
-            // Add the new email to the list
-            currentEmails.push(emailValue);
-            authorizedEmailsInput.value = JSON.stringify(currentEmails);
+            if (authorizedEmails.includes(emailValue)) {
+                alert("This email is already authorized.");
+                return;
+            }
 
-            // Update the UI to reflect the added email
-            const emailItem = document.createElement('div');
-            emailItem.className = 'email-entry';
-            emailItem.innerHTML = `
-            <span>${emailValue}</span>
-            <button type="button" class="remove-email-btn" onclick="removeEmail('${emailValue}')">-</button>
-        `;
-            emailListContainer.appendChild(emailItem);
+            authorizedEmails.push(emailValue);
+            authorizedEmailsInput.value = JSON.stringify(authorizedEmails);
 
-            // Clear the input field
-            emailInput.value = '';
+            const entry = document.createElement("div");
+            entry.className = "email-entry";
+            entry.innerHTML = `
+        <span>${emailValue}</span>
+        <button type="button" class="remove-email-btn" onclick="removeEmail('${emailValue}')">
+            <i class="fas fa-minus"></i>
+        </button>
+    `;
+            emailListContainer.appendChild(entry);
+            emailInput.value = "";
+        }
+
+        function removeKeyword(keyword) {
+            const keywordsInput = document.getElementById('keywords-input');
+            const keywordsListContainer = document.getElementById('keywords-list');
+
+            let currentKeywords = JSON.parse(keywordsInput.value || "{}");
+
+            // Remove the keyword
+            delete currentKeywords[keyword];
+            keywordsInput.value = JSON.stringify(currentKeywords); // Update the hidden input
+
+            // Update the UI
+            Array.from(keywordsListContainer.children).forEach(item => {
+                const span = item.querySelector('span');
+                if (span && span.textContent.startsWith(keyword)) {
+                    keywordsListContainer.removeChild(item);
+                }
+            });
+            console.log('Updated keywords:', currentKeywords); // Debugging log
         }
 
         function removeEmail(emailValue) {
             const authorizedEmailsInput = document.getElementById('authorized-emails-input');
+            console.log('Before update:', authorizedEmailsInput.value);
             const emailListContainer = document.getElementById('email-list-container');
+
+            // Parse the current email list from the hidden input
             let currentEmails = JSON.parse(authorizedEmailsInput.value || "[]");
 
-            // Remove the email from the list
-            currentEmails = currentEmails.filter(email => email !== emailValue);
-            authorizedEmailsInput.value = JSON.stringify(currentEmails);
+            // Remove only the email that matches exactly
+            currentEmails = currentEmails.filter(email => email.trim() !== emailValue.trim());
+            authorizedEmailsInput.value = JSON.stringify(currentEmails); // Update the hidden input field
 
-            // Update the UI to reflect the removed email
-            Array.from(emailListContainer.children).forEach(item => {
-                if (item.textContent.includes(emailValue)) {
+            // Update the UI: Find the exact matching item and remove it
+            const items = Array.from(emailListContainer.children);
+            items.forEach(item => {
+                const span = item.querySelector('span'); // Locate the span that contains the email text
+                if (span && span.textContent.trim() === emailValue.trim()) {
                     emailListContainer.removeChild(item);
                 }
             });
+            console.log('Updated email list:', currentEmails); // Debugging log
         }
-        document.addEventListener('DOMContentLoaded', () => {
-            // Attach event listeners
-            //document.querySelector('.add-keyword-btn')?.addEventListener('click', addKeyword);
-            //document.querySelector('.add-email-btn')?.addEventListener('click', addEmail);
 
-            // Sidebar Toggle
-            document.querySelector('.menu-icon')?.addEventListener('click', toggleSidebar);
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
 
-            // Fetch all projects on load
-            fetchAllProjects();
+        // Function to render the criteria list.
+        function renderCriteriaList() {
+            const manualCriteriaList = document.getElementById("manual-criteria-list");
+            manualCriteriaList.innerHTML = ""; // Clear the list.
+
+            customCriteria.forEach((criteria, index) => {
+                const entry = document.createElement("div");
+                entry.className = "list-entry";
+                entry.innerHTML = `
+            <span>${criteria}</span>
+            <button type="button" class="remove-criteria-btn" data-index="${index}" onclick="removeManualCriteria(${index})">
+                <i class="fas fa-minus"></i>
+            </button>
+        `;
+                manualCriteriaList.appendChild(entry);
+            });
+
+            // Update the hidden input with the current criteria.
+            document.getElementById("criteria-data").value = JSON.stringify(customCriteria);
+        }
+
+        // Function to add a new criterion.
+        function addManualCriteria() {
+            const criteriaInput = document.getElementById("criteria-input");
+            const newCriteria = criteriaInput.value.trim();
+
+            if (!newCriteria) {
+                alert("Please enter a valid criterion.");
+                return;
+            }
+
+            if (customCriteria.includes(newCriteria)) {
+                alert("This criterion already exists.");
+                return;
+            }
+
+            customCriteria.push(newCriteria);
+            renderCriteriaList();
+            criteriaInput.value = ""; // Clear the input field.
+        }
+
+        // Function to remove a criterion by index.
+        function removeManualCriteria(index) {
+            if (index < 0 || index >= customCriteria.length) {
+                console.error("Invalid index for manual criteria:", index);
+                return;
+            }
+
+            customCriteria.splice(index, 1); // Remove the criterion.
+            renderCriteriaList();
+        }
+
+        // Initialize the page on DOMContentLoaded.
+        document.addEventListener("DOMContentLoaded", () => {
+            renderCriteriaList(); // Initial render.
+
+            document.getElementById("add-criteria-btn").addEventListener("click", addManualCriteria);
         });
+
 
     </script>
 </body>

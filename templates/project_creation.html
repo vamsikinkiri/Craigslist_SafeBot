@@ -5,12 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
 
     <title>Project Creation</title>
     <style>
+
+        #criteria-list, #criteria-list span {
+            font-family: 'Dancing Script', cursive;
+        }
         /* Global Reset */
-        * {
+        *{
             box-sizing: border-box;
             margin: 0;
             padding: 0;
@@ -129,6 +133,21 @@
         textarea {
             width: 100%;
             padding: 12px;
+            margin: 10px 0;
+            padding-right: 35px;
+            border: none;
+            border-radius: 15px;
+            background-color: #e7eef0;
+            font-size: 16px;
+            color: #3b3b3b;
+            outline: none;
+            transition: background-color 0.3s;
+            resize: None;
+        }
+
+        .custom-input {
+            width: 100%;
+            padding: 12px;
             margin: 12px 0;
             padding-right: 35px;
             border: none;
@@ -140,12 +159,19 @@
             transition: background-color 0.3s;
             resize: None;
         }
+
+        .custom-select {
+            cursor: pointer;
+            display: flex;
+        }
+        .custom-select:hover {
+            cursor: pointer;
+        }
         .info-icon {
             cursor: pointer;
         }
         /* Icon inside the input-wrapper */
         .info-icon {
-            /* position: relative; Changes positioning to relative */
             top: auto; /* Removes fixed vertical positioning */
             transform: none; /* Removes transform property */
             right: 0; /* Aligns it properly with the input field */
@@ -262,13 +288,14 @@
             color: #333; /* Adjust text color for better visibility */
             margin-bottom: 10px; /* Adds spacing below the legend */
             text-align: left; /* Aligns the legend text to the left */
+            margin-top: 10px;
         }
 
 
         .input-wrapper {
             display: flex; /* Aligns the input and info-icon side by side */
             align-items: center; /* Centers elements vertically */
-            /* position: relative; Keeps .info-icon relative to this wrapper */
+
             margin: 10px 0; /* Ensures consistent spacing for input fields */
         }
 
@@ -508,7 +535,6 @@
         .frequency-box-wrapper {
             display: flex;
             align-items: center;
-            position: relative;
         }
 
         .logout-button {
@@ -613,8 +639,52 @@
             background-color: #c82333;
         }
 
+        #criteria-list {
+            text-align: left;
+            margin-top: 10px;
+            font-family: 'Dancing Script', cursive !important; /* Force cursive font */
+            font-size: 16px;
+            color: #333;
+        }
+        #criteria-list .bullet {
+            font-size: 20px;
+            color: #555;
+            margin-right: 8px;
+        }
+
+        #criteria-list div {
+            margin-bottom: 8px; /* Adds spacing between each line */
+            display: flex;
+            align-items: flex-start; /* Align bullet points */
+        }
+
+        #criteria-list .bullet {
+            font-size: 18px;
+            margin-right: 8px;
+            color: #555; /* Slightly lighter bullet point */
+        }
+
+        .inline-fields {
+            display: flex; /* Use Flexbox */
+            gap: 20px; /* Space between age and sex fields */
+            margin-bottom: 15px; /* Add spacing below */
+        }
+
+        .input-group {
+            flex: 1; /* Make both inputs take equal width */
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+            font-size: 16px;
+            color: #444;
+        }
+
+
     </style>
-    
+
 </head>
 <body>
 <div class="header">
@@ -646,13 +716,13 @@
     <form action="{{ url_for('project_creation') }}" method="POST">
         <fieldset>
             <legend>Project Information</legend>
-            <input type="text" name="project_name" placeholder="Project Name" id="project-name" 
-            title="Provide a unique name relating to the crime for this project." required>
-            <input type="text" name="email" placeholder="Email ID" id="email" 
-            title="Enter the email address associated with the Craigslist advertisement. This email will be used to send and receive communications." required>
+            <input type="text" name="project_name" placeholder="Project Name" id="project-name"
+                   title="Provide a unique name relating to the crime for this project." required>
+            <input type="text" name="email" placeholder="Email ID" id="email"
+                   title="Enter the email address associated with the Craigslist advertisement. This email will be used to send and receive communications." required>
             <div class="input-wrapper">
-                <input type="password" name="password" placeholder="Password (App Password)" id="password" 
-                title="Enter the app-specific password for the email ID. Click on i to understand how to generate the password" required>
+                <input type="password" name="password" placeholder="Password (App Password)" id="password"
+                       title="Enter the app-specific password for the email ID. Click on i to understand how to generate the password" required>
                 <span class="info-icon" onclick="toggleTooltip()">
                     <i class="fas fa-info-circle"></i>
                     <span class="tooltip" id="tooltip">
@@ -664,11 +734,11 @@
         </fieldset>
         <fieldset>
             <legend>Safe Bot Settings</legend>
-            <textarea name="ai_prompt_text" rows="3" placeholder="Instructions to Safe Bot" 
-            title="Provide specific instructions or preferences for the SafeBot’s behavior and responses. This can include tone, content guidelines, or restrictions."></textarea>
+            <textarea name="ai_prompt_text" rows="3" placeholder="Instructions to Safe Bot"
+                      title="Provide specific instructions or preferences for the SafeBot’s behavior and responses. This can include tone, content guidelines, or restrictions."></textarea>
             <div class="input-wrapper">
-                <input type="number" id="response_frequency" name="response_frequency" placeholder="Response Frequency in Minutes (Default: 10)" min="1" 
-                title="Specify roughly how often (in minutes) the bot should check for new emails and respond automatically." style="margin-top: 10px;">
+                <input type="number" id="response_frequency" name="response_frequency" placeholder="Response Frequency in Minutes (Default: 10)" min="1"
+                       title="Specify roughly how often (in minutes) the bot should check for new emails and respond automatically." style="margin-top: 10px;">
             </div>
         </fieldset>
 
@@ -676,13 +746,13 @@
             <legend>Engagement Thresholds</legend>
             <div class="field-wrapper">
                 <input type="number" id="lower_threshold" name="lower_threshold"
-                class="threshold-box" placeholder="Automated engagement threshold (Default: 0)"
-                min="0" title="The minimum score required to initiate automated responses for this project.">
+                       class="threshold-box" placeholder="Automated engagement threshold (Default: 0)"
+                       min="0" title="The minimum score required to initiate automated responses for this project.">
             </div>
             <div class="field-wrapper">
                 <input type="number" id="upper_threshold" name="upper_threshold"
-                class="threshold-box" placeholder="Manual Engagement Threshold (Default: 75)"
-                min="1" title="The score above which the system switches to manual intervention mode and intimate the admins to send responses.">
+                       class="threshold-box" placeholder="Manual Engagement Threshold (Default: 75)"
+                       min="1" title="The score above which the system switches to manual intervention mode and intimate the admins to send responses.">
             </div>
         </fieldset>
 
@@ -692,7 +762,7 @@
                 <label for="authorized_emails"></label>
                 <div class="field-wrapper">
                     <input type="email" id="email_input" class="authorized-emails-box" placeholder="Authorized emails"
-                    title="List the email addresses that have permission to view, modify, or delete this project. Add multiple emails if needed.">
+                           title="List the email addresses that have permission to view, modify, or delete this project. Add multiple emails if needed.">
                     <button type="button" class="add-keyword-btn" onclick="addEmail()">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -703,15 +773,15 @@
             </div>
         </fieldset>
         <input type="hidden" name="authorized_emails" id="authorized-emails-input">
-        
+
         <fieldset>
             <legend>Keyword Prioritization</legend>
             <div class="keyword-frequency-wrapper">
                 <input type="text" id="keyword-input" placeholder="Keyword" class="keyword-box"
-                title="Enter keywords that the bot will look for in emails to prioritize responses.">
+                       title="Enter keywords that the bot will look for in emails to prioritize responses.">
                 <div class="frequency-box-wrapper">
-                    <input type="number" id="keyword-frequency" name="keyword-frequency" placeholder="Frequency" min="1" 
-                    title="Define the maximum number of times the keyword needs to appear in email threads." class="frequency-box">
+                    <input type="number" id="keyword-frequency" name="keyword-frequency" placeholder="Frequency" min="1"
+                           title="Define the maximum number of times the keyword needs to appear in email threads." class="frequency-box">
                     <button type="button" class="add-keyword-btn" onclick="addKeyword()">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -724,6 +794,56 @@
             </div>
         </fieldset>
         <input type="hidden" name="keywords_data" id="keywords-input">
+
+        <fieldset>
+            <legend>Interaction Settings</legend>
+            <!-- Posed Name -->
+            <input type="text" id="posed_name" name="posed_name" placeholder="Enter posed name"
+                   title="Enter the alias or name being used for interaction.">
+            <!-- Posed Age -->
+            <div class="inline-fields">
+                <div class="input-group">
+                    <input type="number" id="posed_age" name="posed_age" placeholder="Enter posed age" min="1" max="99"
+                           class="custom-input" title="Provide the age to be posed during interaction.">
+                    <!-- Posed Sex -->
+                    <select id="posed_sex" name="posed_sex" class="custom-input custom-select" title="Provide the gender to be posed during interaction.">
+                        <option value="" disabled selected>Select</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Posed Location -->
+            <input type="text" id="posed_location" name="posed_location" placeholder="Enter posed location"
+                   title="Enter the location being used in the interaction.">
+
+                <legend>Switch Manual Criterias:</legend>
+                <div id="criteria-list">
+                    <!-- Render default criteria -->
+                    {% for criteria in default_switch_manual_criterias %}
+                        <div>
+                            <span class="bullet">•</span>
+                            <span>{{ criteria }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Add Custom Condition -->
+                <div class="keyword-frequency-wrapper" style="margin-top: 10px;">
+                    <!-- Text Input for New Criteria -->
+                    <input type="text" id="new_criteria" placeholder="Add a new condition" class="keyword-box"
+                           title="Enter additional manual switch conditions.">
+                    <!-- Add Button -->
+                    <button type="button" class="add-keyword-btn" onclick="addManualCriteria()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+
+                <!-- Hidden Input to Store All Criteria -->
+                <input type="hidden" id="criteria-data" name="criteria_data" value="[]">
+        </fieldset>
 
         <div class="button-container">
             <a href="{{ url_for('all_projects_view') }}">
@@ -890,6 +1010,69 @@
         }
         return true;
     }
+
+    let criteriaData = [];
+    const defaultCriteria = {{ default_switch_manual_criterias | tojson }};
+    const customCriteria = JSON.parse(document.getElementById('criteria-data').value || '[]');
+
+    function addManualCriteria() {
+        const criteriaInput = document.getElementById('new_criteria');
+        const criteriaList = document.getElementById('criteria-list');
+        const hiddenInput = document.getElementById('criteria-data');
+
+        const newCriterion = criteriaInput.value.trim();
+        if (!newCriterion) {
+            alert('Please enter a valid criterion.');
+            return;
+        }
+
+        // Check if the criterion already exists
+        const existingCriteria = JSON.parse(hiddenInput.value || '[]');
+        if (existingCriteria.includes(newCriterion)) {
+            alert('This criterion already exists.');
+            return;
+        }
+
+        // Add the new criterion visually
+        const criterionDiv = document.createElement('div');
+        criterionDiv.innerHTML = `
+        <span class="bullet">•</span>
+        <span>${newCriterion}</span>
+    `;
+        criteriaList.appendChild(criterionDiv);
+
+        // Update hidden input field with combined criteria
+        existingCriteria.push(newCriterion);
+        hiddenInput.value = JSON.stringify(existingCriteria);
+
+        // Clear the input field
+        criteriaInput.value = '';
+    }
+
+    function renderCriteriaList(defaultCriteria, customCriteria = []) {
+        const criteriaList = document.getElementById('criteria-list');
+        criteriaList.innerHTML = ''; // Clear existing list
+
+        // Combine default and custom criteria
+        const allCriteria = [...defaultCriteria, ...customCriteria];
+
+        allCriteria.forEach(criteria => {
+            const newDiv = document.createElement('div');
+            newDiv.innerHTML = `
+            <span class="bullet">•</span>
+            <span>${criteria}</span>
+        `;
+            criteriaList.appendChild(newDiv);
+        });
+
+        // Update hidden input to include all criteria
+        const hiddenInput = document.getElementById('criteria-data');
+        hiddenInput.value = JSON.stringify(customCriteria);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCriteriaList(defaultCriteria, customCriteria);
+        });
 
 </script>
 
