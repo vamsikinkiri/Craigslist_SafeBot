@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
     <title>CRAIGSLIST SAFEBOT</title>
 
     <style>
@@ -934,6 +936,43 @@
             z-index: 10;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
         }
+        .reply-icon {
+            position: relative;
+            text-decoration: none;
+            color: #164679; /* Primary color for the icon */
+            font-size: 20px; /* Adjust icon size */
+            margin-left: 10px;
+        }
+
+        .reply-icon:hover {
+            color: #083564; /* Darker color on hover */
+            cursor: pointer;
+        }
+
+        .reply-icon::after {
+            content: attr(title); /* Tooltip text from the title attribute */
+            position: absolute;
+            top: -35px; /* Position above the icon */
+            left: 50%; /* Center align the tooltip */
+            transform: translateX(-50%);
+            background-color: #333; /* Dark background for tooltip */
+            color: #fff; /* White text */
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap; /* Prevent wrapping */
+            z-index: 1000; /* Ensure tooltip is on top */
+            opacity: 0; /* Initially hidden */
+            pointer-events: none; /* Prevent tooltip from blocking mouse events */
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .reply-icon:hover::after {
+            opacity: 1; /* Show tooltip on hover */
+        }
+
+
+
 
     </style>
 </head>
@@ -1070,6 +1109,15 @@
                             title="Indicates how suspicious this thread is based on the target profile (scored out of 100)" 
                             style="width: 20%; text-align: right;">
                             Score: {{ conversations_score.get(key, '0') }}
+                            </div>
+                            <!-- Corrected: Display one Reply Icon per thread -->
+                            <div class="button-box">
+                                <a href="{{ url_for('email_thread_reply', thread_id=key) }}"
+                                    class="reply-icon"
+                                    title="Reply"
+                                    onclick="event.stopPropagation();">
+                                    <i class="fas fa-reply"></i>
+                                </a>
                             </div>
                             <div class="button-box">
                                 <label class="toggle-switch" title="Click on this to toggle AI response state between automated and manual. (Automated: Green | Manual: Red)">

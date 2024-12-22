@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
+    <title>Email Thread:{{ emails[0]['subject'] }}</title>
+    <style>
+    .container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    }
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #eaeaea;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .email-thread {
+    margin-bottom: 20px;
+    }
+
+    .email {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    }
+
+    .reply-box {
+    margin-top: 20px;
+    }
+
+    textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: vertical;
+    }
+
+    button {
+    margin-top: 10px;
+    }
+    .email-container {
+        background-color: #ffffff;
+        padding: 40px 50px;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        width: 90%;
+        max-width: 1020px;
+        margin: 100px auto 0; /* Push content below header */
+        margin-top: 10px; /* Reduced margin-top */
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        box-sizing: border-box;
+        position: relative;
+    }
+
+    .email-chain-container {
+        background-color: #ffffff;
+        padding: 35px 35px;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        max-height: 400px; /* Set fixed height for scrolling */
+        overflow-y: auto; /* Enable vertical scrolling */
+        margin-top: 10px; /* Reduced margin-top */
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        box-sizing: border-box;
+        position: relative;
+    }
+
+    .email {
+        margin-bottom: 10px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #fff;
+    }
+
+    .email:nth-child(odd) {
+        background-color: #f0f0f0;
+    }
+
+    .scroll-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .scroll-buttons button {
+        background-color: #007195;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s ease;
+    }
+
+    .scroll-buttons button:hover {
+        background-color: #134258;
+    }
+
+    .reply-form-container {
+        padding: 15px;
+        border-top: 1px solid #ccc;
+        background-color: #fff;
+    }
+
+    .reply-form-container textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        resize: none; /* Prevent resizing */
+        margin-bottom: 10px;
+        height: 100px;
+    }
+
+    .reply-form-container button {
+        background-color: #007195;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .reply-form-container button:hover {
+        background-color: #134258;
+    }
+    header {
+        background-color: #134258;
+        color: white;
+        padding: 20px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        font-size: 28px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        text-decoration: none;
+    }
+    .header-title {
+        flex: 1;
+        text-align: center;
+        font-size: 34px;
+        margin-right: 10%;
+        text-decoration: none;
+    }
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+        font-size: 24px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .container {
+        background-color: #ffffff;
+        padding: 40px 50px;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        width: 90%;
+        max-width: 1020px;
+        margin-top: 10px; /* Reduced margin-top */
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        box-sizing: border-box;
+        position: relative;
+    }
+    .toggle-button {
+        background: none;
+        border: none;
+        color: #106f8d;
+        font-size: 32px;
+        cursor: pointer;
+        padding: 0;
+    }
+    .logout-button {
+        background: none;
+        border: none;
+        color: #ffffff;
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        margin-right: 30px;
+    }
+    /* Add margins to position Home and Logout */
+    .left a {
+        margin-left: 20px; /* Push Home button to the right */
+        color: white;
+        font-size: 20px;
+        font-weight: bold;
+        text-decoration: none;
+    }
+
+    .left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    .settings-button .icon, .logout-button .icon{
+        margin-right: 10px;
+        font-size: 20px;
+    }
+
+    .right {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    .header .settings:hover .dropdown {
+        display: block;
+    }
+
+    .header .settings .dropdown a {
+        display: block;
+        padding: 8px 15px;
+        color: #333;
+        text-decoration: none;
+    }
+
+    .header .settings .dropdown a:hover {
+        background-color: #eaeaea;
+        text-decoration: none;
+    }
+    .settings-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .settings-button {
+        background: none;
+        border: none;
+        color: #ffffff;
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        padding: 0;
+        margin-right: 20px;
+        text-decoration: none;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        right: 0;
+        background-color: #ffffff;
+        min-width: 250px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+        z-index: 1;
+        font-size: 18px;
+    }
+
+    .dropdown-content a {
+        color: #333;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        transition: background-color 0.3s;
+    }
+
+    .dropdown-content a:hover {
+        background-color: #eaeaea;
+    }
+
+    .dropdown-content a:hover {
+        background-color: #eaeaea;
+    }
+
+    .settings-dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    .header {
+        display: flex;
+        align-items: center;
+        background-color: #0096c7;
+        padding: 15px;
+        font-size: 20px;
+        color: #ffffff;
+    }
+
+    .nav-item {
+        margin-right: 20px;
+        position: relative;
+    }
+
+    .nav-item a {
+        text-decoration: none;
+        color: #ffffff;
+        font-weight: bold;
+        padding: 10px;
+    }
+
+    .nav-item .icon {
+        margin-right: 8px;
+        font-size: 20px;
+    }
+
+    .user-profiles-button {
+        background: none;
+        border: none;
+        color: #ffffff;
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        padding: 0;
+    }
+
+    .user-profiles-button .icon {
+        margin-right: 8px;
+    }
+
+    /* Sidebar styling with a complementary color */
+    .sidebar {
+        width: 250px;
+        background-color: #ffffff; /* Light complementary color */
+        color: #333;
+        padding: 20px;
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        position: fixed;
+        top: 80px;
+        left: -250px;
+        height: 100%;
+        transition: left 0.3s ease;
+        z-index: 999;
+        border-right: 1px solid #e0e0e0;
+    }
+    .sidebar.active {
+        left: 0;
+    }
+    .sidebar h2 {
+        font-size: 30px;
+        margin-bottom: 20px;
+        font-weight: 700;
+        color: #0a597e; /* Matching color to the header for branding consistency */
+        text-align: center;
+    }
+    .sidebar-item {
+        color: #333;
+        padding: 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background-color 0.3s;
+        margin-bottom: 10px;
+        font-size: 20px;
+        font-weight: 600;
+        margin-top: 10px;
+        text-decoration: none;
+    }
+    .sidebar-item:hover {
+        background-color: #eaeaea;
+    }
+    .dropdown-menu {
+        display: none;
+        padding-left: 20px;
+        margin-top: 8px;
+    }
+    .menu-icon {
+        font-size: 24px;
+        cursor: pointer;
+        margin-right: auto;
+    }
+    .dropdown-item {
+        color: #555;
+        padding: 8px 0;
+        cursor: pointer;
+    }
+    .dropdown-item:hover {
+        color: #eaeaea;
+    }
+    .filters-container {
+        display: none; /* Set to 'none' if you want filters hidden by default */
+        margin-bottom: 20px;
+    }
+
+    .email-list {
+        margin-top: 20px;
+    }
+    .project-title {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 10px; /* Space above the container */
+        font-size: 30px;
+        font-weight: bold;
+        color: #134258; /* Match theme color */
+    }
+    .switch-projects-btn {
+        background-color: #134258;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        text-decoration: none;
+        margin-left: 20px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: background-color 0.3s ease;
+    }
+    /* Styling for the archive button */
+    .archive-button {
+        background: None;
+        color: #106f8d;
+        padding: 0px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 18px;
+        transition: background-color 0.3s;
+        margin-left: 10px;                  /* Add some space between toggle button and archive button */
+        display: flex;                      /* Flex to align icon and text */
+        align-items: center;
+        gap: 5px;                           /* Space between icon and text */
+    }
+
+    .archive-button:hover {
+        background-color: #c3ccd0;
+        padding: 3px;
+    }
+    .bot-icon {
+        font-size: 16px;
+        color: #007195; /* Blue color matching the theme */
+        margin-left: 5px; /* Space between the icon and the text */
+        cursor: help; /* Show a help cursor when hovered */
+    }
+    .bot-icon:hover {
+        color: #134258; /* Darker shade on hover */
+    }
+    .bot-icon-container:hover .bot-icon {
+        color: #007bff; /* Highlight on hover */
+    }
+
+    /* Tooltip Styling */
+    .bot-icon-container[title] {
+        position: relative;
+    }
+
+    .bot-icon-container[title]:hover::after {
+        content: attr(title);
+        position: absolute;
+        left: 50%;
+        top: 120%;
+        transform: translateX(-50%);
+        background: #333;
+        color: #fff;
+        padding: 5px 10px;
+        border-radius: 5px;
+        white-space: nowrap;
+        font-size: 12px;
+        z-index: 1000;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    }
+    /* Toolbar styles */
+    .toolbar {
+        background-color: #f5f5f5; /* Light background color */
+        border-bottom: 1px solid #ccc; /* Subtle border */
+        padding-top: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        width: 100%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Slight shadow for separation */
+    }
+
+    .toolbar-content {
+        max-width: 1200px;
+        margin-left: auto; /* Push the content to the extreme right */
+        margin-right: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    .toolbar-link {
+        color: #134258; /* Theme color for links */
+        font-size: 18px;
+        font-weight: bold;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 5px; /* Space between icon and text */
+        padding-right: 5px;
+        padding-bottom: 12px;
+    }
+
+    .toolbar-link:hover {
+        color: #007195; /* Slightly lighter theme color on hover */
+        text-decoration: none;
+    }
+
+    .toolbar-link i {
+        font-size: 20px;
+
+    }
+    .sort-container {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 90px;
+        margin: -18px 7px;
+        font-size: 16px;
+        color: #134258; /* Match theme color */
+        margin-top: 10px;
+    }
+
+    .sort-button {
+        background: none;
+        border: none;
+        font-size: 16px;
+        font-weight: bold;
+        color: #134258;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .sort-button:hover {
+        color: #007195;
+        background-color: #e4e9eb;
+    }
+
+    .sort-button i {
+        font-size: 12px;
+        color: inherit;
+        margin-left: 5px;
+    }
+    .email-thread-label {
+        display: flex;
+        font-size: 16px;
+        font-weight: bold;
+        color: #134258;
+        margin: 10px 0;
+        text-decoration: none;
+        position: relative;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .email-thread-label:hover::after {
+        position: absolute;
+        top: 120%; /* Adjust the position below the label */
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #333; /* Tooltip background color */
+        color: #fff; /* Tooltip text color */
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        white-space: nowrap; /* Prevent text wrapping */
+        z-index: 10;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+    .reply-icon {
+        position: relative;
+        text-decoration: none;
+        color: #007bff; /* Primary color for the icon */
+        font-size: 20px; /* Adjust icon size */
+        margin-left: 10px;
+    }
+
+    .reply-icon:hover {
+        color: #0056b3; /* Darker color on hover */
+        cursor: pointer;
+    }
+
+    .reply-icon::after {
+        content: attr(title); /* Tooltip text from the title attribute */
+        position: absolute;
+        top: -35px; /* Position above the icon */
+        left: 50%; /* Center align the tooltip */
+        transform: translateX(-50%);
+        background-color: #333; /* Dark background for tooltip */
+        color: #fff; /* White text */
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        white-space: nowrap; /* Prevent wrapping */
+        z-index: 1000; /* Ensure tooltip is on top */
+        opacity: 0; /* Initially hidden */
+        pointer-events: none; /* Prevent tooltip from blocking mouse events */
+        transition: opacity 0.3s ease-in-out;
+    }
+
+    .reply-icon:hover::after {
+        opacity: 1; /* Show tooltip on hover */
+    }
+
+
+
+</style>
+</head>
+<body>
+<header>
+    <i class="fas fa-bars menu-icon" onclick="toggleSidebar()"></i>
+    <div class="left">
+        <a href="{{ url_for('index') }}" class="nav-item">
+            <i class="fas fa-home icon"></i> Home
+        </a>
+        <!-- Switch Projects Button -->
+        <a href="{{ url_for('all_projects_view') }}" class="btn switch-projects-btn">
+            <i class="fas fa-exchange-alt"></i> Switch Projects
+        </a>
+    </div>
+    <div class="header-title">Craigslist Safebot</div>
+    <!-- Logout Button on the right -->
+    <div class="right">
+        <div class="settings-button">
+            <a href="{{ url_for('update_account_profile') }}" class="settings-button">
+                <i class="fas fa-cog icon"></i> Manage Profile
+            </a>
+        </div>
+        <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
+            <button class="logout-button">
+                <i class="fas fa-sign-out-alt icon"></i> Logout
+            </button>
+        </form>
+    </div>
+</header>
+
+<div class="toolbar">
+    <div class="toolbar-content">
+        <a href="{{ url_for('update_project') }}" class="toolbar-link">
+            <i class="fas fa-cog"></i> Project Settings
+        </a>
+    </div>
+</div>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-item" onclick="window.location.href='{{ url_for('user_profiles') }}'">
+        Suspect Profiles
+    </div>
+    <a href="{{ url_for('view_archived_emails') }}" class="sidebar-item">
+        Archived Emails
+    </a>
+</div>
+
+<div class="email-container">
+    <!-- Subject Line as Title -->
+    <div class="subject-title">{{ emails[0]['subject'] }}</div>
+    <!-- Email Chain -->
+    <div class="email-chain-container" id="emailChainContainer">
+        <div class="email-thread">
+            {% for email in emails %}
+                <div class="email">
+                    <p><strong>From:</strong> {{ email['from'] }}</p>
+                    <p><strong>To:</strong> {{ email['to'] }}</p>
+                    <p><strong>Subject:</strong> {{ email['subject'] }}</p>
+                    <p><strong>Date:</strong> {{ email['date'] }}</p>
+                    <p>{{ email['content'] }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Scroll Buttons -->
+    <div class="scroll-buttons">
+        <button onclick="scrollToTop()">Scroll to Top</button>
+        <button onclick="scrollToBottom()">Scroll to Bottom</button>
+    </div>
+
+    <!-- Fixed Reply Form -->
+    <div class="reply-form-container">
+        <form method="POST" action="{{ url_for('send_reply', thread_id=thread_id) }}">
+            <textarea name="reply_content" placeholder="Type your reply here..." required></textarea>
+            <button type="submit" class="btn btn-primary">Send Reply</button>
+        </form>
+    </div>
+
+    <!-- Back to Dashboard -->
+    <div class="navigation">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+
+</body>
+</html>
+
+<script>
+
+    function scrollToTop() {
+        const container = document.getElementById('emailChainContainer');
+        container.scrollTop = 0; // Scroll to the top
+    }
+
+    function scrollToBottom() {
+        const container = document.getElementById('emailChainContainer');
+        container.scrollTop = container.scrollHeight; // Scroll to the bottom
+    }
+
+    function redirectToView(view) {
+        switch (view) {
+            case 'user_profiles':
+                window.location.href = '{{ url_for("user_profiles") }}';
+                break;
+            case 'archived_emails':
+                window.location.href = '{{ url_for("view_archived_emails") }}';
+                break;
+            default:
+                window.location.href = '{{ url_for("index") }}';
+                break;
+        }
+    }
+
+    function toggleDropdown(id) {
+        const dropdown = document.getElementById(id);
+        const isVisible = dropdown.style.display === 'block';
+
+        // Hide all dropdowns before toggling the current one
+        document.querySelectorAll('.dropdown-content').forEach(content => {
+            content.style.display = 'none';
+        });
+
+        // Toggle the current dropdown's visibility
+        dropdown.style.display = isVisible ? 'none' : 'block';
+    }
+    // Toggle sidebar visibility
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('active');
+    }
+    function toggleEmailChain(chainId, element) {
+        console.log("Toggling email chain:", chainId); // Debugging
+        const content = document.getElementById(chainId);
+
+        if (!content) {
+            console.error("No content element found with id:", chainId);
+            return;
+        }
+
+        // Toggle visibility
+        const isHidden = content.style.display === 'none' || !content.style.display;
+        content.style.display = isHidden ? 'block' : 'none';
+
+        console.log(`Content for ${chainId} is now ${isHidden ? 'visible' : 'hidden'}`);
+    }
+
+</script>

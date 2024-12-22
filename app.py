@@ -859,6 +859,66 @@ def unarchiving_emails():
         return jsonify({"success": False, "message": message}), 500
 
 
+# Updated backend route
+@app.route('/email_thread_reply/<thread_id>', methods=['GET'])
+@login_required
+def email_thread_reply(thread_id):
+    # Fetch the email thread by ID
+    success, emails = email_handler.fetch_email_by_thread_id(
+        user=session['email'],
+        password=session['app_password'],
+        current_thread_id=thread_id
+    )
+    if not success:
+        flash(emails, "error")
+        return redirect(url_for('index'))
+
+    # Render the email thread view
+    return render_template('email_thread_reply.html', thread_id=thread_id, emails=emails)  # Updated file name
+
+@app.route('/send_reply/<thread_id>', methods=['POST'])
+@login_required
+def send_reply(thread_id):
+    reply_content = request.form.get('reply_content')
+    if not reply_content:
+        flash("Reply content cannot be empty.", "error")
+        return redirect(url_for('email_thread_reply', thread_id=thread_id))
+
+    # Fetch the latest email in the thread
+    success, emails = email_handler.fetch_email_by_thread_id(
+        user=session['email'],
+        password=session['app_password'],
+        current_thread_id=thread_id
+    )
+    if not success:
+        flash(emails, "error")
+        return redirect(url_for('email_thread_reply', thread_id=thread_id))
+
+    # Send the reply
+    latest_email = emails[-1]  # Use the most recent email in the chain
+    email_handler.send_email(
+        from_address=session['email'],
+        app_password=session['app_password'],
+        to_address=latest_email['from'],
+        content=reply_content,
+        references=latest_email.get('references', []),
+        message_id=latest_email.get('message_id'),
+        subject="Re: " + latest_email.get('subject', "No Subject")
+    )
+
+    # Refresh the email thread to include the new reply
+    success, updated_emails = email_handler.fetch_email_by_thread_id(
+        user=session['email'],
+        password=session['app_password'],
+        current_thread_id=thread_id
+    )
+    if success:
+        emails = updated_emails
+
+    flash("Reply sent successfully!", "success")
+    return render_template('email_thread_reply.html', emails=emails, thread_id=thread_id)
+
+
 @app.route('/', methods=['GET'])
 @login_required
 def index():
