@@ -12,6 +12,7 @@ from response_generator import ResponseGenerator
 from email_handler import EmailHandler
 from user_profiling import UserProfiling
 from knowledge_base import KnowledgeBase
+from string import Template
 
 knowledge_base = KnowledgeBase()
 interaction_profiling = InteractionProfiling()
@@ -82,7 +83,7 @@ class EmailProcessor:
             return
         
         # logging.info(f"PROJECT: {project_details}")
-        # project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, last_updated  = project_details
+        # project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, project_type, last_updated  = project_details
 
         self._update_email_thread(email, thread_id, session_email, project_details, score, seen_keywords)
         # Determine and act on the AI response state
@@ -131,6 +132,7 @@ class EmailProcessor:
         lower_threshold = project_details[8]
         upper_threshold = project_details[9]
         authorized_emails = project_details[10]
+        project_type = project_details[16]
 
         if ai_state == 'Manual':
             # Notify all the authorized admins
@@ -195,6 +197,9 @@ class EmailProcessor:
 
         logging.info(f"Email received time: {email_received_time}, current time: {current_time}, send time: {send_time}, response_frequency: {randomized_response_frequency}")
 
+        # To generate response immediately
+        # self.generate_and_send_response(project_details, email, conversation_history, session_email, thread_id, score)
+
         if (send_time - current_time).total_seconds() <= 0:
             # If delay is negative or zero, send the reply immediately
             self.generate_and_send_response(project_details, email, conversation_history, session_email, thread_id, score)
@@ -217,45 +222,30 @@ class EmailProcessor:
         admin_prompt = project_details[4] 
         authorized_emails = project_details[10]
         switch_manual_criterias = project_details[15]
+        project_type = project_details[16]
         posed_details = self.get_posed_details(project=project_details)
         previous_conversations = "\n".join(conversation_history)
 
         # Step 2: Get the content of the current email, generate the prompts and call the LLM
         email_content = email['content']
 
-        base_prompt = (
-            f"{admin_prompt}\n\n"
-            f"The following is an email conversation between the suspect (potential criminal) and an AI assistant. "
-            f"The suspect does not know they are having a conversation with an AI assistant.\n\n"
-            f"{previous_conversations}\n\n"  
-        )
+        dynamic_vars = {
+            "admin_prompt": admin_prompt,
+            "previous_conversations": previous_conversations,
+            "scenario_instructions": "\n".join(f"{i}. {criteria}" for i, criteria in enumerate(switch_manual_criterias, 1)),
+            "email_content": email_content,
+            "posed_details": posed_details,
+        }
 
-        scenario_prompt, response_prompt = base_prompt, base_prompt
-
-        scenario_prompt += (
-            "TASK: Check for Manual Switch Scenarios (No need to generate a response email)\n"
-            "\nINSTRUCTIONS FOR THE TASK\n"
-            "Carefully read the entire conversation provided and evaluate ONLY the current content of the conversation. "
-            "DO NOT make predictions or assumptions about what might happen in future conversations.\n\n"
-            "Just check the scenario as it is, do not think on your own whether it is a red flag or not. " 
-            "If the exact scenario happens, for example the suspect did not stop the conversation after discovering our age (asking does not imply discovering) or if the suspect asks for our picture, it is a red flag. "  
-            "IMPORTANT: If there is even the slightest doubt, you must assume the scenario has NOT occurred.\n"
-        )
-
-        for i, criteria in enumerate(switch_manual_criterias, 1):
-            scenario_prompt += f"{i}. {criteria}\n"
-
-        scenario_prompt += (
-            "These are the instructions to what I am expecting from you: \n"
-            "1. If one or more of the above scenarios have occurred, print exactly the phrase: 'Manual Switch needs to happen' ONLY if at least one scenario has occurred.\n" 
-            "2. If no scenarios have occurred, print exactly the phrase: 'Automated reply should be generated' ONLY if no scenarios has occurred. Then ignore the rest of this prompt and finish the task.\n"
-            "3. Explain where exactly the scenarios happened.\n"
-            "4. Immediately after this, list the specific scenario(s) that occurred.\n"
-        )
-
+        success, replaced_prompts = self.get_project_type_prompts_with_dynamic_vars(project_type, dynamic_vars)
+        if success:
+            scenario_prompt = replaced_prompts["scenario_prompt"]
+            response_prompt = replaced_prompts["response_prompt"]
+        else:
+            logging.error(replaced_prompts)
+        
         response_text = response_generator.generate_response(scenario_prompt)
-
-        logging.info(f"!!!!!!!!!!!!!!!!!!!!!!!!!! LLM Evaluation Result: !!!!!!!!!!!!!!!!!!!!!!!!!!\n{response_text}")
+        # logging.info(f"!!!!!!!!!!!!!!!!!!!!!!!!!! LLM Evaluation Result: !!!!!!!!!!!!!!!!!!!!!!!!!!\n{response_text}")
 
         if "Manual Switch needs to happen" in response_text:
             # Print matching scenarios
@@ -274,23 +264,8 @@ class EmailProcessor:
                 self._notify_admin(project_name, admin_email, session_email, app_password, email, "", score, thread_id, threshold_exceeded=True)
             return
 
-        response_prompt += (
-            "TASK: Generate a Response Email.\n"
-            "INSTRUCTIONS FOR TASK:\n"
-            f"IMPORTANT: You are pretending to be this person: {posed_details}. If the suspect asks for personal information, "
-            f"you are responding as this individual. Maintain this persona in all your replies.\n\n"
-            "1. Use the following email content as the suspect's latest message:\n"
-            f"{email_content}\n\n"
-            "2. Understand the entire conversation and generate a response that seems natural, human-like, and appropriate for a young person.\n"
-            "3. The response should:\n"
-            "   - Continue the facade that you are a young person looking to have a good time.\n"
-            "   - Show interest in the conversation, but not be overly eager.\n"
-            "4. Start the response with 'Hello', followed by the content of the email.\n"
-            "5. Very Important: Only output the response content to be sent, and nothing else.\n\n"            
-        )
-
+        # No scenarios matched, generating a response
         response_text = response_generator.generate_response(response_prompt)
-
         # logging.info(f"!!!!!!!!!!!!!!!!!!!!!!!!!! LLM Evaluation Result !!!!!!!!!!!!!!!!!!!!!!!!!!:\n{response_text}")
 
         # Step 3: Send the response as a reply and include the original email as quoted content
@@ -322,6 +297,32 @@ class EmailProcessor:
             subject="Re: " + subject
         )
         logging.info(f'*'*10 + f"Response successfully sent to {to_address}" + "*"*10)
+    
+
+    def get_project_type_prompts_with_dynamic_vars(self, project_type, dynamic_vars):
+        """
+        Get the prompts for a given project type and replace placeholders with dynamic variables.
+        """
+        success, prompts = knowledge_base.get_project_type_prompts(project_type=project_type)
+        if not success:
+            logging.info(prompts, "error")  # Display error message if fetching fails
+            return
+        try:
+            base_template = Template(prompts["base_prompt"])
+            scenario_template = Template(prompts["scenario_prompt"])
+            response_template = Template(prompts["response_prompt"])
+
+            # Substitute placeholders with dynamic variables
+            base_prompt = base_template.safe_substitute(dynamic_vars)
+            dynamic_vars['base_prompt'] = base_prompt
+            replaced_prompts = {
+                "scenario_prompt": scenario_template.safe_substitute(dynamic_vars),
+                "response_prompt": response_template.safe_substitute(dynamic_vars),
+            }
+            return True, replaced_prompts
+        except Exception as e:
+            return False, f"Error while replacing placeholders: {e}"
+
     
     def get_posed_details(self, project):
         return {

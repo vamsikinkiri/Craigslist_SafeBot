@@ -70,6 +70,68 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
+    
+    def create_project_type(self, project_type, base_prompt, scenario_prompt, response_prompt):
+        """
+        Create a new project type.
+        """
+        conn, conn_error = self.get_db_connection()
+        if not conn:
+            return False, conn_error
+
+        cursor = conn.cursor()
+        generated_id = self.generate_random_string(5)
+        while not self.is_generated_id_unique(db_table="project_types", col_name="project_type_id", generated_id=generated_id):
+            generated_id = self.generate_random_string(10)
+
+        try:
+            cursor.execute(
+                """
+                INSERT INTO project_types (project_type, project_type_id, base_prompt, scenario_prompt, response_prompt, last_updated)
+                VALUES (%s, %s, %s, %s, %s, NOW())
+                """,
+                (project_type, generated_id, base_prompt, scenario_prompt, response_prompt)
+            )
+            conn.commit()
+            return True, "Project type created successfully!"
+        except Exception as e:
+            return False, f"Error creating project type: {e}"
+        finally:
+            cursor.close()
+            conn.close()
+
+
+    def get_project_type_prompts(self, project_type):
+        """
+        Get the llm prompts for a given project type.
+        """
+        conn, conn_error = self.get_db_connection()
+        if not conn:
+            return False, conn_error
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                SELECT base_prompt, scenario_prompt, response_prompt
+                FROM project_types
+                WHERE PROJECT_TYPE = %s
+                """,
+                (project_type,)
+            )
+            result = cursor.fetchone()
+            if not result:
+                return False, f"No prompts found for project type: {project_type}."
+            llm_prompts = {
+                "base_prompt": result[0],
+                "scenario_prompt": result[1],
+                "response_prompt": result[2],
+            }
+            return True, llm_prompts
+        except Exception as e:
+            return False, f"Error fetching prompts: {e}"
+        finally:
+            cursor.close()
+            conn.close()
 
 
     def create_admin(self, password, email_id, phone_number, affiliation):
@@ -193,7 +255,7 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
 
-    def create_project(self, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias):
+    def create_project(self, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, project_type):
         conn, conn_error = self.get_db_connection()
         if not conn:
             return False, conn_error
@@ -209,10 +271,10 @@ class KnowledgeBase:
                 INSERT INTO projects(
                 project_id, email_id, project_name, app_password, ai_prompt_text, 
                 response_frequency, keywords_data, owner_admin_id, lower_threshold, 
-                upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, last_updated) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s, %s, %s, %s::jsonb, NOW())
+                upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, project_type, last_updated) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s, %s, %s, %s::jsonb, %s, NOW())
                 ''', 
-                (generated_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, json.dumps(authorized_emails), posed_name, posed_age, posed_sex, posed_location, json.dumps(switch_manual_criterias)))
+                (generated_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, json.dumps(authorized_emails), posed_name, posed_age, posed_sex, posed_location, json.dumps(switch_manual_criterias), project_type))
             conn.commit()
             return True, "Project created successfully!"
         except Exception as e:
@@ -337,7 +399,7 @@ class KnowledgeBase:
             return False, conn_error
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, date(last_updated) as Last_Updated FROM projects")
+            cursor.execute("SELECT project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, project_type, date(last_updated) as Last_Updated FROM projects")
             projects = cursor.fetchall()
             return True, projects
         except Exception as error:
@@ -385,7 +447,8 @@ class KnowledgeBase:
                         "posed_sex": project[13],
                         "posed_location": project[14],
                         "switch_manual_criterias": project[15],
-                        "last_updated": project[16]
+                        "project_type": project[16],
+                        "last_updated": project[17]
                     }
                     for project in projects
                 ]
@@ -401,7 +464,7 @@ class KnowledgeBase:
             conn.close()
             cursor.close()
 
-    def update_project(self, email, project_name, ai_prompt_text, response_frequency, keywords_data, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias):
+    def update_project(self, email, project_name, ai_prompt_text, response_frequency, keywords_data, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, project_type):
         # Get database connection
         conn, conn_error = self.get_db_connection()
         if conn is None:
@@ -430,9 +493,10 @@ class KnowledgeBase:
                     posed_sex = %s,
                     posed_location = %s,
                     switch_manual_criterias = %s,
+                    project_type = %s,
                     last_updated = NOW()
                 WHERE email_id = %s AND project_name = %s
-            """, (ai_prompt_text, response_frequency, keywords_data, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, email, project_name))
+            """, (ai_prompt_text, response_frequency, keywords_data, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, project_type, email, project_name))
 
             if cursor.rowcount == 0:
                 logging.warning(f"No matching project found for email={email} and project_name={project_name}.")

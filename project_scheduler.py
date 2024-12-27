@@ -91,7 +91,7 @@ class ProjectScheduler:
                 'end_date': None,
                 'selected_keyword': None
             }
-        logging.info(f"INSIDE PROCESS EMAILS!!!")
+
         success, projects = knowledge_base.fetch_all_projects()
         if not success:
             logging.error(f"Error fetching projects: {projects}")
@@ -103,14 +103,14 @@ class ProjectScheduler:
                 # if len(project_details) != 12:  # Expecting 12 fields now
                 #     logging.error(f"Unexpected project_details tuple length: {len(project_details)}. Data: {project_details}")
                 #     continue  # Skip processing this project
-                project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, last_updated  = project_details
+                project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, project_type, last_updated  = project_details
                 self.process_project(email_id=email_id, app_password=app_password, project_id=project_id, project_keywords=keywords_data, filters=filters,project_name=project_name)
         else:
             success, project_details = knowledge_base.get_project_details(session_email)
             if not success:
                 logging.error(f"Error retrieving project information. Please check your inputs and try again.")
                 return
-            project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, last_updated  = project_details
+            project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, project_type, last_updated  = project_details
             logging.info(f"Currently processing project: {project_details}")
             data = self.process_project(email_id=session_email, app_password=app_password, project_id=project_id, project_keywords=keywords_data, filters=filters, project_name=project_name)
 

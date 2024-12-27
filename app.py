@@ -169,6 +169,7 @@ def project_creation():
         posed_age = int(request.form.get('posed_age_default', POSED_AGE_DEFAULT))
         posed_sex = request.form.get('posed_sex', POSED_SEX_DEFAULT)
         posed_location = request.form.get('posed_location', POSED_LOCATION_DEFAULT)
+        project_type = "Child Predator Catcher"
 
         # Process additional criteria from form
         try:
@@ -237,6 +238,7 @@ def project_creation():
                                                          posed_sex=posed_sex,
                                                          posed_location=posed_location,
                                                          switch_manual_criterias=switch_manual_criterias,
+                                                         project_type=project_type
                                                          )
 
         if success:
@@ -322,7 +324,8 @@ def get_project_data(email):
             "posed_sex": project_info[13],
             "posed_location": project_info[14],
             "switch_manual_criterias": project_info[15],
-            "last_updated": project_info[16]
+            "project_type": project_info[16],
+            "last_updated": project_info[17]
         }
         logging.info(f"Successfully processed project data for email: {email}")
         logging.info(f"Get criterias 1: {project_info[15]}")
@@ -403,6 +406,7 @@ def update_project():
             updated_keywords_data = request.form.get('keywords_data', '{}')
             updated_keywords_raw = parse_json_field(updated_keywords_data, {})  # Parse updated keywords from the frontend
             existing_keywords = project_info.get('keywords_data', {})  # Existing keywords in the backend
+            existing_project_type = project_info.get('project_type', '')
             final_keywords = {
                 key: updated_keywords_raw[key]  # Use updated value if it exists in the frontend
                 for key in updated_keywords_raw }
@@ -461,12 +465,12 @@ def update_project():
                 lower_threshold=lower_threshold,
                 upper_threshold=upper_threshold,
                 authorized_emails=json.dumps(updated_emails),  # Ensure data is serialized
-                # Make sure to update these after frontend changes are done
                 posed_name=posed_name,
                 posed_age=posed_age,
                 posed_sex=posed_sex,
                 posed_location=posed_location,
-                switch_manual_criterias=json.dumps(switch_manual_criterias)
+                switch_manual_criterias=json.dumps(switch_manual_criterias),
+                project_type=existing_project_type
             )
 
             if success:
@@ -566,7 +570,7 @@ def all_projects_view():
             "id": project[0],  # project_id
             "email": project[1],  # email_id
             "name": project[2],  # project_name
-            "last_updated": project[16],  # last_updated as date,
+            "last_updated": project[17],  # last_updated as date,
             "owner_admin_id": project[7],  # owner_admin_id
         }
         for project in filtered_projects
@@ -594,7 +598,7 @@ def all_projects_view():
                     project_id, email_id, project_name, app_password, ai_prompt_text,
                     response_frequency, keywords_data, owner_admin_id, lower_threshold,
                     upper_threshold, authorized_emails, posed_name, posed_age, posed_sex,
-                    posed_location, switch_manual_criterias, last_updated
+                    posed_location, switch_manual_criterias, project_type, last_updated
                 ) = project_details
 
                 # Update session variables
@@ -633,7 +637,7 @@ def delete_project(project_id):
         return redirect(url_for('all_projects_view'))
 
     # Extract owner_admin_id from project_details tuple owner_admin_id
-    project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, last_updated  = project_details
+    project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, project_type, last_updated  = project_details
 
     # Check if the current session's admin_id matches the owner_admin_id
     session_admin_id = session.get('admin_id')
