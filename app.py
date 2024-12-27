@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import logging
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
@@ -297,8 +298,6 @@ def get_project_data(email):
                 authorized_emails = json.loads(project_info[10])
             else:
                 authorized_emails = []
-
-
 
         except Exception as parse_error:
             logging.error(f"Error parsing JSON fields for project: {project_info[0]} - {parse_error}")
@@ -897,14 +896,32 @@ def send_reply(thread_id):
     if not success:
         flash(emails, "error")
         return redirect(url_for('email_thread_reply', thread_id=thread_id))
-
-    # Send the reply
+    
+    # Send the response as a reply and include the original email as quoted content
     latest_email = emails[-1]  # Use the most recent email in the chain
+    quoted_conversation = ""
+    for email in emails:
+        match = re.search(r'<([^>]+)>', email['from'])
+        from_address = match.group(1) if match else email['from'].strip()
+        if from_address == session['email']:
+            quoted_conversation += f"On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, {session['email']} wrote:\n"
+            quoted_conversation += f"> {email['content'].strip()}\n"
+        else:
+            quoted_conversation += f"On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, {email['from']} wrote:\n"
+            quoted_conversation += f"> {email['content'].strip()}\n"
+
+    email_with_quote = (
+        f"{reply_content}\n\n"
+        f"{quoted_conversation}"  # Include the quoted conversation history
+        # f"> On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, {email['from']} wrote:\n"
+        # f"{email['content'].strip()}"
+    )
+    
     email_handler.send_email(
         from_address=session['email'],
         app_password=session['app_password'],
         to_address=latest_email['from'],
-        content=reply_content,
+        content=email_with_quote,
         references=latest_email.get('references', []),
         message_id=latest_email.get('message_id'),
         subject="Re: " + latest_email.get('subject', "No Subject")
@@ -919,7 +936,7 @@ def send_reply(thread_id):
     if success:
         emails = updated_emails
 
-    flash("Reply sent successfully!", "success")
+    logging.info("Reply sent successfully!")
     return render_template('email_thread_reply.html', emails=emails, thread_id=thread_id)
 
 

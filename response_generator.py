@@ -23,7 +23,7 @@ class ResponseGenerator:
         Returns:
             str: The generated response from the LLM.
         """
-        logging.info(f"The prompt received in response generator is: \n{full_prompt}")
+        # logging.info(f"The prompt received in response generator is: \n{full_prompt}")
         
         response = self.llm.invoke(full_prompt)
         return response.content if response else "No response generated."

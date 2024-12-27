@@ -140,29 +140,35 @@ class EmailProcessor:
                 self._notify_admin(project_name, admin_email, session_email, app_password, email, user_details, score, thread_id)
         elif ai_state == 'Automated' and score >= lower_threshold:
             if score < upper_threshold:
-                self.schedule_or_send_reply(email, conversation_history, session_email, project_details, response_frequency, thread_id, score)
+                self.schedule_or_send_reply(email, conversation_history, session_email, project_details, response_frequency, thread_id, score, user_details)
             else:
                 # Notify all the authorized admins
                 for admin_email in authorized_emails:
                     self._notify_admin(project_name, admin_email, session_email, app_password, email, user_details, score, thread_id, threshold_exceeded=True)
                 knowledge_base.update_ai_response_state(thread_id, 'Manual')
 
-    def _notify_admin(self, project_name, admin_email, session_email, app_password, email, user_details, score, thread_id, threshold_exceeded=False):
+    def _notify_admin(self, project_name, admin_email, session_email, app_password, email, user_details, score, thread_id, threshold_exceeded=False, llm_scenario_summary=None):
         if threshold_exceeded:
             action = "Manual takeover" 
             subject = f"Manual Takeover Alert: Score Exceeded Threshold ({score}) - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         else:
-            action = "Manual continuation"
-            subject=f"Manual Continuation Alert - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            if llm_scenario_summary is not None:
+                action = "Manual switch scenario(s) matched"
+                subject = f"Manual Takeover Alert: Manual switch scenario(s) matched - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            else:
+                action = "Manual continuation"
+                subject=f"Manual Continuation Alert - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
 
         notification_content = (
             f"Attention Required: {action} for project {project_name}.\n\n"
             f"User Profile:\n{user_details}\n"
-            f"Interaction Score: {score}\n"
+            + (f"Scenarios matched:\n{llm_scenario_summary}\n" if llm_scenario_summary else "")
+            + f"Interaction Score: {score}\n"
             f"Please login to the email account associated with {session_email} and continue the conversation with the subject: \"{email['subject']}\".\n\n"
             f"Best regards,\n"
             f"Craigslist SafeBot Team"
         )
+
 
         email_handler.send_email(
             from_address=session_email,
@@ -173,7 +179,7 @@ class EmailProcessor:
         )
         logging.info('*'*10 + "Email sent successfully to Admin" + "*"*10)               
 
-    def schedule_or_send_reply(self, email, conversation_history, session_email, project_details, response_frequency, thread_id, score):
+    def schedule_or_send_reply(self, email, conversation_history, session_email, project_details, response_frequency, thread_id, score, user_details):
         """
         Schedule or send an email reply based on response frequency, ensuring emails are sent during normal hours.
         """
@@ -198,24 +204,24 @@ class EmailProcessor:
         logging.info(f"Email received time: {email_received_time}, current time: {current_time}, send time: {send_time}, response_frequency: {randomized_response_frequency}")
 
         # To generate response immediately
-        # self.generate_and_send_response(project_details, email, conversation_history, session_email, thread_id, score)
+        # self.generate_and_send_response(project_details, email, conversation_history, session_email, thread_id, score, user_details)
 
         if (send_time - current_time).total_seconds() <= 0:
             # If delay is negative or zero, send the reply immediately
-            self.generate_and_send_response(project_details, email, conversation_history, session_email, thread_id, score)
+            self.generate_and_send_response(project_details, email, conversation_history, session_email, thread_id, score, user_details)
         else:
             # Schedule the email to be sent later
             scheduler.add_job(
                 func=self.generate_and_send_response,
                 trigger=DateTrigger(run_date=send_time),
-                args=[project_details, email, conversation_history, session_email, thread_id, score],
+                args=[project_details, email, conversation_history, session_email, thread_id, score, user_details],
                 id=f"send_reply_{email['message_id']}",
                 replace_existing=True
             )
             logging.info(f"Scheduled reply for email {email['message_id']} at {send_time}")
 
 
-    def generate_and_send_response(self, project_details, email, conversation_history, session_email, thread_id, score):
+    def generate_and_send_response(self, project_details, email, conversation_history, session_email, thread_id, score, user_details):
         # Step 1: Extract project details and combine conversation history into a single string
         project_name = project_details[2]
         app_password = project_details[3]
@@ -261,7 +267,7 @@ class EmailProcessor:
             # Switch to manual mode and notify admins
             knowledge_base.update_ai_response_state(thread_id, 'Manual')
             for admin_email in authorized_emails:
-                self._notify_admin(project_name, admin_email, session_email, app_password, email, "", score, thread_id, threshold_exceeded=True)
+                self._notify_admin(project_name, admin_email, session_email, app_password, email, user_details, score, thread_id, threshold_exceeded=False, llm_scenario_summary=matching_scenarios)
             return
 
         # No scenarios matched, generating a response
@@ -272,16 +278,17 @@ class EmailProcessor:
         quoted_conversation = ""
         for msg in reversed(conversation_history):
             if "We replied:" in msg:
-                quoted_conversation += f"On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, you wrote:\n"
+                quoted_conversation += f"On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, {session_email} wrote:\n"
                 quoted_conversation += f"> {msg.replace('We replied:', '').strip()}\n"
             elif "Suspect sent:" in msg:
-                quoted_conversation += f"On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, they wrote:\n"
-                quoted_conversation += f"> {msg.replace('User sent:', '').strip()}\n"
+                quoted_conversation += f"On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, {email['from']} wrote:\n"
+                quoted_conversation += f"> {msg.replace('Suspect sent:', '').strip()}\n"
 
         email_with_quote = (
             f"{response_text}\n\n"
-            f"> On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, {email['from']} wrote:\n"
-            f"{email['content'].strip()}"
+            f"{quoted_conversation}"  # Include the quoted conversation history
+            # f"> On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, {email['from']} wrote:\n"
+            # f"{email['content'].strip()}"
         )
 
         to_address = email['from']
@@ -393,7 +400,8 @@ class EmailProcessor:
             project_details=project_details,
             response_frequency=response_frequency,
             thread_id=thread_id,
-            score=reset_score
+            score=reset_score,
+            user_details=""
         )
 
         return True, "Successfully switched to Automated and rescheduled the response."
