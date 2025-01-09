@@ -71,7 +71,7 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
     
-    def create_project_type(self, project_type, base_prompt, scenario_prompt, response_prompt):
+    def create_project_type(self, project_type, base_prompt, scenario_prompt, response_prompt, default_switch_manual_criterias, DEFAULT_ADMIN_PROMPT):
         """
         Create a new project type.
         """
@@ -87,10 +87,12 @@ class KnowledgeBase:
         try:
             cursor.execute(
                 """
-                INSERT INTO project_types (project_type, project_type_id, base_prompt, scenario_prompt, response_prompt, last_updated)
-                VALUES (%s, %s, %s, %s, %s, NOW())
+                INSERT INTO project_types (
+                    project_type, project_type_id, base_prompt, scenario_prompt, response_prompt, default_switch_manual_criterias,        DEFAULT_ADMIN_PROMPT, last_updated
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
                 """,
-                (project_type, generated_id, base_prompt, scenario_prompt, response_prompt)
+                (project_type, generated_id, base_prompt, scenario_prompt, response_prompt, default_switch_manual_criterias, DEFAULT_ADMIN_PROMPT)
             )
             conn.commit()
             return True, "Project type created successfully!"
@@ -100,38 +102,59 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
 
-
     def get_project_type_prompts(self, project_type):
         """
-        Get the llm prompts for a given project type.
+        Fetch prompts and default switch manual criteria for a given project type.
         """
         conn, conn_error = self.get_db_connection()
         if not conn:
             return False, conn_error
-        cursor = conn.cursor()
+
         try:
-            cursor.execute(
-                """
-                SELECT base_prompt, scenario_prompt, response_prompt
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT base_prompt, scenario_prompt, response_prompt, default_switch_manual_criterias, DEFAULT_ADMIN_PROMPT
                 FROM project_types
-                WHERE PROJECT_TYPE = %s
-                """,
-                (project_type,)
-            )
+                WHERE project_type = %s
+            """, (project_type,))
             result = cursor.fetchone()
+
+            # Log fetched data
+            logging.info(f"Fetched result: {result}")
             if not result:
-                return False, f"No prompts found for project type: {project_type}."
-            llm_prompts = {
+                return False, f"No data found for project type: {project_type}"
+
+            # Log fetched default_switch_manual_criterias for debugging
+            logging.info(f"Fetched default_switch_manual_criterias (type: {type(result[3])}): {result[3]}")
+
+            # Safely parse default_switch_manual_criterias
+            default_switch_manual_criterias = []
+            if result[3]:
+                if isinstance(result[3], str):
+                    try:
+                        default_switch_manual_criterias = json.loads(result[3])
+                        logging.info(f"Parsed default_switch_manual_criterias: {default_switch_manual_criterias}")
+                    except json.JSONDecodeError:
+                        logging.error(f"Invalid JSON format for default_switch_manual_criterias: {result[3]}")
+                elif isinstance(result[3], list):
+                    # Already a Python list, no parsing needed
+                    default_switch_manual_criterias = result[3]
+                    logging.info("default_switch_manual_criterias is already a list.")
+
+            return True, {
                 "base_prompt": result[0],
                 "scenario_prompt": result[1],
                 "response_prompt": result[2],
+                "default_switch_manual_criterias": default_switch_manual_criterias,
+                "DEFAULT_ADMIN_PROMPT":result[4]
             }
-            return True, llm_prompts
         except Exception as e:
-            return False, f"Error fetching prompts: {e}"
+            logging.error(f"Error fetching project type data: {e}")
+            return False, f"Error fetching project type data: {e}"
         finally:
             cursor.close()
             conn.close()
+
 
 
     def create_admin(self, password, email_id, phone_number, affiliation):
@@ -283,7 +306,33 @@ class KnowledgeBase:
         finally:
             conn.close()
             cursor.close()
-    
+
+    def get_all_project_types(self):
+        """
+        Retrieve all distinct project types from the projects table.
+        """
+        conn, conn_error = self.get_db_connection()
+        if not conn:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            # Query to get distinct project types
+            cursor.execute("SELECT DISTINCT project_type FROM project_types")
+            rows = cursor.fetchall()
+            if not rows:
+                return False, "No project types found."
+
+            # Convert rows to a list of dictionaries
+            project_types = [{"type": row[0]} for row in rows]
+            return True, project_types
+        except Exception as e:
+            return False, f"Error fetching project types: {e}"
+        finally:
+            cursor.close()
+            conn.close()
+
+
     def is_email_unique_in_projects(self, email_id):
         """
         Check if the provided email ID already exists in the projects table.
@@ -517,7 +566,6 @@ class KnowledgeBase:
                 cursor.close()
             if conn:
                 conn.close()
-
 
     # def update_project(self, email, project_name, ai_prompt_text, response_frequency):
     #     # Get database connection

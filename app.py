@@ -2,6 +2,7 @@ import json
 import os
 import re
 import logging
+from datetime import date, datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from flask import Flask, flash, session, render_template, request, redirect, url_for, jsonify
@@ -143,11 +144,34 @@ def create_account():
 @login_required
 def project_creation():
     # Define the default criteria outside the conditional blocks
-    default_switch_manual_criterias = [
-        "The suspect did not stop the conversation after discovering our age.",
-        "The suspect requests a photograph of the person we are pretending to be.",
-        "The suspect suggests communicating via phone number or alternative platforms.",
-    ]
+    # default_switch_manual_criterias = [
+    #     "The suspect did not stop the conversation after discovering our age.",
+    #     "The suspect requests a photograph of the person we are pretending to be.",
+    #     "The suspect suggests communicating via phone number or alternative platforms.",
+    # ]
+    success, project_types = knowledge_base.get_all_project_types()
+    if not success:
+        flash("Error fetching project types. Please try again.", "error")
+        return redirect(url_for('all_projects_view'))
+
+    default_project_type = project_types[0]['type'] if project_types else None
+    project_data = None
+    if default_project_type:
+        success, project_data = knowledge_base.get_project_type_prompts(default_project_type)
+        if not success:
+            flash(project_data, "error")
+            return redirect(url_for('all_projects_view'))
+
+    if not success:
+                flash(project_data, "error")
+                return redirect(url_for('all_projects_view'))
+
+    ai_prompt_text = project_data['base_prompt']
+    logging.info(f"Loaded ai_prompt_text for {default_project_type}: {ai_prompt_text}")
+    # Debugging information
+    logging.info(f"Loaded project_data for type '{default_project_type}': {project_data}")
+    default_switch_manual_criterias = project_data.get("default_switch_manual_criterias", [])
+
     if request.method == 'POST':
         email = request.form['email']
         project_name = "Project - " + request.form['project_name']
@@ -170,9 +194,18 @@ def project_creation():
         posed_age = int(request.form.get('posed_age_default', POSED_AGE_DEFAULT))
         posed_sex = request.form.get('posed_sex', POSED_SEX_DEFAULT)
         posed_location = request.form.get('posed_location', POSED_LOCATION_DEFAULT)
-        project_type = "Child Predator Catcher"
+        project_type = request.form.get('project_type')
+        # Fetch prompts and criteria for the selected project type
+        success, project_data  = knowledge_base.get_project_type_prompts(project_type)
+        if not success:
+            flash(project_data, "error")
+            return redirect(url_for('project_creation'))
 
-        # Process additional criteria from form
+        default_switch_manual_criterias = project_data.get("default_switch_manual_criterias", [])
+        if not isinstance(default_switch_manual_criterias, list):
+            default_switch_manual_criterias = []
+
+    # Process additional criteria from form
         try:
             new_criterias_raw = request.form.get('criteria_data', '[]')  # Hidden input field
             new_criterias = parse_json_field(new_criterias_raw, [])
@@ -185,21 +218,12 @@ def project_creation():
         # Combine default and user-added criteria
         switch_manual_criterias = default_switch_manual_criterias + new_criterias
 
-
         try:
             authorized_emails_list = json.loads(authorized_emails)
             if not isinstance(authorized_emails_list, list):
                 raise ValueError("Authorized emails must be a list.")
         except json.JSONDecodeError:
             return jsonify({"error": "Invalid email format"}), 400
-        # authorized_emails=["vamsikinkiri@gmail.com", "kinkiriv@gmail.com"]
-
-        # try:
-        #     switch_manual_criterias_list = json.loads(switch_manual_criterias)
-        #     if not isinstance(switch_manual_criterias_list, list):
-        #         raise ValueError("Switch manual criterias must be a list.")
-        # except json.JSONDecodeError:
-        #     return jsonify({"error": "Invalid criterias format"}), 400
 
         project_success, message = knowledge_base.is_email_unique_in_projects(email)
         if not project_success:
@@ -247,10 +271,17 @@ def project_creation():
         else:
             flash(message, "error")
 
+    default_project_type = project_types[0]["type"] if project_types else None
+    project_data = None
+    if default_project_type:
+        success, project_data = knowledge_base.get_project_type_prompts(default_project_type)
+        if not success:
+            flash(project_data, "error")
+            return redirect(url_for('all_projects_view'))
+
     return render_template(
-        'project_creation.html',
-        default_switch_manual_criterias=default_switch_manual_criterias
-    )
+        'project_creation.html',project_types=project_types, project_data = project_data,
+        default_switch_manual_criterias=project_data.get("default_switch_manual_criterias", []))
 
 @app.route('/api/update_projects', methods=['GET'])
 @login_required
@@ -333,6 +364,23 @@ def get_project_data(email):
     except Exception as e:
         logging.error(f"Unexpected error while fetching or processing project data for email {email}: {e}")
         return False, "Error processing project data."
+
+@app.route('/get_project_data_specific_project_type', methods=['GET'])
+@login_required
+def get_project_data_specific_project_type():
+    project_type = request.args.get('project_type')
+    if not project_type:
+        return jsonify({"error": "Project type is required"}), 400
+
+    success, project_data = knowledge_base.get_project_type_prompts(project_type)
+    if not success:
+        return jsonify({"error": project_data}), 500
+
+    return jsonify({
+        "DEFAULT_ADMIN_PROMPT": project_data.get("DEFAULT_ADMIN_PROMPT", ""),
+        "default_switch_manual_criterias": project_data.get("default_switch_manual_criterias", [])
+    })
+
 
 
 @app.route('/update_project', methods=['GET', 'POST'])
@@ -430,7 +478,6 @@ def update_project():
                 try:
                     # Parse JSON from the request form field
                     parsed_criterias = parse_json_field(new_switch_manual_criterias, []) if isinstance(new_switch_manual_criterias, str) else new_switch_manual_criterias
-
                     if not isinstance(parsed_criterias, list):
                         raise ValueError(f"Parsed criterias must be a list, got {type(parsed_criterias)} instead.")
                     updated_criterias = list(set(parsed_criterias))
@@ -537,18 +584,14 @@ def all_projects_view():
     logging.info(f"Session Admin ID: {session.get('admin_id')}")
     # Fetch all projects from the database
     success, projects = knowledge_base.fetch_all_projects()
+    logging.info(f"Fetched projects: {projects}")
 
     if not success:
         return render_template('error.html', message=projects), 500  # Display error if fetch fails
-    # Get search query from the request
-    search_query = request.args.get('search_query')
-    filtered_projects = projects
 
     authorized_projects = [project for project in projects if session['admin_email'] in project[10]]
-    unauthorized_projects = [project for project in projects if session['admin_email'] not in project[10]]
 
     logging.info(f"Authorized Projects created are: {authorized_projects}")
-    logging.info(f"Unauthorized Projects created are: {unauthorized_projects}")
 
     search_query = request.args.get('search_query', "").strip().lower()
     if search_query:
@@ -556,40 +599,29 @@ def all_projects_view():
             project for project in authorized_projects
             if search_query in project[2].lower() or search_query in project[1].lower()
         ]
-        unauthorized_projects = [
-            project for project in unauthorized_projects
-            if search_query in project[2].lower() or search_query in project[1].lower()
-        ]
-        if not authorized_projects and not unauthorized_projects:
-            flash("No projects found. Please try a different search.", "error")
+        logging.info(f"Search results for query '{search_query}': {authorized_projects}")
+        if not authorized_projects:
+            flash("No projects found matching your search. Please try again.", "error")
 
     # Format the filtered projects for rendering
     formatted_projects = [
         {
-            "id": project[0],  # project_id
-            "email": project[1],  # email_id
-            "name": project[2],  # project_name
-            "last_updated": project[17],  # last_updated as date,
-            "owner_admin_id": project[7],  # owner_admin_id
+            "id": project[0],
+            "email": project[1],
+            "name": project[2],
+            "last_updated": project[17].strftime('%Y-%m-%d %H:%M:%S') if isinstance(project[17], (date, datetime)) else "Unknown",
+            "owner_admin_id": project[7],
         }
-        for project in filtered_projects
+        for project in authorized_projects
     ]
+
     if request.method == 'POST':
         # Handle 'Request Access' or 'Open Project' actions
         project_id = request.form.get('project_id')
         email = request.form.get('email')
-        logging.info(f"POST action with project_id: {project_id}, email: {email}")
+        logging.info(f"Handling POST request for project ID: {project_id} and email: {email}")
 
-        if project_id:
-            # Request Access: Notify admins for unauthorized projects
-            project = next((p for p in unauthorized_projects if p[0] == project_id), None)
-            if project:
-                project_scheduler.notify_admins_of_access_request(project_details=project)
-                flash("Access request sent to project admins.", "info")
-            else:
-                flash("Project not found in unauthorized projects.", "error")
-        elif email:
-            # Open Project: Update session and redirect
+        if email:
             success, project_details = knowledge_base.get_project_details(email)
             if success and project_details:
                 # Extract project details
@@ -599,6 +631,7 @@ def all_projects_view():
                     upper_threshold, authorized_emails, posed_name, posed_age, posed_sex,
                     posed_location, switch_manual_criterias, project_type, last_updated
                 ) = project_details
+                logging.info(f"Fetched project details for email {email}: {project_details}")
 
                 # Update session variables
                 session.update({
@@ -613,12 +646,14 @@ def all_projects_view():
             else:
                 flash("Error retrieving project information. Please try again.", "error")
         else:
-            flash("No valid action selected. Please try again.", "error")
+            flash("No project selected. Please try again.", "error")
         current_admin_id = session.get('admin_id')
+        logging.info(f"Handling POST request for project ID: {project_id} and email: {email}")
+        logging.info(f"Formatted projects: {formatted_projects}")
+
     return render_template(
         'all_projects_view.html',
-        authorized_projects=authorized_projects,
-        unauthorized_projects=unauthorized_projects,
+        authorized_projects=formatted_projects ,
         search_query=search_query,
         current_admin_id=session.get('admin_id')
     )

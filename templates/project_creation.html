@@ -126,8 +126,7 @@
         }
 
         input[type="text"],
-        input[type="password"],
-        textarea
+        input[type="password"]
          {
             width: 100%;
             padding: 12px;
@@ -142,6 +141,24 @@
             transition: background-color 0.3s;
             resize: None;
         }
+
+        textarea
+        {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            padding-right: 35px;
+            border: none;
+            border-radius: 15px;
+            background-color: #e7eef0;
+            font-size: 16px;
+            color: #3b3b3b;
+            outline: none;
+            transition: background-color 0.3s;
+            height: 150px;
+            resize: vertical;
+        }
+
 
         .custom-input {
             width: 100%;
@@ -293,7 +310,6 @@
         .input-wrapper {
             display: flex; /* Aligns the input and info-icon side by side */
             align-items: center; /* Centers elements vertically */
-
             margin: 10px 0; /* Ensures consistent spacing for input fields */
         }
 
@@ -679,7 +695,38 @@
             font-size: 16px;
             color: #444;
         }
+        /* General Dropdown Styling */
+        select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 15px; /* Match the rounded style of other fields */
+            background-color: #e7eef0;
+            font-size: 16px;
+            color: #3b3b3b;
+            outline: none;
+            cursor: pointer; /* Indicates interactivity */
+            transition: background-color 0.3s, box-shadow 0.3s; /* Smooth hover effects */
+        }
 
+        /* Dropdown Hover Effect */
+        select:hover {
+            background-color: #d7e3fc; /* Light blue hover effect */
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1); /* Subtle shadow on hover */
+        }
+
+        /* Dropdown Focus Effect */
+        select:focus {
+            background-color: #d7e3fc;
+            box-shadow: 0 0 5px #4C6A9C; /* Highlight color when focused */
+        }
+
+        /* Dropdown Option Styling */
+        select option {
+            font-size: 16px;
+            color: #3b3b3b;
+        }
 
     </style>
 
@@ -714,6 +761,14 @@
     <form action="{{ url_for('project_creation') }}" method="POST">
         <fieldset>
             <legend>Project Information</legend>
+              <select id="project_type" name="project_type" title = "Select a Project Type from the dropdown" class="custom-input custom-select" onchange="updateProjectData()" required>
+                {% for project_type in project_types %}
+                    <option value="{{ project_type.type }}" {% if project_type.type == project_data['project_type'] %}selected{% endif %}>
+                        {{ project_type.type }}
+                    </option>
+                {% endfor %}
+            </select>
+
             <input type="text" name="project_name" placeholder="Project Name" id="project-name"
                    title="Provide a unique name relating to the crime for this project." required>
             <input type="text" name="email" placeholder="Email ID" id="email"
@@ -730,10 +785,16 @@
                 </span>
             </div>
         </fieldset>
+
         <fieldset>
             <legend>Safe Bot Settings</legend>
-            <textarea name="ai_prompt_text" rows="3" placeholder="Instructions to Safe Bot"
-            title="Provide specific instructions or preferences for the SafeBot’s behavior and responses. This can include tone, content guidelines, or restrictions.">You are a police detective posing as a young person (e.g., a teenager) to catch online predators. You have posted an ad or initiated a conversation to lure individuals who may have inappropriate intentions.</textarea>
+            <textarea
+                    id="prompt_text"
+                    name="ai_prompt_text"
+                    rows="3"
+                    placeholder="Instructions to Safe Bot"
+                    title="Provide specific instructions or preferences for the SafeBot’s behavior and responses."
+            >{{ project_data['DEFAULT_ADMIN_PROMPT'] }}</textarea>
             <div class="input-wrapper">
                 <input type="number" id="response_frequency" name="response_frequency" placeholder="Response Frequency in Minutes (Default: 10)" min="1"
                        title="Specify roughly how often (in minutes) the bot should check for new emails and respond automatically." style="margin-top: 10px;">
@@ -795,7 +856,6 @@
 
         <fieldset>
             <legend>Interaction Settings</legend>
-            <!-- Posed Name -->
             <input type="text" id="posed_name" name="posed_name" placeholder="Enter posed name"
                    title="Enter the alias or name being used for interaction.">
             <!-- Posed Age -->
@@ -832,11 +892,9 @@
             </div>
 
             <div id="criteria-list">
-                <!-- Render default criteria -->
-                {% for criteria in default_switch_manual_criterias %}
+                {% for criteria in project_data.default_switch_manual_criterias %}
                     <div>
-                        <span class="bullet">•</span>
-                        <span>{{ criteria }}</span>
+                        <li>{{ criteria }}</li>
                     </div>
                 {% endfor %}
             </div>
@@ -1011,8 +1069,36 @@
         return true;
     }
 
+    async function updateProjectData() {
+        const projectType = document.getElementById('project_type').value;
+
+        try {
+            // Fetch project data for the selected project type
+            const response = await fetch(`/get_project_data_specific_project_type?project_type=${encodeURIComponent(projectType)}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch project data');
+            }
+
+            const data = await response.json();
+
+            // Update the UI with the fetched data
+            document.getElementById('prompt_text').value = data.DEFAULT_ADMIN_PROMPT || ''; // Update prompt text
+            const scenariosList = document.getElementById('criteria-list');
+            scenariosList.innerHTML = ''; // Clear existing scenarios
+            data.default_switch_manual_criterias.forEach((criteria) => {
+                const li = document.createElement('li');
+                li.textContent = criteria;
+                scenariosList.appendChild(li);
+            });
+        } catch (error) {
+            console.error('Error fetching project data:', error);
+            alert('Failed to update project data. Please try again.');
+        }
+    }
+
+
     let criteriaData = [];
-    const defaultCriteria = {{ default_switch_manual_criterias | tojson }};
+    const defaultCriteria = {{ default_switch_manual_criterias | tojson | default('[]') }};
     const customCriteria = JSON.parse(document.getElementById('criteria-data').value || '[]');
 
     function addManualCriteria() {
