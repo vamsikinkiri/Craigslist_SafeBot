@@ -120,7 +120,7 @@ class KnowledgeBase:
             result = cursor.fetchone()
 
             # Log fetched data
-            logging.info(f"Fetched result: {result}")
+            # logging.info(f"Fetched result: {result}")
             if not result:
                 return False, f"No data found for project type: {project_type}"
 

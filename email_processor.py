@@ -169,14 +169,8 @@ class EmailProcessor:
             f"Craigslist SafeBot Team"
         )
 
-
-        email_handler.send_email(
-            from_address=session_email,
-            app_password=app_password,
-            to_address=admin_email,
-            content=notification_content,
-            subject=subject
-        )
+        email_handler.send_notification(to_address=admin_email, content=notification_content, subject=subject)
+        # email_handler.send_email(from_address=session_email, app_password=app_password, to_address=admin_email, content=notification_content, subject=subject)
         logging.info('*'*10 + "Email sent successfully to Admin" + "*"*10)               
 
     def schedule_or_send_reply(self, email, conversation_history, session_email, project_details, response_frequency, thread_id, score, user_details):
@@ -251,7 +245,7 @@ class EmailProcessor:
             logging.error(replaced_prompts)
         
         response_text = response_generator.generate_response(scenario_prompt)
-        # logging.info(f"!!!!!!!!!!!!!!!!!!!!!!!!!! LLM Evaluation Result: !!!!!!!!!!!!!!!!!!!!!!!!!!\n{response_text}")
+        # logging.info(f"!!!!!!!!!!!!!!!!!!!!!!!!!! LLM Evaluation Result !!!!!!!!!!!!!!!!!!!!!!!!!!:\n{response_text}")
 
         if "Manual Switch needs to happen" in response_text:
             # Print matching scenarios

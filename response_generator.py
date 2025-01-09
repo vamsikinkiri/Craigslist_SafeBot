@@ -9,7 +9,7 @@ class ResponseGenerator:
             temperature=0.7,  # Adjusting temperature for more conversational responses
             groq_api_key="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",
             #model_name="llama-3.1-8b-instant"
-            model_name="llama-3.1-70b-versatile"
+            model_name="llama-3.3-70b-versatile"
             #model_name="gemma-7b-it"
         )
 
@@ -23,7 +23,7 @@ class ResponseGenerator:
         Returns:
             str: The generated response from the LLM.
         """
-        # logging.info(f"The prompt received in response generator is: \n{full_prompt}")
+        logging.info(f"The prompt received in response generator is: \n{full_prompt}")
         
         response = self.llm.invoke(full_prompt)
         return response.content if response else "No response generated."

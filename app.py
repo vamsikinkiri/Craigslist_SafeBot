@@ -19,6 +19,7 @@ from project_scheduler import ProjectScheduler
 from email_notification import send_email_notification
 from dotenv import load_dotenv
 load_dotenv()
+
 # Initialize the Flask application
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))  # Use environment variable or random key
@@ -144,18 +145,14 @@ def create_account():
 @app.route('/project_creation', methods=['GET', 'POST'])
 @login_required
 def project_creation():
-    # Define the default criteria outside the conditional blocks
-    # default_switch_manual_criterias = [
-    #     "The suspect did not stop the conversation after discovering our age.",
-    #     "The suspect requests a photograph of the person we are pretending to be.",
-    #     "The suspect suggests communicating via phone number or alternative platforms.",
-    # ]
     success, project_types = knowledge_base.get_all_project_types()
     if not success:
         flash("Error fetching project types. Please try again.", "error")
         return redirect(url_for('all_projects_view'))
 
     default_project_type = project_types[0]['type'] if project_types else None
+    #default_project_type = "Child Predator Catcher"
+    logging.info(f"The default is: {default_project_type} and total are: {project_types}")
     project_data = None
     if default_project_type:
         success, project_data = knowledge_base.get_project_type_prompts(default_project_type)
@@ -164,13 +161,14 @@ def project_creation():
             return redirect(url_for('all_projects_view'))
 
     if not success:
-                flash(project_data, "error")
-                return redirect(url_for('all_projects_view'))
+        logging.error(f"Error during project creation: {project_data}")
+        flash(project_data, "error")
+        return redirect(url_for('all_projects_view'))
 
     ai_prompt_text = project_data['base_prompt']
-    logging.info(f"Loaded ai_prompt_text for {default_project_type}: {ai_prompt_text}")
+    # logging.info(f"Loaded ai_prompt_text for {default_project_type}: {ai_prompt_text}")
     # Debugging information
-    logging.info(f"Loaded project_data for type '{default_project_type}': {project_data}")
+    # logging.info(f"Loaded project_data for type '{default_project_type}': {project_data}")
     default_switch_manual_criterias = project_data.get("default_switch_manual_criterias", [])
 
     if request.method == 'POST':
@@ -206,7 +204,7 @@ def project_creation():
         if not isinstance(default_switch_manual_criterias, list):
             default_switch_manual_criterias = []
 
-    # Process additional criteria from form
+        # Process additional criteria from form
         try:
             new_criterias_raw = request.form.get('criteria_data', '[]')  # Hidden input field
             new_criterias = parse_json_field(new_criterias_raw, [])
@@ -273,6 +271,7 @@ def project_creation():
                 send_email_notification(to_emails=authorized_emails_list, project_name=project_name)
             return redirect(url_for('all_projects_view'))
         else:
+            logging.error(f"Error during project creation: {message}")
             flash(message, "error")
 
     default_project_type = project_types[0]["type"] if project_types else None

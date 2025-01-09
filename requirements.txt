@@ -7,4 +7,5 @@ flask-wtf
 pyyaml
 langchain-groq
 apscheduler
-
+sendgrid
+python-dotenv

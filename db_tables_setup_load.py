@@ -16,9 +16,9 @@ def drop_tables(cursor):
     drop_tables_queries = [
         "DROP TABLE IF EXISTS SCORED_EMAILS;",
         "DROP TABLE IF EXISTS EMAIL_THREADS;",
-        #"DROP TABLE IF EXISTS USER_PROFILES;",
+        "DROP TABLE IF EXISTS USER_PROFILES;",
         # "DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
-        "DROP TABLE IF EXISTS PROJECTS;"
+        # "DROP TABLE IF EXISTS PROJECTS;"
         "DROP TABLE IF EXISTS PROJECT_TYPES;"
     ]
     for query in drop_tables_queries:
@@ -154,36 +154,22 @@ def setup_database():
 
 def create_project_types():
 
-    # Define the default admin prompts for each project type
+    # Child predators
     DEFAULT_ADMIN_PROMPT_CPC = (
         "You are a police detective posing as a young person (e.g., a teenager) to catch online predators. "
         "You have posted an ad or initiated a conversation to lure individuals who may have inappropriate intentions."
     )
-
     # Define scenarios for Child Predator Catcher
     default_switch_manual_criterias_cpc = [
         "The suspect did not stop the conversation after discovering our age.",
         "The suspect requests a photograph of the person we are pretending to be.",
         "The suspect suggests communicating via phone number or alternative platforms."
     ]
-
     # Define prompts for Child Predator Catcher
-    base_prompt_cpc =  f'''{DEFAULT_ADMIN_PROMPT_CPC}\nThe following is an email conversation between the suspect (potential criminal) and an AI assistant. The suspect does not know they are having a conversation with an AI assistant.\n{{previous_conversations}}'''
-
-    formatted_criteria_cpc = "\n".join(f"- {criteria}" for criteria in default_switch_manual_criterias_cpc)
-    scenario_prompt_cpc = f'''{base_prompt_cpc}\n
-    TASK: Check for Manual Switch Scenarios (No need to generate a response email).\n
-    INSTRUCTIONS FOR THE TASK:\n
-    Carefully read the entire conversation provided and evaluate ONLY the current content of the conversation. DO NOT make predictions or assumptions about what might happen in future conversations. Just check the scenario as it is, do not think on your own whether it is a red flag or not. If the exact scenario happens, for example the suspect did not stop the conversation after discovering our age (asking does not imply discovering) or if the suspect asks for our picture, it is a red flag.  IMPORTANT: If there is even the slightest doubt, you must assume the scenario has NOT occurred.\n
-    These are the scenarios:\n{formatted_criteria_cpc}\n\n
-    These are the instructions to what I am expecting from you:\n
-    1. If one or more of the above scenarios have occurred, print exactly the phrase: 'Manual Switch needs to happen' ONLY if at least one scenario has occurred.\n
-    2. If no scenarios have occurred, print exactly the phrase: 'Automated reply should be generated' ONLY if no scenarios has occurred. Then ignore the rest of this prompt and finish the task.\n
-    3. Explain where exactly the scenarios happened.\n
-    4. Immediately after this, list the specific scenario(s) that occurred.'''
-    response_prompt_cpc = f'''{base_prompt_cpc }\nTASK: Generate a Response Email.\nINSTRUCTIONS FOR TASK:\nIMPORTANT: You are pretending to be this person:\n{{posed_details}}.\nIf the suspect asks for personal information, you are responding as this individual. Maintain this persona in all your replies.\nThese are the instructions to what I am expecting from you:\n1. Use the following email content as the suspect's latest message:\n{{email_content}}\n2. Understand the entire conversation and generate a response to the latest email that seems natural, human-like, and appropriate for a young person.\n3. The response should: Continue the facade that you are a young person looking to have a good time. Show interest in the conversation, but not be overly eager.\n4. Start the response with 'Hello', followed by the content of the email.\n5. Very Important: Only output the response content to be sent, and nothing else.'''
-
-# Insert Child Predator Catcher
+    base_prompt_cpc =  '''${admin_prompt}\nThe following is an email conversation between the suspect (potential criminal) and an AI assistant. The suspect does not know they are having a conversation with an AI assistant.\n${previous_conversations}'''
+    scenario_prompt_cpc = '''${base_prompt}\nTASK: Check for Manual Switch Scenarios (No need to generate a response email).\nINSTRUCTIONS FOR THE TASK:\nCarefully read the entire conversation provided and evaluate ONLY the current content of the conversation. DO NOT make predictions or assumptions about what might happen in future conversations. Just check the scenario as it is, do not think on your own whether it is a red flag or not. If the exact scenario happens, for example the suspect did not stop the conversation after discovering our age (asking does not imply discovering) or if the suspect asks for our picture, it is a red flag.  IMPORTANT: If there is even the slightest doubt, you must assume the scenario has NOT occurred.\nThese are the scenarios:\n${scenario_instructions}\n\nThese are the instructions to what I am expecting from you:\n1. If one or more of the above scenarios have occurred, print exactly the phrase: 'Manual Switch needs to happen' ONLY if at least one scenario has occurred.\n2. If no scenarios have occurred, print exactly the phrase: 'Automated reply should be generated' ONLY if no scenarios has occurred. Then ignore the rest of this prompt and finish the task.\n3. Explain where exactly the scenarios happened.\n4. Immediately after this, list the specific scenario(s) that occurred.'''
+    response_prompt_cpc = '''${base_prompt}\nTASK: Generate a Response Email.\nINSTRUCTIONS FOR TASK:\nIMPORTANT: You are pretending to be this person:\n${posed_details}.\nIf the suspect asks for personal information, you are responding as this individual. Maintain this persona in all your replies.\nThese are the instructions to what I am expecting from you:\n1. Use the following email content as the suspect's latest message:\n${email_content}\n2. Understand the entire conversation and generate a response to the latest email that seems natural, human-like, and appropriate for a young person.\n3. The response should: Continue the facade that you are a young person looking to have a good time. Show interest in the conversation, but not be overly eager.\n4. Start the response with 'Hello', followed by the content of the email.\n5. Very Important: Only output the response content to be sent, and nothing else.'''
+    # Insert Child Predator Catcher
     success_cpc, message_cpc = knowledge_base.create_project_type(
         project_type="Child Predator Catcher",
         DEFAULT_ADMIN_PROMPT = DEFAULT_ADMIN_PROMPT_CPC,
@@ -194,54 +180,21 @@ def create_project_types():
     )
     print(f"Child Predator Catcher: {message_cpc}")
 
+    # Theft Investigation
     DEFAULT_ADMIN_PROMPT_TI = (
         "You are investigating a potential theft involving high-value goods being sold online. "
         "You are trying to verify the authenticity of the item being sold and whether it is stolen."
     )
-
-
-# Define scenarios for Theft Investigation
+    # Define scenarios for Theft Investigation
     default_switch_manual_criterias_ti = [
         "The suspect mentioned selling high-value goods for a price too good to be true.",
         "The suspect avoided questions about proof of ownership.",
         "The suspect asked for payment details without sharing full product details."
     ]
-
     # Define prompts for Theft Investigation
-    base_prompt_ti = f'''{DEFAULT_ADMIN_PROMPT_TI}\nThe following is an email conversation about a potential theft investigation. The suspect does not know they are interacting with an AI assistant.\n{{previous_conversations}}'''
-    formatted_criteria_ti = "\n".join(f"- {criteria}" for criteria in default_switch_manual_criterias_ti)
-
-    scenario_prompt_ti = f'''{base_prompt_ti}\n
-    TASK: Check for Manual Switch Scenarios (No need to generate a response email).\n
-    INSTRUCTIONS FOR THE TASK:\n
-    Carefully read the entire conversation provided and evaluate ONLY the current content of the conversation. DO NOT make predictions or assumptions about what might happen in future conversations. Just check the scenario as it is.\n
-    IMPORTANT: If there is even the slightest doubt, you must assume the scenario has NOT occurred.\n
-    
-    These are the scenarios:\n {formatted_criteria_ti}
-    
-    INSTRUCTIONS TO THE AI:\n
-    1. If one or more of the above scenarios have occurred, print exactly the phrase: 'Manual Switch needs to happen' ONLY if at least one scenario has occurred.\n
-    2. If no scenarios have occurred, print exactly the phrase: 'Automated reply should be generated' ONLY if no scenarios have occurred. Then ignore the rest of this prompt and finish the task.\n
-    3. Explain where exactly the scenarios happened.\n
-    4. Immediately after this, list the specific scenario(s) that occurred.\n'''
-
-    response_prompt_ti = f'''{base_prompt_ti}\n
-    TASK: Generate a Response Email.\n
-    INSTRUCTIONS FOR THE TASK:\n
-    IMPORTANT: You are responding as an interested buyer. Maintain professionalism and curiosity in your responses. Be polite but firm in your request for additional information.\n
-    
-    1. Use the following email content as the suspect's latest message:\n{{email_content}}\n
-    
-    2. Understand the entire conversation and generate a response that seems natural, human-like, and appropriate for someone trying to verify the authenticity of the item being sold.\n
-    3. The response should:\n
-       - Ask for more details about the item, such as pictures, serial numbers, or any documentation proving ownership.\n
-       - Request clarity on why the item is priced lower than expected.\n
-       - Politely express interest in proceeding but only after receiving sufficient proof of authenticity.\n
-    
-    4. Start the response with 'Hello', followed by the content of the email.\n
-    5. Very Important: Only output the response content to be sent, and nothing else.\n'''
-
-
+    base_prompt_ti = '''${admin_prompt}\nThe following is an email conversation about a potential theft investigation. The suspect does not know they are interacting with an AI assistant.\n${previous_conversations}'''
+    scenario_prompt_ti = '''${base_prompt}\nTASK: Check for Manual Switch Scenarios (No need to generate a response email).\nINSTRUCTIONS FOR THE TASK:\nCarefully read the entire conversation provided and evaluate ONLY the current content of the conversation. DO NOT make predictions or assumptions about what might happen in future conversations. Just check the scenario as it is.\nIMPORTANT: If there is even the slightest doubt, you must assume the scenario has NOT occurred.\nThese are the scenarios:\n ${scenario_instructions}INSTRUCTIONS TO THE AI:\n1. If one or more of the above scenarios have occurred, print exactly the phrase: 'Manual Switch needs to happen' ONLY if at least one scenario has occurred.\n2. If no scenarios have occurred, print exactly the phrase: 'Automated reply should be generated' ONLY if no scenarios have occurred. Then ignore the rest of this prompt and finish the task.\n3. Explain where exactly the scenarios happened.\n4. Immediately after this, list the specific scenario(s) that occurred.\n'''
+    response_prompt_ti = '''${base_prompt}\nTASK: Generate a Response Email.\nINSTRUCTIONS FOR THE TASK:\nIMPORTANT: You are responding as an interested buyer. Maintain professionalism and curiosity in your responses. Be polite but firm in your request for additional information.\n1. Use the following email content as the suspect's latest message:\n${email_content}\n2. Understand the entire conversation and generate a response that seems natural, human-like, and appropriate for someone trying to verify the authenticity of the item being sold.\n3. The response should:\nAsk for more details about the item, such as pictures, serial numbers, or any documentation proving ownership.\nRequest clarity on why the item is priced lower than expected.\nPolitely express interest in proceeding but only after receiving sufficient proof of authenticity.\n4. Start the response with 'Hello', followed by the content of the email.\n5. Very Important: Only output the response content to be sent, and nothing else.\n'''
     # Insert Theft Investigation
     success_ti, message_ti = knowledge_base.create_project_type(
         project_type="Theft Investigation",

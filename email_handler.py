@@ -8,8 +8,10 @@ from flask import session
 from datetime import datetime, timedelta, timezone
 from collections import Counter, defaultdict
 import smtplib
-from email.mime.multipart import MIMEMultipart
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from email.header import decode_header
 
 
@@ -259,6 +261,28 @@ class EmailHandler:
             with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
                 server.starttls()
                 server.login(self.user, self.password)
+                server.send_message(msg)
+        except Exception as e:
+            logging.error(f"Failed to send email: {e}")
+    
+    def send_notification(self, to_address, content, subject=None):
+        """
+        Send an email notification to admins.
+        """
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        # sendgrid_api_key = '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'
+        from_address = "noreplycraigslistsafebot@gmail.com"
+        app_password = "iqbd sboj kknl qvbb"
+        try:
+            msg = MIMEMultipart()
+            msg['From'] = from_address
+            msg['To'] = to_address
+            msg['Subject'] = subject
+            msg.attach(MIMEText(content, 'plain'))
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls()
+                server.login(from_address, app_password)
                 server.send_message(msg)
         except Exception as e:
             logging.error(f"Failed to send email: {e}")
