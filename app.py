@@ -7,7 +7,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from flask import Flask, flash, session, render_template, request, redirect, url_for, jsonify
 from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin
-from datetime import datetime
 from email_handler import EmailHandler
 from auth_handler import LoginForm, User, AuthHandler
 from knowledge_base import KnowledgeBase
@@ -17,7 +16,9 @@ from datetime import datetime, timedelta
 from user_profiling import UserProfiling
 from email_processor import EmailProcessor
 from project_scheduler import ProjectScheduler
-
+from email_notification import send_email_notification
+from dotenv import load_dotenv
+load_dotenv()
 # Initialize the Flask application
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))  # Use environment variable or random key
@@ -267,6 +268,9 @@ def project_creation():
                                                          )
 
         if success:
+            # Send email notifications to authorized users
+            if authorized_emails_list:
+                send_email_notification(to_emails=authorized_emails_list, project_name=project_name)
             return redirect(url_for('all_projects_view'))
         else:
             flash(message, "error")
