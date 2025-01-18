@@ -11,7 +11,8 @@
 
     <style>
         .email-score {
-            font-size: 16px;
+            width: 10%;
+            font-size: 14px;
             font-weight: bold;
             color: #134258; /* Match theme */
             padding: 5px 10px;
@@ -19,6 +20,7 @@
             white-space: nowrap;
             margin-right: 0px;
         }
+
         body {
             font-family: 'Arial', sans-serif;
             background-color: #eaeaea;
@@ -64,11 +66,11 @@
         }
         .container {
             background-color: #ffffff;
-            padding: 40px 50px;
+            padding: 35px 35px;
             border-radius: 10px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             width: 90%;
-            max-width: 1020px;
+            max-width: 1300px;
             margin-top: 10px; /* Reduced margin-top */
             margin-bottom: 20px;
             display: flex;
@@ -607,7 +609,7 @@
             width: 100%;
             text-align: center;
             margin-bottom: 10px; /* Space above the container */
-            font-size: 30px;
+            font-size: 28px;
             font-weight: bold;
             color: #134258; /* Match theme color */
         }
@@ -835,6 +837,18 @@
             z-index: 1000;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
         }
+
+        .responder {
+            font-style: italic;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .email-count {
+            font-size: 12px;
+            color: #999;
+            margin-left: 10px;
+        }
         /* Toolbar styles */
         .toolbar {
             background-color: #f5f5f5; /* Light background color */
@@ -910,6 +924,38 @@
             color: inherit;
             margin-left: 5px;
         }
+
+
+        .email-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .email-participants {
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+            margin-right: 15px;
+        }
+
+
+
+
+        .email-timestamp {
+            color: #666;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .email-thread {
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+        }
+
         .email-thread-label {
             display: flex;
             font-size: 16px;
@@ -937,15 +983,24 @@
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
         }
         .reply-icon {
-            position: relative;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 18px;
+            color: #164679; /* Match the theme */
             text-decoration: none;
-            color: #164679; /* Primary color for the icon */
-            font-size: 20px; /* Adjust icon size */
-            margin-left: 10px;
         }
 
+        .email-thread-row {
+             display: flex;
+             align-items: center;
+             justify-content: space-between;
+             gap: 10px;
+         }
+
+
         .reply-icon:hover {
-            color: #083564; /* Darker color on hover */
+            color: #083564;
             cursor: pointer;
         }
 
@@ -970,8 +1025,106 @@
         .reply-icon:hover::after {
             opacity: 1; /* Show tooltip on hover */
         }
+        /* Sender Container Styling */
+        .email-sender {
+            display: flex; /* Flexbox ensures both elements are on the same line */
+            align-items: center; /* Vertically align text */
+            gap: 5px; /* Add spacing between email ID and count */
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            overflow: hidden; /* Truncate if it overflows */
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sender-email {
+            font-weight: bold; /* Bold for emphasis */
+            color: #333; /* Dark text color */
+        }
+        .email-count {
+            font-size: 12px; /* Slightly smaller font for count */
+            color: #666; /* Subtle gray color */
+        }
 
 
+        .email-subject {
+            flex-grow: 2;
+            width: 35%; /* Limit subject to 35% width */
+            font-size: 14px;
+            color: #555;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex-grow: 1;
+            margin-right: 15px;
+        }
+
+
+        .email-toggle {
+            width: 10%; /* Fixed width for toggle */
+            text-align: center;
+        }
+
+        .email-archive {
+            width: 10%; /* Fixed width for archive */
+            text-align: center;
+        }
+
+
+
+        .email-date {
+            width: 10%; /* Fixed width for date */
+            font-size: 12px;
+            color: #666;
+            text-align: right;
+        }
+
+        /* Toggle Switch Styling */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #28a745;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
 
 
     </style>
@@ -1097,29 +1250,25 @@
                 {% for key, details in conversations.items() %}
                     <div class="email-chain" data-thread-id="{{ key }}">
                         <div class="email-chain-header" onclick="toggleEmailChain('chain-{{ loop.index }}', this)">
-                            <div class="subject-box" 
-                            title="The subject of an email thread"  
-                            style="width: 70%;">
-                            {{ details[0]['subject'].replace('Re: ', '') }}
-                            <span title="Number of emails in this thread" style="margin-left: 10px; color: #555;">
-                            ({{ details | length }})
-                            </span>
+                            <div class="email-participants">
+                                <div class="email-sender">
+                                    <div class="sender-email" title="Sender Email">{{ details[0]['from'].split('<')[-1].replace('>', '').strip() }}
+                                    </div>
+                                    <span class="email-count" title="Number of emails in this thread">
+                                    ({{ details | length }})
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="email-subject" title="The subject of an email thread">
+                                {{ details[0]['subject'].replace('Re: ', '') | truncate(30) }}
                             </div>
                             <div class="email-score"  
                             title="Indicates how suspicious this thread is based on the target profile (scored out of 100)" 
                             style="width: 20%; text-align: right;">
                             Score: {{ conversations_score.get(key, '0') }}
                             </div>
-                            <!-- Corrected: Display one Reply Icon per thread -->
-                            <div class="button-box">
-                                <a href="{{ url_for('email_thread_reply', thread_id=key) }}"
-                                    class="reply-icon"
-                                    title="Reply"
-                                    onclick="event.stopPropagation();">
-                                    <i class="fas fa-reply"></i>
-                                </a>
-                            </div>
-                            <div class="button-box">
+
+                            <div class="email-toggle">
                                 <label class="toggle-switch" title="Click on this to toggle AI response state between automated and manual. (Automated: Green | Manual: Red)">
                                     <input type="checkbox" id="toggleChatGPT{{ loop.index }}"
                                            onclick="toggleChatGPT(this)"
@@ -1131,7 +1280,7 @@
                                 <i class="fas fa-archive"></i>
                             </button>
                             <!-- Conditional timestamp display -->
-                            <div class="email-timestamp" style="width: 11%; text-align: center; ">
+                            <div class="email-date" style="width: 11%; text-align: center; ">
                                 {% set email_date = latest_timestamp.get(key) %}
                                 {% if email_date %}
                                     {% if email_date.date() == current_date %}
@@ -1148,6 +1297,17 @@
                         <div class="email-chain-content" id="chain-{{ loop.index }}" style="display: none;">
                             {% for email in details %}
                                 <div class="email">
+                                    {% if loop.first %}
+                                        <div class="button-box" style="position: relative;">
+                                            <a href="{{ url_for('email_thread_reply', thread_id=key, email_id=email['message_id']) }}"
+                                               class="reply-icon"
+                                               title="Reply"
+                                               style="position: absolute; "
+                                               onclick="event.stopPropagation();">
+                                                <i class="fas fa-reply"></i>
+                                            </a>
+                                        </div>
+                                    {% endif %}
                                     <p>
                                         <strong>From:</strong> {{ email['from'] }}
                                         {% if email['from'] == session['email']  %}
@@ -1301,7 +1461,7 @@
 
         // Ensure filters are hidden on page load
         filtersContainer.style.display = 'none';
-        toggleFiltersButton.textContent = 'Search'; // Set initial button text
+        toggleFiltersButton.textContent = 'Customize Search Filters'; // Set initial button text
 
         // Add event listener to toggle visibility
         toggleFiltersButton.addEventListener('click', function () {
@@ -1310,7 +1470,7 @@
                 this.textContent = 'Hide Filters'; // Change button text
             } else {
                 filtersContainer.style.display = 'none'; // Hide filters
-                this.textContent = 'Search'; // Change button text back
+                this.textContent = 'Customize Search Filters'; // Change button text back
             }
         });
     });
@@ -1369,18 +1529,17 @@
     }
     let currentSort = { field: '', direction: 'desc' };
 
-    function sortBy(field) {
-        const isAscending = currentSort.field === field && currentSort.direction === 'asc';
-        currentSort = { field, direction: isAscending ? 'desc' : 'asc' };
-
-        // Toggle visibility of icons
-        document.getElementById(`${field}-asc`).style.display = isAscending ? 'none' : 'inline';
-        document.getElementById(`${field}-desc`).style.display = isAscending ? 'inline' : 'none';
-
-        // Call a backend API or re-sort the DOM elements as needed
-        console.log(`Sorting by ${field} in ${currentSort.direction} order`);
-        // Add your sorting logic here, e.g., AJAX request or client-side sorting
-    }
+    {#function sortBy(field) {#}
+    {#    const isAscending = currentSort.field === field && currentSort.direction === 'asc';#}
+    {#    currentSort = { field, direction: isAscending ? 'desc' : 'asc' };#}
+    {##}
+    {#    // Toggle visibility of icons#}
+    {#    document.getElementById(`${field}-asc`).style.display = isAscending ? 'none' : 'inline';#}
+    {#    document.getElementById(`${field}-desc`).style.display = isAscending ? 'inline' : 'none';#}
+    {##}
+    {#    // Call a backend API or re-sort the DOM elements as needed#}
+    {#    console.log(`Sorting by ${field} in ${currentSort.direction} order`);#}
+    {#    // Add your sorting logic here, e.g., AJAX request or client-side sorting#}
 
 
     function showFlashMessage(message, type) {
@@ -1426,6 +1585,18 @@
         // Append the sorted email chains back to the container
         emailChains.forEach(chain => container.appendChild(chain));
     }
+
+    {#document.querySelectorAll('.email-chain-content').forEach(chain => {#}
+    {#    const emails = chain.querySelectorAll('.email');#}
+    {#    if (emails.length > 0) {#}
+    {#        const latestEmail = emails[0]; // Assuming the first email is the latest#}
+    {#        const replyIcon = document.createElement('a');#}
+    {#        replyIcon.href = '#'; // Replace with your actual reply link#}
+    {#        replyIcon.className = 'reply-icon';#}
+    {#        replyIcon.innerHTML = `<i class="fas fa-reply"></i>`;#}
+    {#        latestEmail.appendChild(replyIcon);#}
+    {#    }{);#}
+    {##}
 
 
 

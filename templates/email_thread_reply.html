@@ -6,6 +6,14 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill-emoji/dist/quill-emoji.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill-emoji/dist/quill-emoji.css">
+    <script src="https://cdn.jsdelivr.net/npm/quill-emoji/dist/quill-emoji.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill-emoji/dist/quill-emoji.css">
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+
 
     <title>Email Thread:{{ emails[0]['subject'] }}</title>
     <style>
@@ -30,12 +38,25 @@
     }
 
     .email {
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    background-color: #f9f9f9;
+        margin-bottom: 15px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
+
+    @media (max-width: 768px) {
+        .email-container {
+            padding: 20px;
+            margin: 10px;
+        }
+
+        .email-chain-container {
+            max-height: 300px;
+        }
+    }
+
 
     .reply-box {
     margin-top: 20px;
@@ -48,6 +69,21 @@
     border-radius: 5px;
     resize: vertical;
     }
+
+    .navigation .btn-secondary {
+        background-color: #007195;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: 16px;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+    }
+
+    .navigation .btn-secondary:hover {
+        background-color: #134258;
+    }
+
 
     button {
     margin-top: 10px;
@@ -704,8 +740,9 @@
 
     <!-- Fixed Reply Form -->
     <div class="reply-form-container">
-        <form method="POST" action="{{ url_for('send_reply', thread_id=thread_id) }}">
-            <textarea name="reply_content" placeholder="Type your reply here..." required></textarea>
+        <form method="POST" action="{{ url_for('send_reply', thread_id=thread_id) }}" enctype="multipart/form-data">
+            <div id="editor-container" style="height: 200px;"></div>
+            <input type="hidden" id="reply-content" name="content">
             <button type="submit" class="btn btn-primary">Send Reply</button>
         </form>
     </div>
@@ -721,15 +758,77 @@
 
 <script>
 
+    var quill = new Quill('#editor-container', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ font: [] }, { size: [] }],
+                ['bold', 'italic', 'underline'],
+                [{ color: [] }, { background: [] }],
+                ['emoji'],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                ['clean']
+            ],
+            'emoji-toolbar': true,
+            'emoji-textarea': false,
+            'emoji-shortname': true
+        }
+    });
+
+    // Handle file uploads in the toolbar
+    var toolbar = quill.getModule('toolbar');
+    toolbar.addHandler('file', function () {
+        var fileInput = document.createElement('input');
+        fileInput.setAttribute('type', 'file');
+        fileInput.setAttribute('accept', '*');
+        fileInput.click();
+
+        fileInput.onchange = function () {
+            var file = fileInput.files[0];
+            if (file) {
+                var formData = new FormData();
+                formData.append('file', file);
+
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            var range = quill.getSelection();
+                            quill.insertText(range.index, `File: ${data.url}`);
+                        } else {
+                            alert('File upload failed: ' + data.message);
+                        }
+                    });
+            }
+        };
+    });
+
+
+    document.querySelector('form').onsubmit = async function (e) {
+        e.preventDefault();
+        const dirtyHTML = quill.root.innerHTML;
+        const cleanHTML = DOMPurify.sanitize(dirtyHTML);
+        {#document.querySelector('#reply-content').value = cleanHTML;#}
+        document.querySelector('#reply-content').value = quill.root.innerHTML;
+
+        console.log("Reply Content:", cleanHTML); // Debugging
+        console.log("Form Data:", new FormData(this)); // Debugging
+    };
+
+
     function scrollToTop() {
         const container = document.getElementById('emailChainContainer');
-        container.scrollTop = 0; // Scroll to the top
+        container.scrollTo({ top: 0, behavior: 'smooth' }); // Smooth scroll to the top
     }
 
     function scrollToBottom() {
         const container = document.getElementById('emailChainContainer');
-        container.scrollTop = container.scrollHeight; // Scroll to the bottom
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' }); // Smooth scroll to the bottom
     }
+
 
     function redirectToView(view) {
         switch (view) {
@@ -776,5 +875,26 @@
 
         console.log(`Content for ${chainId} is now ${isHidden ? 'visible' : 'hidden'}`);
     }
+
+    document.querySelector('form').onsubmit = async function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        try {
+            const response = await fetch(this.action, {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert('Reply sent successfully!');
+                location.reload();
+            } else {
+                alert('Failed to send the reply. Please try again.');
+            }
+        } catch (error) {
+            alert('An error occurred while sending the reply.');
+        }
+    };
+
 
 </script>

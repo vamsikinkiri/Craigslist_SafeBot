@@ -51,7 +51,7 @@
             font-size: 18px; /* Adjust font size for the group label */
             font-weight: bold;
             color: #333; /* Adjust text color for better visibility */
-            margin-bottom: 10px; /* Adds spacing below the legend */
+            margin-bottom: 20px; /* Adds spacing below the legend */
             text-align: left; /* Aligns the legend text to the left */
         }
 
@@ -156,12 +156,7 @@
             z-index: 10;
         }
 
-        /* General wrapper for keyword fields */
-        .field-wrapper {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 20px;
-        }
+
         /* Styling for the keywords list */
         #keywords-list {
             margin-top: 15px;
@@ -203,8 +198,8 @@
         /* Individual keyword entries */
         .list-entry {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
             background-color: #e7eef0;
             padding: 10px 15px;
             border-radius: 8px;
@@ -300,16 +295,18 @@
             display: block;
         }
 
-        /* Main container styling */
+        /* Container styling */
         .container {
-            width: 500px;
-            padding: 50px;
+            width: 1000px; /* Increased width to match other page */
+            height: 700px;
+            padding: 29px;
             border-radius: 25px;
             background-color: #ffffff;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
             text-align: center;
-            margin-top: 60px;
-            margin-right: 100px; /* Adjust to account for sidebar */
+            margin-top: 30px; /* Reduced margin for alignment */
+            position: relative;
+            overflow: visible;
         }
 
         h1 {
@@ -350,14 +347,14 @@
 
         /* Styling for each email entry */
         .email-entry {
-            display: flex;
+            display: flex      ;
             align-items: center;
             justify-content: space-between;
             background-color: #e7eef0;
-            padding: 10px;
+            padding: 10px 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             font-size: 14px;
+            word-break: break-word;
         }
 
         /* Tooltip styling */
@@ -391,13 +388,13 @@
             font-size: 16px;
             outline: none;
             transition: background-color 0.3s;
-            resize: None;
+            resize: vertical;
         }
 
 
         .response-frequency{
             padding: 12px 25px;
-            width: 90%;
+            width: 95%;
             border: none;
             border-radius: 15px;
             background-color: #e7eef0;
@@ -758,7 +755,7 @@
         }
 
         .custom-input, .custom-select {
-            width: 100%;
+            width: 97%;
             padding: 12px;
             margin: 10px 0;
             border: 1px solid #ffffff;
@@ -797,16 +794,100 @@
             margin-top: 10px;
         }
 
-        .list-entry {
+        /* Tab Navigation */
+        .tabs {
             display: flex;
+            position: sticky;
             justify-content: space-between;
-            align-items: center;
-            background-color: #e7eef0;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            font-size: 14px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            flex-wrap: wrap;
+            height: auto;
+
         }
+
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 16px;
+            cursor: pointer;
+            font-size: 18px;
+            color: #555;
+            background-color: #e7eef0;
+            transition: all 0.3s;
+            align-content: center;
+        }
+
+        .tab:hover {
+            background-color: #d7e3fc;
+            color: #134258;
+        }
+
+        .tab.active {
+            background-color: #134258;
+            color: #ffffff;
+            border-bottom: 3px solid #134258;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            padding: 20px;
+            overflow-y: auto; /* Enables vertical scrolling for overflow */
+            border-radius: 0 0 15px 15px;
+            background-color: #ffffff;
+            {#max-height: 600px; /* Limits the height of tab content */#}
+            box-sizing: border-box; /* Ensures padding doesn’t overflow */
+            position: relative;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+        .button-container {
+            text-align: center; /* Center the button horizontally */
+            background-color: #ffffff; /* Same background as the container */
+            width: 100%; /* Stretch across the entire width */
+            z-index: 10; /* Ensure it stays above other content */
+            position: absolute; /* Positioned inside the container */
+            bottom: 20px; /* Place it above the bottom of the container */
+            left: 50%; /* Center the button horizontally */
+            transform: translateX(-50%); /* Center alignment */
+
+
+        }
+
+        /* Subtle styling for Save Project button */
+        button[type="submit"] {
+            margin-top: 20px;
+            padding: 12px 20px;
+            width: 90%;
+            border: none;
+            background-color: #007195;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button[type="submit"]:hover {
+            background: #134258; /* Slightly darker on hover */
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .content {
+                padding: 15px;
+            }
+        }
+
 
     </style>
 </head>
@@ -848,9 +929,7 @@
         Archived Emails
     </a>
 </div>
-
 <div class="container">
-    <h1>Project Settings</h1>
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div>
@@ -863,288 +942,305 @@
         {% endif %}
     {% endwith %}
 
-
     <form action="{{ url_for('update_project') }}" method="POST">
-
-        <!-- Response Settings -->
-        <fieldset>
-            <legend>Response Settings</legend>
-            <div class="form-field">
-                <label>Response Frequency</label>
-                <input
-                        type="number"
-                        name="response_frequency"
-                        class="response-frequency"
-                        placeholder="Response Frequency in Minutes (Default: 10)"
-                        value="{{ project_details.get('response_frequency', '10') }}"
-                        title="Edit roughly how often (in minutes) the bot should check for new emails and respond automatically."
-                        required
-                >
+            <h1>Project Settings</h1>
+            <!-- Tabs Section -->
+            <div class="tabs" role="tablist">
+                <div class="tab active" data-tab="response-settings" aria-expanded="true">Response Frequency</div>
+                <div class="tab" data-tab="keyword-management" aria-expanded="false">Keyword Management</div>
+                <div class="tab" data-tab="interaction-settings" aria-expanded="false">Interaction Settings</div>
+                <div class="tab" data-tab="admin-settings" aria-expanded="false">Admin Authorization Settings</div>
+                <div class="tab" data-tab="manual-intervention-settings" aria-expanded="false">Manual Intervention Criteria</div>
+                <div class="tab" data-tab="bot-settings" aria-expanded="false">Bot Settings</div>
             </div>
-            <div class="form-field">
-                <label>Automated Engagement Threshold</label>
-                <input
-                        type="number"
-                        name="lower_threshold"
-                        class="response-frequency"
-                        placeholder="Automated engagement threshold (Default: 0)"
-                        value="{{ project_details.get('lower_threshold', 0) }}"
-                        min="0"
-                        title="Edit the minimum score required to initiate automated responses for this project."
-                >
+
+            <!-- Tab Content -->
+            <div class="tab-content active" id="response-settings">
+                <fieldset>
+                    <legend>Response Settings</legend>
+                    <div class="form-field">
+                        <label>Response Frequency</label>
+                        <input
+                                type="number"
+                                name="response_frequency"
+                                class="response-frequency"
+                                placeholder="Response Frequency in Minutes (Default: 10)"
+                                value="{{ project_details.get('response_frequency', '10') }}"
+                                title="Edit roughly how often (in minutes) the bot should check for new emails and respond automatically."
+                                required
+                        >
+                    </div>
+                    <div class="form-field">
+                        <label>Automated Engagement Threshold</label>
+                        <input
+                                type="number"
+                                name="lower_threshold"
+                                class="response-frequency"
+                                placeholder="Automated engagement threshold (Default: 0)"
+                                value="{{ project_details.get('lower_threshold', 0) }}"
+                                min="0"
+                                title="Edit the minimum score required to initiate automated responses for this project."
+                        >
+                    </div>
+                    <div class="form-field">
+                        <label>Manual Engagement Threshold</label>
+                        <input
+                                type="number"
+                                name="upper_threshold"
+                                class="response-frequency"
+                                placeholder="Manual Engagement Threshold (Default: 75)"
+                                value="{{ project_details.get('upper_threshold', 75) }}"
+                                min="1"
+                                title="Edit the score above which the system switches to manual intervention mode and intimate the admins to send responses."
+                        >
+                    </div>
+                </fieldset>
             </div>
-            <div class="form-field">
-                <label>Manual Engagement Threshold</label>
-                <input
-                        type="number"
-                        name="upper_threshold"
-                        class="response-frequency"
-                        placeholder="Manual Engagement Threshold (Default: 75)"
-                        value="{{ project_details.get('upper_threshold', 75) }}"
-                        min="1"
-                        title="Edit the score above which the system switches to manual intervention mode and intimate the admins to send responses."
-                >
+
+            <div class="tab-content" id="keyword-management">
+                <!-- Keyword Management -->
+                <fieldset>
+                    <legend>Keyword Management</legend>
+                    <div class="field-wrapper">
+                        <!-- Input for Keyword and Frequency -->
+                        <label>Project keywords</label>
+                        <div class="field-group" >
+                            <input type="text" id="keyword-input" class="field-item" placeholder="Keyword"
+                                   title="Edit the keywords or add new keywords that the bot will look for in emails to prioritize responses.">
+                            <input type="number" id="keyword-frequency" class="field-item" placeholder="Frequency"
+                                   title="Edit the maximum number of times the keyword needs to appear in email threads.">
+                            <button type="button" class="add-keyword-btn" onclick="addKeyword()">+</button>
+                        </div>
+                        <!-- Display Existing Keywords -->
+                        <div id="keywords-list" class="list-container">
+                            {% if project_details['keywords_data'] %}
+                                {% if project_details['keywords_data'] is mapping %}
+                                    {% for keyword, frequency in project_details.get('keywords_data', {}).items() %}
+                                        <div class="list-entry">
+                                            <span>{{ keyword }}: {{ frequency }}</span>
+                                            <button type="button" class="remove-keyword-btn" onclick="removeKeyword('{{ keyword }}')">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                        </div>
+                                    {% endfor %}
+
+                                {% elif project_details['keywords_data'] is iterable %}
+                                    {% for item in project_details['keywords_data'] %}
+                                        <div class="list-entry">
+                                            <span>{{ item.keyword or 'Unknown' }}: {{ item.frequency or 0 }}</span>
+                                            <button type="button" class="remove-keyword-btn" onclick="removeKeyword('{{ item.keyword }}')">-</button>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p></p>
+                                {% endif %}
+                            {% else %}
+                                <p></p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </fieldset>
             </div>
-        </fieldset>
-
-        <!-- Keyword Management -->
-        <fieldset>
-            <legend>Keyword Management</legend>
-            <div class="field-wrapper">
-                <!-- Input for Keyword and Frequency -->
-                <label>Project keywords</label>
-                <div class="field-group" >
-                    <input type="text" id="keyword-input" class="field-item" placeholder="Keyword"
-                           title="Edit the keywords or add new keywords that the bot will look for in emails to prioritize responses.">
-                    <input type="number" id="keyword-frequency" class="field-item" placeholder="Frequency"
-                           title="Edit the maximum number of times the keyword needs to appear in email threads.">
-                    <button type="button" class="add-keyword-btn" onclick="addKeyword()">+</button>
-                </div>
 
 
-                <!-- Display Existing Keywords -->
-                <div id="keywords-list" class="list-container">
-                    {% if project_details['keywords_data'] %}
-                        {% if project_details['keywords_data'] is mapping %}
-                            {% for keyword, frequency in project_details.get('keywords_data', {}).items() %}
-                                <div class="list-entry">
-                                    <span>{{ keyword }}: {{ frequency }}</span>
-                                    <button type="button" class="remove-keyword-btn" onclick="removeKeyword('{{ keyword }}')">
+            <div class="tab-content" id="admin-settings">
+                <fieldset>
+                    <legend>Authorization Settings</legend>
+                    <div class="field-wrapper">
+                        <div class="email-group">
+                            <input
+                                    type="email"
+                                    id="email-input"
+                                    class="email-input"
+                                    placeholder="Enter a new admin Email ID"
+                                    value=""
+                                    title="Edit the list of email addresses that have permission to view, modify, or delete this project. Add multiple emails if needed."
+                            >
+                            <button
+                                    type="button"
+                                    class="add-email-btn"
+                                    onclick="addEmail()">
+                                <i class="fas fa-plus"></i> <!-- Font Awesome '+' icon -->
+                            </button>
+                        </div>
+                        <div id="email-list-container" class="email-list-container">
+                            <!-- Existing emails will be displayed here -->
+                            {% for email in project_details.get('authorized_emails', []) %}
+                                <div class="email-entry">
+                                    <span>{{ email }}</span>
+                                    <button
+                                            type="button"
+                                            class="remove-email-btn"
+                                            onclick="removeEmail('{{ email }}')">
                                         <i class="fas fa-minus"></i>
                                     </button>
                                 </div>
                             {% endfor %}
+                        </div>
+                    </div>
+                    <input type="hidden" id="keywords-input" name="keywords_data" value='{{ project_details.get("keywords_data", {}) | tojson | safe }}'>
+                    <input type="hidden" id="authorized-emails-input" name="authorized_emails" value='{{ project_details.get("authorized_emails", []) | tojson | safe }}'>
+                </fieldset>
+            </div>
 
-                        {% elif project_details['keywords_data'] is iterable %}
-                            {% for item in project_details['keywords_data'] %}
+            <div class="tab-content" id="manual-intervention-settings">
+                <fieldset>
+                    <legend>Manual Intervention Criteria</legend>
+                    <div class="field-wrapper">
+                        <!-- Input for New Criterion -->
+                        <div class="field-group">
+                            <input
+                                    type="text"
+                                    id="criteria-input"
+                                    class="custom-input-others"
+                                    placeholder="Add new criteria"
+                                    title="Enter additional scenarios where you would like to switch the response state from automated to manual."
+                            >
+                            <button type="button" class="add-criteria-btn" onclick="addManualCriteria()">+</button>
+                        </div>
+
+                        <!-- Existing Criteria List -->
+                        <div id="manual-criteria-list" class="list-container">
+                            {% for criteria in project_details.get('switch_manual_criterias', []) %}
                                 <div class="list-entry">
-                                    <span>{{ item.keyword or 'Unknown' }}: {{ item.frequency or 0 }}</span>
-                                    <button type="button" class="remove-keyword-btn" onclick="removeKeyword('{{ item.keyword }}')">-</button>
+                                    <span>{{ criteria }}</span>
+                                    <button
+                                            type="button"
+                                            class="remove-criteria-btn"
+                                            data-index="{{ loop.index0 }}"
+                                            onclick="removeManualCriteria({{ loop.index0 }})"
+                                    >
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+
                                 </div>
                             {% endfor %}
-                        {% else %}
-                            <p></p>
-                        {% endif %}
-                    {% else %}
-                        <p></p>
-                    {% endif %}
-                </div>
-            </div>
-        </fieldset>
-
-        <!-- Authorization Settings -->
-        <fieldset>
-            <legend>Authorization Settings</legend>
-            <div class="field-wrapper">
-                <div class="email-group">
-                    <input
-                            type="email"
-                            id="email-input"
-                            class="email-input"
-                            placeholder="Enter a new admin Email ID"
-                            value=""
-                            title="Edit the list of email addresses that have permission to view, modify, or delete this project. Add multiple emails if needed."
-                    >
-                    <button
-                            type="button"
-                            class="add-email-btn"
-                            onclick="addEmail()">
-                        <i class="fas fa-plus"></i> <!-- Font Awesome '+' icon -->
-                    </button>
-                </div>
-                <div id="email-list-container" class="email-list-container">
-                    <!-- Existing emails will be displayed here -->
-                    {% for email in project_details.get('authorized_emails', []) %}
-                        <div class="email-entry">
-                            <span>{{ email }}</span>
-                            <button
-                                    type="button"
-                                    class="remove-email-btn"
-                                    onclick="removeEmail('{{ email }}')">
-                                <i class="fas fa-minus"></i>
-                            </button>
                         </div>
-                    {% endfor %}
-                </div>
+                    </div>
+                    <input type="hidden" id="criteria-data" name="switch_manual_criterias" value='{{ project_details.get("switch_manual_criterias", []) | tojson | safe }}'>
+                </fieldset>
             </div>
-{#            <input type="hidden" id="keywords-input" name="keywords_data" value='{}'>#}
-            <input type="hidden" id="keywords-input" name="keywords_data" value='{{ project_details.get("keywords_data", {}) | tojson | safe }}'>
-            {#            <input type="hidden" id="authorized-emails-input" name="authorized_emails" value='[]'>#}
-            <input type="hidden" id="authorized-emails-input" name="authorized_emails" value='{{ project_details.get("authorized_emails", []) | tojson | safe }}'>
 
-        </fieldset>
+        <div class="tab-content" id="interaction-settings">
+            <fieldset>
+                <legend>Interaction Settings</legend>
+                <!-- Posed Name -->
+                <label for="posed_name">Posed Name</label>
+                <input
+                        type="text"
+                        id="posed_name"
+                        name="posed_name"
+                        value="{{ project_details.get('posed_name', '') }}"
+                        placeholder="Enter posed name"
+                        title="Change the alias or name being used for interaction."
+                        class="custom-input-others"
+                >
+                <!-- Posed Age -->
+                <label for="posed_age">Posed Age</label>
+                <input
+                        type="number"
+                        id="posed_age"
+                        name="posed_age"
+                        value="{{ project_details.get('posed_age', '') }}"
+                        placeholder="Enter posed age"
+                        title="Change the age to be posed during interaction."
+                        class="custom-input-others"
+                >
+                <!-- Posed Sex -->
+                <label for="posed_sex">Posed Sex</label>
+                <select id="posed_sex" name="posed_sex" class="custom-select custom-input" title="Change the gender to be posed during interaction.">
+                    <option value="Male" {% if project_details.get('posed_sex') == 'Male' %}selected{% endif %}>Male</option>
+                    <option value="Female" {% if project_details.get('posed_sex') == 'Female' %}selected{% endif %}>Female</option>
+                    <option value="Other" {% if project_details.get('posed_sex') == 'Other' %}selected{% endif %}>Other</option>
+                </select>
 
-        <fieldset>
-            <legend>Interaction Settings</legend>
-            <!-- Posed Name -->
-            <label for="posed_name">Posed Name</label>
-            <input
-                    type="text"
-                    id="posed_name"
-                    name="posed_name"
-                    value="{{ project_details.get('posed_name', '') }}"
-                    placeholder="Enter posed name"
-                    title="Change the alias or name being used for interaction."
-                    class="custom-input-others"
-            >
+                <!-- Posed Location -->
+                <label for="posed_location">Posed Location</label>
+                <input
+                        type="text"
+                        id="posed_location"
+                        name="posed_location"
+                        value="{{ project_details.get('posed_location', '') }}"
+                        placeholder="Enter posed location"
+                        title="Change the posed location being used in the interaction."
+                        class="custom-input-others"
+                >
+            </fieldset>
+        </div>
 
-            <!-- Posed Age -->
-            <label for="posed_age">Posed Age</label>
-            <input
-                    type="number"
-                    id="posed_age"
-                    name="posed_age"
-                    value="{{ project_details.get('posed_age', '') }}"
-                    placeholder="Enter posed age"
-                    title="Change the age to be posed during interaction."
-                    class="custom-input-others"
-            >
-
-            <!-- Posed Sex -->
-            <label for="posed_sex">Posed Sex</label>
-            <select id="posed_sex" name="posed_sex" class="custom-select custom-input" title="Change the gender to be posed during interaction.">
-                <option value="Male" {% if project_details.get('posed_sex') == 'Male' %}selected{% endif %}>Male</option>
-                <option value="Female" {% if project_details.get('posed_sex') == 'Female' %}selected{% endif %}>Female</option>
-                <option value="Other" {% if project_details.get('posed_sex') == 'Other' %}selected{% endif %}>Other</option>
-            </select>
-
-            <!-- Posed Location -->
-            <label for="posed_location">Posed Location</label>
-            <input
-                    type="text"
-                    id="posed_location"
-                    name="posed_location"
-                    value="{{ project_details.get('posed_location', '') }}"
-                    placeholder="Enter posed location"
-                    title="Change the posed location being used in the interaction."
-                    class="custom-input-others"
-            >
-        </fieldset>
-
-        <fieldset>
-            <legend>Criterias for Manual Switch</legend>
-            <div class="field-wrapper">
-                <!-- Input for New Criterion -->
-                <div class="field-group">
-                    <input
-                            type="text"
-                            id="criteria-input"
-                            class="custom-input-others"
-                            placeholder="Add new criterion"
-                            title="Enter additional scenarios where you would like to switch the response state from automated to manual."
-                    >
-                    <button type="button" class="add-criteria-btn" onclick="addManualCriteria()">+</button>
-                </div>
-
-                <!-- Existing Criteria List -->
-                <div id="manual-criteria-list" class="list-container">
-                    {% for criteria in project_details.get('switch_manual_criterias', []) %}
-                        <div class="list-entry">
-                            <span>{{ criteria }}</span>
-                            <button
-                                    type="button"
-                                    class="remove-criteria-btn"
-                                    data-index="{{ loop.index0 }}"
-                                    onclick="removeManualCriteria({{ loop.index0 }})"
+            <div class="tab-content" id="bot-settings">
+                <!-- Bot Instructions -->
+                <fieldset>
+                    <legend>Instructions to Safebot</legend>
+                    <div class="field-wrapper">
+                        <!-- Mode Selection -->
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input
+                                    type="radio"
+                                    id="editPromptText"
+                                    name="mode"
+                                    value="edit"
+                                    onchange="toggleInputMode('edit')"
+                                    checked
                             >
-                                <i class="fas fa-minus"></i>
-                            </button>
+                            <label for="editPromptText">Edit existing instructions</label>
 
+                            <input
+                                    type="radio"
+                                    id="useSamplePrompt"
+                                    name="mode"
+                                    value="dropdown"
+                                    onchange="toggleInputMode('dropdown')"
+                            >
+                            <label for="useSamplePrompt">Import instructions from an existing project</label>
                         </div>
-                    {% endfor %}
+                    </div>
+                <!-- Dropdown for Projects -->
+                <div class="form-field" id="projectDropdownContainer" style="display: none;">
+                    <label for="project_dropdown"></label>
+                    <div class="dropdown-container">
+                        <select id="project_dropdown" name="project_dropdown" class="dropdown" onchange="updatePromptDropdown()">
+                            <option value="" disabled selected>Select an existing Project to import</option>
+                            {% for project in projects %}
+                                <option value="{{ project['project_id'] }}">{{ project['project_name'] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
-            </div>
-            <input type="hidden" id="criteria-data" name="switch_manual_criterias" value='{{ project_details.get("switch_manual_criterias", []) | tojson | safe }}'>
-
-        </fieldset>
-
-            <!-- Bot Instructions -->
-        <fieldset>
-            <legend>Instructions to Safebot</legend>
-            <div class="field-wrapper">
-                <!-- Mode Selection -->
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <input
-                            type="radio"
-                            id="editPromptText"
-                            name="mode"
-                            value="edit"
-                            onchange="toggleInputMode('edit')"
-                            checked
-                    >
-                    <label for="editPromptText">Edit existing instructions</label>
-
-                    <input
-                            type="radio"
-                            id="useSamplePrompt"
-                            name="mode"
-                            value="dropdown"
-                            onchange="toggleInputMode('dropdown')"
-                    >
-                    <label for="useSamplePrompt">Import instructions from an existing project</label>
+                <!-- Dropdown for Prompts -->
+                <div class="form-field" id="promptDropdownContainer" style="display: none;">
+                    <label for="prompt_dropdown"></label>
+                    <div class="dropdown-container">
+                        <select id="prompt_dropdown" name="sample_prompt" class="dropdown" onchange="updatePromptText()">
+                            <option value="" disabled selected>Select an existing Prompt to import</option>
+                        </select>
+                    </div>
                 </div>
+                <!-- Textarea for Manual Input -->
+                <div class="form-field"
+                     title="Edit the specific instructions or preferences for the SafeBot’s behavior and responses. This can include tone, content guidelines, or restrictions."
+                     id="textContainer">
+                    <!-- <label for="ai_prompt_text">Enter or Edit Prompt Text</label> -->
+                    <textarea
+                            id="ai_prompt_text"
+                            name="ai_prompt_text"
+                            class="prompt-text"
+                            placeholder="Enter the instructions to Safe Bot"
+                            required
+                    >{{ project_details.get('ai_prompt_text', '') }}</textarea>
+                </div>
+            </fieldset>
             </div>
-        </fieldset>
-        <!-- Dropdown for Projects -->
-        <div class="form-field" id="projectDropdownContainer" style="display: none;">
-            <label for="project_dropdown"></label>
-            <div class="dropdown-container">
-                <select id="project_dropdown" name="project_dropdown" class="dropdown" onchange="updatePromptDropdown()">
-                    <option value="" disabled selected>Select an existing Project to import</option>
-                    {% for project in projects %}
-                        <option value="{{ project['project_id'] }}">{{ project['project_name'] }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-        <!-- Dropdown for Prompts -->
-        <div class="form-field" id="promptDropdownContainer" style="display: none;">
-            <label for="prompt_dropdown"></label>
-            <div class="dropdown-container">
-                <select id="prompt_dropdown" name="sample_prompt" class="dropdown" onchange="updatePromptText()">
-                    <option value="" disabled selected>Select an existing Prompt to import</option>
-                </select>
-            </div>
-        </div>
-        <!-- Textarea for Manual Input -->
-        <div class="form-field"
-             title="Edit the specific instructions or preferences for the SafeBot’s behavior and responses. This can include tone, content guidelines, or restrictions."
-             id="textContainer">
-            <!-- <label for="ai_prompt_text">Enter or Edit Prompt Text</label> -->
-            <textarea
-                    id="ai_prompt_text"
-                    name="ai_prompt_text"
-                    class="prompt-text"
-                    placeholder="Enter the instructions to Safe Bot"
-                    required
-            >{{ project_details.get('ai_prompt_text', '') }}</textarea>
-        </div>
 
         <!-- Submit Button -->
-        <button type="submit" class="btn-primary">Update Project</button>
-        <div class="back-link">
-            <p><a href="{{ url_for('index') }}">Back to Dashboard</a></p>
-        </div>
+            <div class="button-container">
+                <a href="{{ url_for('all_projects_view') }}">
+                    <button type="submit" class="btn-primary">Update Project</button>
+                </a>
+                <div class="back-link">
+                    <p><a href="{{ url_for('index') }}">Back to Dashboard</a></p>
+                </div>
+            </div>
     </form>
     <script>
 
@@ -1153,6 +1249,36 @@
         let authorizedEmails = JSON.parse(document.getElementById("authorized-emails-input").value || "[]");
 
         let customCriteria = JSON.parse(document.getElementById('criteria-data').value || '[]');            // Initialize the manual criteria list
+
+        document.querySelectorAll(".tab").forEach(tab => {
+            tab.addEventListener("click", () => {
+                const target = tab.dataset.tab;
+
+                // Switch Tabs
+                document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+                document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
+                tab.classList.add("active");
+                document.getElementById(target).classList.add("active");
+
+                // Update aria-expanded
+                document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-expanded", "false"));
+                tab.setAttribute("aria-expanded", "true");
+            });
+        });
+        // Error Handling
+        function showError(inputId, message) {
+            const input = document.getElementById(inputId);
+            const error = document.createElement('div');
+            error.textContent = message;
+            error.style.color = 'red';
+            input.parentElement.appendChild(error);
+        }
+
+
+        function hideErrorMessage(id) {
+            const error = document.getElementById(id);
+            error.style.display = "none";
+        }
 
         // Toggle sidebar visibility
         function toggleSidebar() {
@@ -1450,8 +1576,23 @@
             renderCriteriaList(); // Initial render.
 
             document.getElementById("add-criteria-btn").addEventListener("click", addManualCriteria);
-        });
 
+            const tabs = document.querySelectorAll(".tab");
+            const tabContents = document.querySelectorAll(".tab-content");
+
+            tabs.forEach(tab => {
+                tab.addEventListener("click", () => {
+                    // Remove 'active' class from all tabs and tab contents
+                    tabs.forEach(t => t.classList.remove("active"));
+                    tabContents.forEach(content => content.classList.remove("active"));
+
+                    // Add 'active' class to the clicked tab and corresponding content
+                    tab.classList.add("active");
+                    const target = tab.getAttribute("data-tab");
+                    document.getElementById(target).classList.add("active");
+                });
+            });
+        });
 
     </script>
 </body>

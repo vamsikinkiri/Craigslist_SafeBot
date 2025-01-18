@@ -319,32 +319,6 @@
         </a>
     </form>
 </div>
-{##}
-{#{% block content %}#}
-{#    <div class="projects-container">#}
-{#        {% for project in authorized_projects %}#}
-{#            <div class="project-card">#}
-{#                <div class="project-header">#}
-{#                    <h3>{{ project[2] }}</h3> <!-- project[2] = project_name -->#}
-{#                </div>#}
-{#                <div class="project-body">#}
-{#                    <p><strong>Email:</strong> {{ project[1] }}</p> <!-- project[1] = email_id -->#}
-{#                    <p><strong>Last Updated:</strong> {{ project[17] }}</p> <!-- project[17] = last_updated -->#}
-{#                </div>#}
-{#                <div class="project-actions">#}
-{#                    <form method="POST" action="{{ url_for('all_projects_view') }}">#}
-{#                        <input type="hidden" name="email" value="{{ project[1] }}"> <!-- project[1] = email_id -->#}
-{#                        <button type="submit" class="btn">Open Project</button>#}
-{#                    </form>#}
-{#                    <form action="{{ url_for('delete_project', project_id=project[0]) }}" method="POST" onsubmit="return confirmDelete();">#}
-{#                        <button type="submit" class="btn btn-danger">Delete Project</button>#}
-{#                    </form>#}
-{#                </div>#}
-{#            </div>#}
-{#        {% endfor %}#}
-{#    </div>#}
-{##}
-{#{% endblock %}#}
 
 <div class="projects-container">
     {% for project in authorized_projects %}

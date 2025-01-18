@@ -13,6 +13,8 @@ from sendgrid.helpers.mail import Mail
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import decode_header
+from email.mime.base import MIMEBase
+from email import encoders
 
 
 class EmailHandler:
@@ -238,7 +240,7 @@ class EmailHandler:
             conversations[conversation_key].append(email)
         return conversations
 
-    def send_email(self, from_address, app_password, to_address, content, references=None, message_id=None, subject=None):
+    def send_email(self, from_address, app_password, to_address, content, references=None, message_id=None, subject=None, attachments=None):
         """
         Send an email reply with threading information.
         """
@@ -252,12 +254,19 @@ class EmailHandler:
             msg['From'] = self.user
             msg['To'] = to_address
             msg['Subject'] = subject
+            msg.attach(MIMEText(content, 'html'))
             if message_id:
                 msg['In-Reply-To'] = message_id
             if references is not None:
                 msg['References'] = ' '.join(references + [message_id])
             msg.attach(MIMEText(content, 'plain'))
-
+            if attachments:
+                for attachment in attachments:
+                    part = MIMEBase('application', 'octet-stream')
+                    part.set_payload(attachment.read())
+                    encoders.encode_base64(part)
+                    part.add_header('Content-Disposition', f'attachment; filename={attachment.filename}')
+                    msg.attach(part)
             with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
                 server.starttls()
                 server.login(self.user, self.password)

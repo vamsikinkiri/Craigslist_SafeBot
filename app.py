@@ -17,6 +17,7 @@ from user_profiling import UserProfiling
 from email_processor import EmailProcessor
 from project_scheduler import ProjectScheduler
 from email_notification import send_email_notification
+from flask import request
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -150,8 +151,15 @@ def project_creation():
         flash("Error fetching project types. Please try again.", "error")
         return redirect(url_for('all_projects_view'))
 
-    default_project_type = project_types[0]['type'] if project_types else None
-    #default_project_type = "Child Predator Catcher"
+    # default_project_type = project_types[0]['type'] if project_types else None
+    default_project_type = None
+    for project in project_types:
+        if project.get('type', '').lower() == 'child predator catcher':
+            default_project_type = project['type']
+            break
+    if not default_project_type:
+        default_project_type = project_types[0]['type'] if project_types else None
+
     logging.info(f"The default is: {default_project_type} and total are: {project_types}")
     project_data = None
     if default_project_type:
@@ -173,7 +181,7 @@ def project_creation():
 
     if request.method == 'POST':
         email = request.form['email']
-        project_name = "Project - " + request.form['project_name']
+        project_name = "Project: " + request.form['project_name']
         app_password = request.form['password']
         ai_prompt_text = request.form.get('ai_prompt_text', '')
         response_frequency_raw = request.form.get('response_frequency', '10').strip()
@@ -200,6 +208,11 @@ def project_creation():
             flash(project_data, "error")
             return redirect(url_for('project_creation'))
 
+            # Validation for required fields
+        if not email or not project_name or not app_password or not project_type or not keywords_data_fetch :
+            flash("Required fields in Project Information, Keyword Prioritization and authorization settings must be filled.", "error")
+            return redirect(url_for('project_creation'))
+
         default_switch_manual_criterias = project_data.get("default_switch_manual_criterias", [])
         if not isinstance(default_switch_manual_criterias, list):
             default_switch_manual_criterias = []
@@ -219,10 +232,11 @@ def project_creation():
 
         try:
             authorized_emails_list = json.loads(authorized_emails)
-            if not isinstance(authorized_emails_list, list):
-                raise ValueError("Authorized emails must be a list.")
-        except json.JSONDecodeError:
-            return jsonify({"error": "Invalid email format"}), 400
+            if not all(re.match(r"[^@]+@[^@]+\.[^@]+", email) for email in authorized_emails_list):
+                raise ValueError("One or more emails have an invalid format.")
+        except (ValueError, json.JSONDecodeError) as e:
+            logging.error(f"Error validating email format: {e}")
+            return jsonify({"error": "Invalid email format. Ensure all emails are properly formatted."}), 400
 
         project_success, message = knowledge_base.is_email_unique_in_projects(email)
         if not project_success:
@@ -242,6 +256,9 @@ def project_creation():
 
         try:
             keywords_data_updated = json.loads(keywords_data) if keywords_data else []
+            if not keywords_data_updated:
+                flash("Please add at least one keyword before submitting.", "error")
+                return redirect(url_for('project_creation'))
         except json.JSONDecodeError:
             flash("Invalid keywords data", "error")
             return redirect(url_for('project_creation'))
@@ -921,9 +938,16 @@ def email_thread_reply(thread_id):
 @login_required
 def send_reply(thread_id):
     reply_content = request.form.get('reply_content')
+    files = request.files.getlist('attachments')
     if not reply_content:
         flash("Reply content cannot be empty.", "error")
         return redirect(url_for('email_thread_reply', thread_id=thread_id))
+    app.logger.info(f"Reply content: {reply_content}")
+    app.logger.info(f"Thread ID: {thread_id}")
+
+    # Process attachments
+    for file in files:
+        file.save(os.path.join('uploads', file.filename))
 
     # Fetch the latest email in the thread
     success, emails = email_handler.fetch_email_by_thread_id(
@@ -962,7 +986,8 @@ def send_reply(thread_id):
         content=email_with_quote,
         references=latest_email.get('references', []),
         message_id=latest_email.get('message_id'),
-        subject="Re: " + latest_email.get('subject', "No Subject")
+        subject="Re: " + latest_email.get('subject', "No Subject"),
+        attachments=files
     )
 
     # Refresh the email thread to include the new reply
@@ -977,6 +1002,13 @@ def send_reply(thread_id):
     logging.info("Reply sent successfully!")
     return render_template('email_thread_reply.html', emails=emails, thread_id=thread_id)
 
+# @app.route('/upload', methods=['POST'])
+# def upload():
+#     if 'file' in request.files:
+#         file = request.files['file']
+#         file.save(f'uploads/{file.filename}')
+#         return {'success': True, 'url': f'/uploads/{file.filename}'}
+#     return {'success': False, 'message': 'No file uploaded'}
 
 @app.route('/', methods=['GET'])
 @login_required
