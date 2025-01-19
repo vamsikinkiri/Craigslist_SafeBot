@@ -912,7 +912,7 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
     
-    def create_user_profile(self, user_email, project_id, thread_ids, email_list, contact_numbers, active_user, last_active):
+    def create_user_profile(self, user_email, project_id, thread_ids, email_list, contact_numbers, active_user,action_remarks, last_active):
         """
         Create a new user profile.
         """
@@ -930,11 +930,11 @@ class KnowledgeBase:
             cursor.execute("""
                 INSERT INTO USER_PROFILES (
                     USER_ID, PRIMARY_EMAIL, PROJECT_ID, THREAD_IDS, EMAIL_LIST, CONTACT_NUMBERS, 
-                    ACTIVE_USER, LAST_ACTIVE, LAST_UPDATED
+                    ACTIVE_USER, action_remarks, LAST_ACTIVE, LAST_UPDATED
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
             """, (
-                generated_id, user_email, project_id, thread_ids, email_list, json.dumps(contact_numbers), active_user, last_active
+                generated_id, user_email, project_id, thread_ids, email_list, json.dumps(contact_numbers), active_user, action_remarks, last_active
             ))
             conn.commit()
             return True, None
@@ -985,6 +985,7 @@ class KnowledgeBase:
                 EMAIL_LIST, 
                 CONTACT_NUMBERS,
                 ACTIVE_USER, 
+                ACTION_REMARKS,
                 LAST_ACTIVE, 
                 LAST_UPDATED
             FROM 
@@ -998,7 +999,7 @@ class KnowledgeBase:
 
             user_profiles = []
             for row in rows:
-                user_id, primary_email, project_id, thread_ids, email_list, contact_numbers, active_user, last_active, last_updated = row
+                user_id, primary_email, project_id, thread_ids, email_list, contact_numbers, active_user, ACTION_REMARKS, last_active, last_updated = row
 
                 # Parse THREAD_IDS as a list if it's a JSON-like string
                 parsed_thread_ids = json.loads(thread_ids) if thread_ids and thread_ids.startswith('[') else thread_ids.split(',') if thread_ids else []
@@ -1015,6 +1016,7 @@ class KnowledgeBase:
                     "email_list": email_list if email_list else "",
                     "contact_numbers": parsed_contact_numbers if parsed_contact_numbers else [],
                     "active_user": active_user,
+                    "ACTION_REMARKS":ACTION_REMARKS if ACTION_REMARKS else "",
                     "last_active": last_active.strftime('%Y-%m-%d %H:%M:%S') if last_active else "Never",
                     "last_updated": last_updated.strftime('%Y-%m-%d %H:%M:%S') if last_updated else "Never"
                 })
@@ -1242,3 +1244,44 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
 
+    def update_actions_remarks_for_user(self, email_id, remarks):
+        # Establish database connection
+        conn, conn_error = self.get_db_connection()
+        if not conn:
+            return False, conn_error
+
+        cursor = conn.cursor()
+        try:
+            # Update query with parameterized input
+            query = """
+                UPDATE USER_PROFILES
+                SET 
+                    ACTION_REMARKS = %s,
+                    LAST_UPDATED = NOW()
+                WHERE PRIMARY_EMAIL = %s
+            """
+            cursor.execute(query, (remarks, email_id))
+            conn.commit()
+
+            # Log executed query and its parameters
+            logging.info(f"Query executed: {query} | Params: {remarks}, {email_id}")
+
+            # Verify the update was successful
+            if cursor.rowcount == 0:
+                # If no rows updated, check if the remarks are already up-to-date
+                cursor.execute("""
+                    SELECT 1 FROM USER_PROFILES
+                    WHERE PRIMARY_EMAIL = %s AND ACTION_REMARKS = %s
+                """, (email_id, remarks))
+                if cursor.fetchone():
+                    return True, "Remarks are already up-to-date."
+                return False, "No user found with the provided email ID."
+
+            return True, "Remarks updated successfully!"
+        except Exception as e:
+            logging.error(f"Error updating user remarks for email {email_id}: {e}")
+            return False, f"Error updating remarks: {e}"
+        finally:
+            # Ensure cursor and connection are closed
+            cursor.close()
+            conn.close()

@@ -177,7 +177,7 @@ def project_creation():
     # logging.info(f"Loaded ai_prompt_text for {default_project_type}: {ai_prompt_text}")
     # Debugging information
     # logging.info(f"Loaded project_data for type '{default_project_type}': {project_data}")
-    default_switch_manual_criterias = project_data.get("default_switch_manual_criterias", [])
+    # default_switch_manual_criterias = project_data.get("default_switch_manual_criterias", [])
 
     if request.method == 'POST':
         email = request.form['email']
@@ -714,12 +714,37 @@ def user_profiles():
     """
     Fetch and display suspect profiles with sorting and filtering by last active time.
     """
+    if 'project_id' not in session:
+        logging.error("Project ID not found in session.")
+        return jsonify({"error": "Project ID not set in session."}), 400
+
+    project_id = session['project_id']
     # Fetch all suspect profiles
     all_users = user_profiling.get_all_users()
-    success, user_scores = knowledge_base.fetch_scores_at_user_level(project_id=session['project_id'])
+    success, user_scores = knowledge_base.fetch_scores_at_user_level(project_id=project_id)
 
     if not all_users:
         return jsonify({"error": "Error fetching suspect profiles"}), 500
+
+    for user in all_users:
+        primary_email = user.get("primary_email")
+        user["score"] = user_scores.get(primary_email, {}).get("total_score", 0)
+
+    email_filter = request.args.get("email_filter", None)
+    if email_filter:
+        all_users = [
+            user for user in all_users
+            if email_filter.lower() in user.get("primary_email", "").lower()
+        ]
+    logging.info(f"Users before score filtering: {len(all_users)}")
+    score_filter = request.args.get("score_filter", None)
+    if score_filter:
+        try:
+            score_filter = int(score_filter)
+            all_users = [user for user in all_users if user_scores.get(user.get("primary_email"), {}).get("total_score", 0) >= score_filter]
+        except ValueError:
+            logging.error("Invalid score filter value.")
+    logging.info(f"Score filter value: {score_filter}")
 
     # Handle 'last_active_filter' query parameter
     last_active_filter = request.args.get("last_active_filter", "all")  # Default to 'all'
@@ -747,6 +772,7 @@ def user_profiles():
             "score": user_scores.get(user.get("primary_email"), {}).get("total_score", 0) if success else 0,
             "last_active": user.get("last_active", "N/A"),
             "contact_numbers": ", ".join(user.get("contact_numbers", [])),
+            "action_remarks": user.get("action_remarks", ""),
             "active_user": user.get("active_user", False)
         }
         for user in all_users if (user.get("project_id") == session['project_id']) # Display users of this project only
@@ -765,8 +791,31 @@ def user_profiles():
         user_data=user_data,
         sort_key=sort_key,
         order="asc" if reverse else "desc",
-        last_active_filter=last_active_filter  # Pass the active filter to the UI
+        last_active_filter=last_active_filter,
+        email_filter=email_filter# Pass the active filter to the UI
     )
+
+@app.route('/update_actions_remarks_for_user', methods=['POST'])
+def update_actions_remarks_for_user():
+    data = request.json
+    email_id = data.get('email')
+    remarks = data.get('remarks')
+
+    if not email_id or not remarks:
+        return jsonify({'success': False, 'message': 'Invalid data'}), 400
+
+    # Update the database or data structure with remarks
+    try:
+        success, message = knowledge_base.update_actions_remarks_for_user(email_id, remarks)
+        if success:
+            return jsonify({'success': True, 'message': message})
+        else:
+            return jsonify({'success': False, 'message': message}), 400
+    except Exception as e:
+        logging.error(f"Error saving remarks for {email_id}: {str(e)}")
+        return jsonify({'success': False, 'message': 'Error saving remarks'}), 500
+
+
 
 @app.route('/update_ai_response_state', methods=['POST'])
 @login_required
@@ -1010,6 +1059,18 @@ def send_reply(thread_id):
 #         return {'success': True, 'url': f'/uploads/{file.filename}'}
 #     return {'success': False, 'message': 'No file uploaded'}
 
+def parse_email_from_field(email_field):
+    match = re.match(r'(.*)<(.*)>', email_field)
+    if match:
+        name = match.group(1).strip()
+        email = match.group(2).strip()
+    else:
+        # If no match, assume the entire field is the email
+        name = None
+        email = email_field.strip()
+
+    return {"name": name, "email": email}
+
 @app.route('/', methods=['GET'])
 @login_required
 def index():
@@ -1023,7 +1084,7 @@ def index():
         'bidirectional_address': request.args.get('email'),
         'start_date': request.args.get('start_date'),
         'end_date': request.args.get('end_date'),
-        'top_k_value': request.args.get('top_k_value', type=int)  # New filter to get the top K emails
+        'top_k_value': request.args.get('top_k_value', type=int)
     }
 
     # Check session variables for selected project
@@ -1040,6 +1101,33 @@ def index():
     ai_response_state = data.get('ai_response_state', {})
     logging.info(f"ai_response_state: {ai_response_state}")
     session['current_project_archived_emails'] = archived_emails
+
+    if conversations:
+        for thread_id, emails in conversations.items():
+            for email in emails:
+                email_from = email['from'].split('<')[-1].replace('>', '').strip()
+                email['from_truncated'] = email_from[:25] + '...' if len(email_from) > 25 else email_from
+                parsed_email_from = parse_email_from_field(email['from_truncated'])
+                email['from_name'] = parsed_email_from.get('name', 'Unknown')  # Default to 'Unknown' if name is None
+                email['from_email'] = parsed_email_from['email']
+                parsed_email_to = parse_email_from_field(email['to'])
+                email['to_name'] = parsed_email_to.get('name', 'Unknown')  # Default to 'Unknown' if name is None
+                email['to_email'] = parsed_email_to['email']
+
+
+    if filters.get('email'):
+        logging.info(f"Filtering conversations for email: {filters['email']}")
+        original_count = len(conversations)
+        for thread_id in list(conversations.keys()):
+            conversations[thread_id] = [
+                email for email in conversations[thread_id]
+                if filters['email'] in (email['from_email'].lower(), email['to_email'].lower())
+            ]
+            if not conversations[thread_id]:  # Remove threads with no matching emails
+                del conversations[thread_id]
+        filtered_count = len(conversations)
+        logging.info(f"Filtered conversations from {original_count} to {filtered_count}.")
+
 
     # Apply top K filter based on interaction scores
     top_k_value = filters.get('top_k_value')

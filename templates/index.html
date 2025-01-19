@@ -984,7 +984,7 @@
         }
         .reply-icon {
             position: absolute;
-            top: 10px;
+            top: 35px;
             right: 10px;
             font-size: 18px;
             color: #164679; /* Match the theme */
@@ -1041,6 +1041,10 @@
         .sender-email {
             font-weight: bold; /* Bold for emphasis */
             color: #333; /* Dark text color */
+            text-overflow: ellipsis; /* Add ellipsis ("...") to truncated text */
+            max-width: 180px;
+            white-space: nowrap; /* Prevent text wrapping to a new line */
+            overflow: hidden;
         }
         .email-count {
             font-size: 12px; /* Slightly smaller font for count */
@@ -1056,8 +1060,8 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            flex-grow: 1;
             margin-right: 15px;
+            font-weight: bold;
         }
 
 
@@ -1070,8 +1074,6 @@
             width: 10%; /* Fixed width for archive */
             text-align: center;
         }
-
-
 
         .email-date {
             width: 10%; /* Fixed width for date */
@@ -1252,8 +1254,10 @@
                         <div class="email-chain-header" onclick="toggleEmailChain('chain-{{ loop.index }}', this)">
                             <div class="email-participants">
                                 <div class="email-sender">
-                                    <div class="sender-email" title="Sender Email">{{ details[0]['from'].split('<')[-1].replace('>', '').strip() }}
+                                    <div class="sender-email" title="{{ details[0]['from'].split('<')[-1].replace('>', '').strip() }}">
+                                        {{ details[0]['from'].split('<')[-1].replace('>', '').strip() }}
                                     </div>
+
                                     <span class="email-count" title="Number of emails in this thread">
                                     ({{ details | length }})
                                     </span>
@@ -1309,12 +1313,23 @@
                                         </div>
                                     {% endif %}
                                     <p>
-                                        <strong>From:</strong> {{ email['from'] }}
-                                        {% if email['from'] == session['email']  %}
+                                        <strong>From:</strong>
+                                        <a href="{{ url_for('user_profiles', email_filter=email['from_email']) }}"
+                                           title="View Suspect Profile">
+                                            {{ email['from_email'] }}
+                                        </a>
+                                        {% if email['from_email'] == session['email'] %}
                                             <i class="fas fa-robot bot-icon" title="This email was sent by the SafeBot"></i>
                                         {% endif %}
                                     </p>
-                                    <p><strong>To:</strong> {{ email['to'] }}</p>
+
+                                    <p>
+                                        <strong>To:</strong>
+                                        <a href="{{ url_for('user_profiles', email_filter=email['to_email']) }}"
+                                           title="View Suspect Profile">
+                                            {{ email['to_email'] }}
+                                        </a>
+                                    </p>
                                     <p class="subject"><strong>Subject:</strong> {{ email['subject'] }}</p>
                                     <p><strong>Date:</strong> {{ email['date'].strftime('%Y-%m-%d %H:%M:%S %Z') }}</p>
                                     <p><strong>Content:</strong> {{ email['content'] }}</p>

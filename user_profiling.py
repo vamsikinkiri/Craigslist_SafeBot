@@ -29,7 +29,7 @@ class UserProfiling:
         
         if user_profile and user_profile[2]==project_id:  # User already exists in this project
             logging.info(user_profile)
-            user_id, primary_email, project_id, thread_ids, email_list, contact_numbers, active_user, last_active_db, last_updated = user_profile
+            user_id, primary_email, project_id, thread_ids, email_list, contact_numbers, active_user, action_remarks,last_active_db, last_updated = user_profile
             # if thread_id not in thread_ids:
             #     thread_ids.append(thread_id)
             if contact_number and contact_number not in contact_numbers:
@@ -46,6 +46,7 @@ class UserProfiling:
                 email_list="",
                 contact_numbers=contact_numbers,
                 active_user=True,
+                action_remarks="",
                 last_active=last_active,
             )
 

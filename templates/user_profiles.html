@@ -95,7 +95,7 @@
         label {
             font-size: 14px;
             color: #666;
-            margin: 0 5px;
+            margin: 5px 5px;
             text-align: left;
             display: block;
         }
@@ -156,7 +156,7 @@
 
         /* Active Users Table */
         .user-table {
-            width: 68%;
+            width: 79%;
             border-collapse: collapse;
             font-size: 16px;
             font-family: Arial, sans-serif;
@@ -325,26 +325,54 @@
         }
         .filters-container {
             text-align: center;
-            margin: 20px auto;
-            width: 50%;
+            align-items: center;
+            margin: 22px auto;
+            width: 70%;
             padding-right: 80px;
             padding-bottom: 25px;
             padding-top: 25px;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            font-size: 18px;
+            flex-wrap: wrap;
         }
-        .filters-container label {
+
+        .last-active-filter label {
             font-size: 20px;
             color: #134258;
             font-weight: bold;
             text-align: center;
         }
+        .filters-container label {
+            font-size: 18px;
+            color: #134258;
+            font-weight: bold;
+            text-align: left;
+            margin-right: 10px; /* Add space between label and input */
+        }
+
+        .filters-container input,
         .filters-container select {
-            padding: 12px 36px;
+            padding: 10px 15px;
             border: 1px solid #ccc;
             border-radius: 5px;
-            background-color: #fff;
             font-size: 16px;
-            color: #134258;
+            width: auto; /* Let inputs size themselves */
+            box-sizing: border-box; /* Include padding in width */
         }
+
+        .score-range-container {
+            display: flex;
+            align-items: center; /* Vertically align range input and label */
+            gap: 10px;
+        }
+
+        .score-range-container input[type="range"] {
+            flex-grow: 1; /* Allow range input to expand */
+            max-width: 150px; /* Set a max width to maintain consistency */
+        }
+
         /* Toolbar styles */
         .toolbar {
             background-color: #f5f5f5; /* Light background color */
@@ -389,6 +417,47 @@
         }
 
 
+        .score-range-container label {
+            font-size: 20px;
+            color: #134258;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Editable Column */
+        .editable-input {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 90%;
+        }
+
+        .save-button {
+            padding: 5px 10px;
+            background-color: #007195;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .save-button:hover {
+            background-color: #134258;
+        }
+
+        button {
+            background-color: #007195;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #134258;
+        }
 
     </style>
 </head>
@@ -434,18 +503,30 @@
     </a>
 </div>
 
-
-
 <h1>Suspect Profiles</h1>
 
-<div class="filters-container" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-    <label for="last-active-filter" style="font-size: 16px; color: #134258; font-weight: bold;">Filter by Last Active:</label>
-    <select id="last-active-filter" name="last_active_filter" onchange="applyLastActiveFilter()" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 5px;">
-        <option value="all" {% if last_active_filter == 'all' %}selected{% endif %}>All</option>
-        <option value="10" {% if last_active_filter == '10' %}selected{% endif %}>Last 10 Days</option>
-        <option value="30" {% if last_active_filter == '30' %}selected{% endif %}>Last 30 Days</option>
-        <option value="90" {% if last_active_filter == '90' %}selected{% endif %}>Last 90 Days</option>
-    </select>
+    <div class="filters-container">
+        <!-- Email Filter -->
+        <label for="email-filter">Email Search: </label>
+        <input type="text" id="email-filter" placeholder="Filter by Email"
+               value="{{ request.args.get('email_filter', '') }}">
+
+        <!-- Score Range Filter -->
+        <div class="score-range-container">
+            <label for="score-range">Score:</label>
+            <input type="range" id="score-range" min="1" max="100" value="50" onchange="updateScoreDisplay(this.value)">
+            <span id="score-display">50</span>
+        </div>
+
+        <label for="last-active-filter" >Filter by Last Active:</label>
+        <select id="last-active-filter" name="last_active_filter">
+            <option value="all" {% if last_active_filter == 'all' %}selected{% endif %}>All</option>
+            <option value="10" {% if last_active_filter == '10' %}selected{% endif %}>Last 10 Days</option>
+            <option value="30" {% if last_active_filter == '30' %}selected{% endif %}>Last 30 Days</option>
+            <option value="90" {% if last_active_filter == '90' %}selected{% endif %}>Last 90 Days</option>
+        </select>
+
+        <button onclick="applyFilters()">Apply Filters</button>
 </div>
 
 
@@ -486,16 +567,28 @@
             </a>
         </th>
         <th>CONTACT NUMBERS</th>
+        <th>ACTION_REMARKS</th>
     </tr>
     </thead>
 
     <tbody>
     {% for user in user_data %}
         <tr>
-            <td>{{ user.primary_email }}</td>
+            <td>
+                <a href="{{ url_for('index', email=user.primary_email) }}"
+                   style="color: #134258; text-decoration: underline;"
+                   title="Filter Email Threads for {{ user.primary_email }}">
+                    {{ user.primary_email }}
+                </a>
+            </td>
+
             <td>{{ user.score }}</td>
             <td>{{ user.last_active }}</td>
             <td>{{ user.contact_numbers }}</td>
+            <td>
+                <input type="text" class="editable-input" id="remarks-{{ user.primary_email }}" placeholder="Add remarks">
+                <button class="save-button" onclick="saveRemarks('{{ user.primary_email }}')">Save</button>
+            </td>
         </tr>
     {% endfor %}
     </tbody>
@@ -504,7 +597,9 @@
 </html>
 
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
     // Toggle sidebar visibility
     function toggleSidebar() {
@@ -518,11 +613,45 @@
         }
     }
 
-    function applyLastActiveFilter() {
-        const filter = document.getElementById("last-active-filter").value;
-        const currentUrl = new URL(window.location.href);
-        currentUrl.searchParams.set("last_active_filter", filter);  // Update the last_active_filter param
-        window.location.href = currentUrl;  // Reload the page with the updated URL
+
+    function applyFilters() {
+        const emailFilter = document.getElementById('email-filter').value;
+        const scoreFilter = document.getElementById('score-range').value;
+        const lastActiveFilter = document.getElementById('last-active-filter').value;
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('email_filter', emailFilter);
+        url.searchParams.set('score_filter', scoreFilter);
+        url.searchParams.set('last_active_filter', lastActiveFilter);
+
+        window.location.href = url.toString();
+    }
+
+    function updateScoreDisplay(value) {
+        document.getElementById('score-display').textContent = value;
+    }
+    function saveRemarks(email) {
+        const remarks = document.getElementById(`remarks-${email}`).value;
+        if (remarks.trim()) {
+            fetch('/update_actions_remarks_for_user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, remarks }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message || `Remarks saved for ${email}`);
+                    } else {
+                        alert(data.message || `Failed to save remarks for ${email}`);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        } else {
+            alert('Remarks cannot be empty.');
+        }
     }
 
 

@@ -18,8 +18,8 @@ def drop_tables(cursor):
         "DROP TABLE IF EXISTS EMAIL_THREADS;",
         "DROP TABLE IF EXISTS USER_PROFILES;",
         # "DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
-        # "DROP TABLE IF EXISTS PROJECTS;"
-        "DROP TABLE IF EXISTS PROJECT_TYPES;"
+         "DROP TABLE IF EXISTS PROJECTS;"
+         "DROP TABLE IF EXISTS PROJECT_TYPES;"
     ]
     for query in drop_tables_queries:
         cursor.execute(query)
@@ -67,6 +67,7 @@ def create_tables(cursor):
             EMAIL_LIST TEXT,
             CONTACT_NUMBERS JSON,
             ACTIVE_USER BOOLEAN,
+            ACTION_REMARKS TEXT, 
             LAST_ACTIVE TIMESTAMP,
             LAST_UPDATED TIMESTAMP
         );

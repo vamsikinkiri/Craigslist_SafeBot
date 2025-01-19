@@ -117,7 +117,7 @@ class EmailProcessor:
             flash("Failed to fetch user profile for notification.", "error")
             logging.error("Failed to fetch user profile for notification.")
             return
-        user_id, primary_email, project_id, thread_ids, email_list, contact_numbers, active_user, last_active_db, last_updated = user_profile
+        user_id, primary_email, project_id, thread_ids, email_list, contact_numbers, active_user, actions_remarks, last_active_db, last_updated = user_profile
         user_details = f"""User primary Email: {primary_email}\nEmail List: {email_list if email_list else 'N/A'}\nContact Numbers: {', '.join(contact_numbers) if contact_numbers else 'N/A'}\nLast Active: {last_active_db}"""
 
         # Extract the AI response state

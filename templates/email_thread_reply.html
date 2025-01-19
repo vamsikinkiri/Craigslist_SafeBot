@@ -6,668 +6,632 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
-    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quill-emoji/dist/quill-emoji.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill-emoji/dist/quill-emoji.css">
-    <script src="https://cdn.jsdelivr.net/npm/quill-emoji/dist/quill-emoji.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill-emoji/dist/quill-emoji.css">
-    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
-
 
     <title>Email Thread:{{ emails[0]['subject'] }}</title>
     <style>
-    .container {
-    max-width: 800px;
-    margin: auto;
-    padding: 20px;
-    }
-    body {
-        font-family: 'Arial', sans-serif;
-        background-color: #eaeaea;
-        color: #333;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .email-thread {
-    margin-bottom: 20px;
-    }
-
-    .email {
-        margin-bottom: 15px;
-        padding: 15px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        background-color: #ffffff;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    @media (max-width: 768px) {
-        .email-container {
+        .container {
+            max-width: 800px;
+            margin: auto;
             padding: 20px;
-            margin: 10px;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #eaeaea;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .email-thread {
+            margin-bottom: 20px;
+        }
+
+        .email {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .reply-box {
+            margin-top: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: vertical;
+        }
+
+        button {
+            margin-top: 10px;
+        }
+        .email-container {
+            background-color: #ffffff;
+            padding: 40px 50px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 1020px;
+            margin: 100px auto 0; /* Push content below header */
+            margin-top: 10px; /* Reduced margin-top */
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-sizing: border-box;
+            position: relative;
         }
 
         .email-chain-container {
-            max-height: 300px;
+            background-color: #ffffff;
+            padding: 35px 35px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            max-height: 400px; /* Set fixed height for scrolling */
+            overflow-y: auto; /* Enable vertical scrolling */
+            margin-top: 10px; /* Reduced margin-top */
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-sizing: border-box;
+            position: relative;
         }
-    }
 
+        .email {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+        }
 
-    .reply-box {
-    margin-top: 20px;
-    }
+        .email:nth-child(odd) {
+            background-color: #f0f0f0;
+        }
 
-    textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    resize: vertical;
-    }
+        .scroll-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
 
-    .navigation .btn-secondary {
-        background-color: #007195;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 5px;
-        font-size: 16px;
-        text-decoration: none;
-        transition: background-color 0.3s ease;
-    }
+        .scroll-buttons button {
+            background-color: #007195;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
 
-    .navigation .btn-secondary:hover {
-        background-color: #134258;
-    }
+        .scroll-buttons button:hover {
+            background-color: #134258;
+        }
 
+        .reply-form-container {
+            padding: 15px;
+            border-top: 1px solid #ccc;
+            background-color: #fff;
+        }
 
-    button {
-    margin-top: 10px;
-    }
-    .email-container {
-        background-color: #ffffff;
-        padding: 40px 50px;
-        border-radius: 10px;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-        width: 90%;
-        max-width: 1020px;
-        margin: 100px auto 0; /* Push content below header */
-        margin-top: 10px; /* Reduced margin-top */
-        margin-bottom: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        box-sizing: border-box;
-        position: relative;
-    }
+        .reply-form-container textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none; /* Prevent resizing */
+            margin-bottom: 10px;
+            height: 100px;
+        }
 
-    .email-chain-container {
-        background-color: #ffffff;
-        padding: 35px 35px;
-        border-radius: 10px;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-        max-height: 400px; /* Set fixed height for scrolling */
-        overflow-y: auto; /* Enable vertical scrolling */
-        margin-top: 10px; /* Reduced margin-top */
-        margin-bottom: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        box-sizing: border-box;
-        position: relative;
-    }
+        .reply-form-container button {
+            background-color: #007195;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
 
-    .email {
-        margin-bottom: 10px;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        background-color: #fff;
-    }
+        .reply-form-container button:hover {
+            background-color: #134258;
+        }
+        header {
+            background-color: #134258;
+            color: white;
+            padding: 20px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 28px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            text-decoration: none;
+        }
+        .header-title {
+            flex: 1;
+            text-align: center;
+            font-size: 34px;
+            margin-right: 10%;
+            text-decoration: none;
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 40px 50px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 1020px;
+            margin-top: 10px; /* Reduced margin-top */
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .toggle-button {
+            background: none;
+            border: none;
+            color: #106f8d;
+            font-size: 32px;
+            cursor: pointer;
+            padding: 0;
+        }
+        .logout-button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            margin-right: 30px;
+        }
+        /* Add margins to position Home and Logout */
+        .left a {
+            margin-left: 20px; /* Push Home button to the right */
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            text-decoration: none;
+        }
 
-    .email:nth-child(odd) {
-        background-color: #f0f0f0;
-    }
+        .left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .settings-button .icon, .logout-button .icon{
+            margin-right: 10px;
+            font-size: 20px;
+        }
 
-    .scroll-buttons {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 10px;
-    }
+        .right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .header .settings:hover .dropdown {
+            display: block;
+        }
 
-    .scroll-buttons button {
-        background-color: #007195;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        padding: 10px 20px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: background-color 0.3s ease;
-    }
+        .header .settings .dropdown a {
+            display: block;
+            padding: 8px 15px;
+            color: #333;
+            text-decoration: none;
+        }
 
-    .scroll-buttons button:hover {
-        background-color: #134258;
-    }
+        .header .settings .dropdown a:hover {
+            background-color: #eaeaea;
+            text-decoration: none;
+        }
+        .settings-dropdown {
+            position: relative;
+            display: inline-block;
+        }
 
-    .reply-form-container {
-        padding: 15px;
-        border-top: 1px solid #ccc;
-        background-color: #fff;
-    }
+        .settings-button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            margin-right: 20px;
+            text-decoration: none;
+        }
 
-    .reply-form-container textarea {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        resize: none; /* Prevent resizing */
-        margin-bottom: 10px;
-        height: 100px;
-    }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #ffffff;
+            min-width: 250px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            z-index: 1;
+            font-size: 18px;
+        }
 
-    .reply-form-container button {
-        background-color: #007195;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        padding: 10px 20px;
-        cursor: pointer;
-        font-size: 14px;
-    }
+        .dropdown-content a {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.3s;
+        }
 
-    .reply-form-container button:hover {
-        background-color: #134258;
-    }
-    header {
-        background-color: #134258;
-        color: white;
-        padding: 20px;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        font-size: 28px;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 1000;
-        text-decoration: none;
-    }
-    .header-title {
-        flex: 1;
-        text-align: center;
-        font-size: 34px;
-        margin-right: 10%;
-        text-decoration: none;
-    }
-    .header-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        color: white;
-        font-size: 24px;
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-    .container {
-        background-color: #ffffff;
-        padding: 40px 50px;
-        border-radius: 10px;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-        width: 90%;
-        max-width: 1020px;
-        margin-top: 10px; /* Reduced margin-top */
-        margin-bottom: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        box-sizing: border-box;
-        position: relative;
-    }
-    .toggle-button {
-        background: none;
-        border: none;
-        color: #106f8d;
-        font-size: 32px;
-        cursor: pointer;
-        padding: 0;
-    }
-    .logout-button {
-        background: none;
-        border: none;
-        color: #ffffff;
-        font-size: 20px;
-        font-weight: bold;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        text-decoration: none;
-        margin-right: 30px;
-    }
-    /* Add margins to position Home and Logout */
-    .left a {
-        margin-left: 20px; /* Push Home button to the right */
-        color: white;
-        font-size: 20px;
-        font-weight: bold;
-        text-decoration: none;
-    }
+        .dropdown-content a:hover {
+            background-color: #eaeaea;
+        }
 
-    .left {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-    }
-    .settings-button .icon, .logout-button .icon{
-        margin-right: 10px;
-        font-size: 20px;
-    }
+        .dropdown-content a:hover {
+            background-color: #eaeaea;
+        }
 
-    .right {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-    }
-    .header .settings:hover .dropdown {
-        display: block;
-    }
+        .settings-dropdown:hover .dropdown-content {
+            display: block;
+        }
 
-    .header .settings .dropdown a {
-        display: block;
-        padding: 8px 15px;
-        color: #333;
-        text-decoration: none;
-    }
+        .header {
+            display: flex;
+            align-items: center;
+            background-color: #0096c7;
+            padding: 15px;
+            font-size: 20px;
+            color: #ffffff;
+        }
 
-    .header .settings .dropdown a:hover {
-        background-color: #eaeaea;
-        text-decoration: none;
-    }
-    .settings-dropdown {
-        position: relative;
-        display: inline-block;
-    }
+        .nav-item {
+            margin-right: 20px;
+            position: relative;
+        }
 
-    .settings-button {
-        background: none;
-        border: none;
-        color: #ffffff;
-        font-size: 20px;
-        font-weight: bold;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        padding: 0;
-        margin-right: 20px;
-        text-decoration: none;
-    }
+        .nav-item a {
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: bold;
+            padding: 10px;
+        }
 
-    .dropdown-content {
-        display: none;
-        position: absolute;
-        right: 0;
-        background-color: #ffffff;
-        min-width: 250px;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        border-radius: 10px;
-        z-index: 1;
-        font-size: 18px;
-    }
+        .nav-item .icon {
+            margin-right: 8px;
+            font-size: 20px;
+        }
 
-    .dropdown-content a {
-        color: #333;
-        padding: 12px 16px;
-        text-decoration: none;
-        display: block;
-        transition: background-color 0.3s;
-    }
+        .user-profiles-button {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+        }
 
-    .dropdown-content a:hover {
-        background-color: #eaeaea;
-    }
+        .user-profiles-button .icon {
+            margin-right: 8px;
+        }
 
-    .dropdown-content a:hover {
-        background-color: #eaeaea;
-    }
+        /* Sidebar styling with a complementary color */
+        .sidebar {
+            width: 250px;
+            background-color: #ffffff; /* Light complementary color */
+            color: #333;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 80px;
+            left: -250px;
+            height: 100%;
+            transition: left 0.3s ease;
+            z-index: 999;
+            border-right: 1px solid #e0e0e0;
+        }
+        .sidebar.active {
+            left: 0;
+        }
+        .sidebar h2 {
+            font-size: 30px;
+            margin-bottom: 20px;
+            font-weight: 700;
+            color: #0a597e; /* Matching color to the header for branding consistency */
+            text-align: center;
+        }
+        .sidebar-item {
+            color: #333;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s;
+            margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 10px;
+            text-decoration: none;
+        }
+        .sidebar-item:hover {
+            background-color: #eaeaea;
+        }
+        .dropdown-menu {
+            display: none;
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+        .menu-icon {
+            font-size: 24px;
+            cursor: pointer;
+            margin-right: auto;
+        }
+        .dropdown-item {
+            color: #555;
+            padding: 8px 0;
+            cursor: pointer;
+        }
+        .dropdown-item:hover {
+            color: #eaeaea;
+        }
+        .filters-container {
+            display: none; /* Set to 'none' if you want filters hidden by default */
+            margin-bottom: 20px;
+        }
 
-    .settings-dropdown:hover .dropdown-content {
-        display: block;
-    }
+        .email-list {
+            margin-top: 20px;
+        }
+        .project-title {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 10px; /* Space above the container */
+            font-size: 30px;
+            font-weight: bold;
+            color: #134258; /* Match theme color */
+        }
+        .switch-projects-btn {
+            background-color: #134258;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            margin-left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s ease;
+        }
+        /* Styling for the archive button */
+        .archive-button {
+            background: None;
+            color: #106f8d;
+            padding: 0px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s;
+            margin-left: 10px;                  /* Add some space between toggle button and archive button */
+            display: flex;                      /* Flex to align icon and text */
+            align-items: center;
+            gap: 5px;                           /* Space between icon and text */
+        }
 
-    .header {
-        display: flex;
-        align-items: center;
-        background-color: #0096c7;
-        padding: 15px;
-        font-size: 20px;
-        color: #ffffff;
-    }
+        .archive-button:hover {
+            background-color: #c3ccd0;
+            padding: 3px;
+        }
+        .bot-icon {
+            font-size: 16px;
+            color: #007195; /* Blue color matching the theme */
+            margin-left: 5px; /* Space between the icon and the text */
+            cursor: help; /* Show a help cursor when hovered */
+        }
+        .bot-icon:hover {
+            color: #134258; /* Darker shade on hover */
+        }
+        .bot-icon-container:hover .bot-icon {
+            color: #007bff; /* Highlight on hover */
+        }
 
-    .nav-item {
-        margin-right: 20px;
-        position: relative;
-    }
+        /* Tooltip Styling */
+        .bot-icon-container[title] {
+            position: relative;
+        }
 
-    .nav-item a {
-        text-decoration: none;
-        color: #ffffff;
-        font-weight: bold;
-        padding: 10px;
-    }
+        .bot-icon-container[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            left: 50%;
+            top: 120%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            white-space: nowrap;
+            font-size: 12px;
+            z-index: 1000;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        /* Toolbar styles */
+        .toolbar {
+            background-color: #f5f5f5; /* Light background color */
+            border-bottom: 1px solid #ccc; /* Subtle border */
+            padding-top: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Slight shadow for separation */
+        }
 
-    .nav-item .icon {
-        margin-right: 8px;
-        font-size: 20px;
-    }
+        .toolbar-content {
+            max-width: 1200px;
+            margin-left: auto; /* Push the content to the extreme right */
+            margin-right: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
 
-    .user-profiles-button {
-        background: none;
-        border: none;
-        color: #ffffff;
-        font-size: 20px;
-        font-weight: bold;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        padding: 0;
-    }
+        .toolbar-link {
+            color: #134258; /* Theme color for links */
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px; /* Space between icon and text */
+            padding-right: 5px;
+            padding-bottom: 12px;
+        }
 
-    .user-profiles-button .icon {
-        margin-right: 8px;
-    }
+        .toolbar-link:hover {
+            color: #007195; /* Slightly lighter theme color on hover */
+            text-decoration: none;
+        }
 
-    /* Sidebar styling with a complementary color */
-    .sidebar {
-        width: 250px;
-        background-color: #ffffff; /* Light complementary color */
-        color: #333;
-        padding: 20px;
-        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-        position: fixed;
-        top: 80px;
-        left: -250px;
-        height: 100%;
-        transition: left 0.3s ease;
-        z-index: 999;
-        border-right: 1px solid #e0e0e0;
-    }
-    .sidebar.active {
-        left: 0;
-    }
-    .sidebar h2 {
-        font-size: 30px;
-        margin-bottom: 20px;
-        font-weight: 700;
-        color: #0a597e; /* Matching color to the header for branding consistency */
-        text-align: center;
-    }
-    .sidebar-item {
-        color: #333;
-        padding: 12px;
-        border-radius: 8px;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: background-color 0.3s;
-        margin-bottom: 10px;
-        font-size: 20px;
-        font-weight: 600;
-        margin-top: 10px;
-        text-decoration: none;
-    }
-    .sidebar-item:hover {
-        background-color: #eaeaea;
-    }
-    .dropdown-menu {
-        display: none;
-        padding-left: 20px;
-        margin-top: 8px;
-    }
-    .menu-icon {
-        font-size: 24px;
-        cursor: pointer;
-        margin-right: auto;
-    }
-    .dropdown-item {
-        color: #555;
-        padding: 8px 0;
-        cursor: pointer;
-    }
-    .dropdown-item:hover {
-        color: #eaeaea;
-    }
-    .filters-container {
-        display: none; /* Set to 'none' if you want filters hidden by default */
-        margin-bottom: 20px;
-    }
+        .toolbar-link i {
+            font-size: 20px;
 
-    .email-list {
-        margin-top: 20px;
-    }
-    .project-title {
-        width: 100%;
-        text-align: center;
-        margin-bottom: 10px; /* Space above the container */
-        font-size: 30px;
-        font-weight: bold;
-        color: #134258; /* Match theme color */
-    }
-    .switch-projects-btn {
-        background-color: #134258;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: bold;
-        text-decoration: none;
-        margin-left: 20px;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        transition: background-color 0.3s ease;
-    }
-    /* Styling for the archive button */
-    .archive-button {
-        background: None;
-        color: #106f8d;
-        padding: 0px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 18px;
-        transition: background-color 0.3s;
-        margin-left: 10px;                  /* Add some space between toggle button and archive button */
-        display: flex;                      /* Flex to align icon and text */
-        align-items: center;
-        gap: 5px;                           /* Space between icon and text */
-    }
+        }
+        .sort-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 90px;
+            margin: -18px 7px;
+            font-size: 16px;
+            color: #134258; /* Match theme color */
+            margin-top: 10px;
+        }
 
-    .archive-button:hover {
-        background-color: #c3ccd0;
-        padding: 3px;
-    }
-    .bot-icon {
-        font-size: 16px;
-        color: #007195; /* Blue color matching the theme */
-        margin-left: 5px; /* Space between the icon and the text */
-        cursor: help; /* Show a help cursor when hovered */
-    }
-    .bot-icon:hover {
-        color: #134258; /* Darker shade on hover */
-    }
-    .bot-icon-container:hover .bot-icon {
-        color: #007bff; /* Highlight on hover */
-    }
+        .sort-button {
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            color: #134258;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
 
-    /* Tooltip Styling */
-    .bot-icon-container[title] {
-        position: relative;
-    }
+        .sort-button:hover {
+            color: #007195;
+            background-color: #e4e9eb;
+        }
 
-    .bot-icon-container[title]:hover::after {
-        content: attr(title);
-        position: absolute;
-        left: 50%;
-        top: 120%;
-        transform: translateX(-50%);
-        background: #333;
-        color: #fff;
-        padding: 5px 10px;
-        border-radius: 5px;
-        white-space: nowrap;
-        font-size: 12px;
-        z-index: 1000;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-    }
-    /* Toolbar styles */
-    .toolbar {
-        background-color: #f5f5f5; /* Light background color */
-        border-bottom: 1px solid #ccc; /* Subtle border */
-        padding-top: 100px;
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        width: 100%;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Slight shadow for separation */
-    }
+        .sort-button i {
+            font-size: 12px;
+            color: inherit;
+            margin-left: 5px;
+        }
+        .email-thread-label {
+            display: flex;
+            font-size: 16px;
+            font-weight: bold;
+            color: #134258;
+            margin: 10px 0;
+            text-decoration: none;
+            position: relative;
+            flex-wrap: wrap;
+            width: 100%;
+        }
 
-    .toolbar-content {
-        max-width: 1200px;
-        margin-left: auto; /* Push the content to the extreme right */
-        margin-right: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-    }
+        .email-thread-label:hover::after {
+            position: absolute;
+            top: 120%; /* Adjust the position below the label */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333; /* Tooltip background color */
+            color: #fff; /* Tooltip text color */
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap; /* Prevent text wrapping */
+            z-index: 10;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        .reply-icon {
+            position: relative;
+            text-decoration: none;
+            color: #007bff; /* Primary color for the icon */
+            font-size: 20px; /* Adjust icon size */
+            margin-left: 10px;
+        }
 
-    .toolbar-link {
-        color: #134258; /* Theme color for links */
-        font-size: 18px;
-        font-weight: bold;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 5px; /* Space between icon and text */
-        padding-right: 5px;
-        padding-bottom: 12px;
-    }
+        .reply-icon:hover {
+            color: #0056b3; /* Darker color on hover */
+            cursor: pointer;
+        }
 
-    .toolbar-link:hover {
-        color: #007195; /* Slightly lighter theme color on hover */
-        text-decoration: none;
-    }
+        .reply-icon::after {
+            content: attr(title); /* Tooltip text from the title attribute */
+            position: absolute;
+            top: -35px; /* Position above the icon */
+            left: 50%; /* Center align the tooltip */
+            transform: translateX(-50%);
+            background-color: #333; /* Dark background for tooltip */
+            color: #fff; /* White text */
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap; /* Prevent wrapping */
+            z-index: 1000; /* Ensure tooltip is on top */
+            opacity: 0; /* Initially hidden */
+            pointer-events: none; /* Prevent tooltip from blocking mouse events */
+            transition: opacity 0.3s ease-in-out;
+        }
 
-    .toolbar-link i {
-        font-size: 20px;
-
-    }
-    .sort-container {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 90px;
-        margin: -18px 7px;
-        font-size: 16px;
-        color: #134258; /* Match theme color */
-        margin-top: 10px;
-    }
-
-    .sort-button {
-        background: none;
-        border: none;
-        font-size: 16px;
-        font-weight: bold;
-        color: #134258;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .sort-button:hover {
-        color: #007195;
-        background-color: #e4e9eb;
-    }
-
-    .sort-button i {
-        font-size: 12px;
-        color: inherit;
-        margin-left: 5px;
-    }
-    .email-thread-label {
-        display: flex;
-        font-size: 16px;
-        font-weight: bold;
-        color: #134258;
-        margin: 10px 0;
-        text-decoration: none;
-        position: relative;
-        flex-wrap: wrap;
-        width: 100%;
-    }
-
-    .email-thread-label:hover::after {
-        position: absolute;
-        top: 120%; /* Adjust the position below the label */
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #333; /* Tooltip background color */
-        color: #fff; /* Tooltip text color */
-        padding: 5px 10px;
-        border-radius: 5px;
-        font-size: 12px;
-        white-space: nowrap; /* Prevent text wrapping */
-        z-index: 10;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    }
-    .reply-icon {
-        position: relative;
-        text-decoration: none;
-        color: #007bff; /* Primary color for the icon */
-        font-size: 20px; /* Adjust icon size */
-        margin-left: 10px;
-    }
-
-    .reply-icon:hover {
-        color: #0056b3; /* Darker color on hover */
-        cursor: pointer;
-    }
-
-    .reply-icon::after {
-        content: attr(title); /* Tooltip text from the title attribute */
-        position: absolute;
-        top: -35px; /* Position above the icon */
-        left: 50%; /* Center align the tooltip */
-        transform: translateX(-50%);
-        background-color: #333; /* Dark background for tooltip */
-        color: #fff; /* White text */
-        padding: 5px 10px;
-        border-radius: 5px;
-        font-size: 12px;
-        white-space: nowrap; /* Prevent wrapping */
-        z-index: 1000; /* Ensure tooltip is on top */
-        opacity: 0; /* Initially hidden */
-        pointer-events: none; /* Prevent tooltip from blocking mouse events */
-        transition: opacity 0.3s ease-in-out;
-    }
-
-    .reply-icon:hover::after {
-        opacity: 1; /* Show tooltip on hover */
-    }
+        .reply-icon:hover::after {
+            opacity: 1; /* Show tooltip on hover */
+        }
 
 
 
-</style>
+    </style>
 </head>
 <body>
 <header>
@@ -740,9 +704,8 @@
 
     <!-- Fixed Reply Form -->
     <div class="reply-form-container">
-        <form method="POST" action="{{ url_for('send_reply', thread_id=thread_id) }}" enctype="multipart/form-data">
-            <div id="editor-container" style="height: 200px;"></div>
-            <input type="hidden" id="reply-content" name="content">
+        <form method="POST" action="{{ url_for('send_reply', thread_id=thread_id) }}">
+            <textarea name="reply_content" placeholder="Type your reply here..." required></textarea>
             <button type="submit" class="btn btn-primary">Send Reply</button>
         </form>
     </div>
@@ -758,77 +721,15 @@
 
 <script>
 
-    var quill = new Quill('#editor-container', {
-        theme: 'snow',
-        modules: {
-            toolbar: [
-                [{ font: [] }, { size: [] }],
-                ['bold', 'italic', 'underline'],
-                [{ color: [] }, { background: [] }],
-                ['emoji'],
-                [{ list: 'ordered' }, { list: 'bullet' }],
-                ['clean']
-            ],
-            'emoji-toolbar': true,
-            'emoji-textarea': false,
-            'emoji-shortname': true
-        }
-    });
-
-    // Handle file uploads in the toolbar
-    var toolbar = quill.getModule('toolbar');
-    toolbar.addHandler('file', function () {
-        var fileInput = document.createElement('input');
-        fileInput.setAttribute('type', 'file');
-        fileInput.setAttribute('accept', '*');
-        fileInput.click();
-
-        fileInput.onchange = function () {
-            var file = fileInput.files[0];
-            if (file) {
-                var formData = new FormData();
-                formData.append('file', file);
-
-                fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            var range = quill.getSelection();
-                            quill.insertText(range.index, `File: ${data.url}`);
-                        } else {
-                            alert('File upload failed: ' + data.message);
-                        }
-                    });
-            }
-        };
-    });
-
-
-    document.querySelector('form').onsubmit = async function (e) {
-        e.preventDefault();
-        const dirtyHTML = quill.root.innerHTML;
-        const cleanHTML = DOMPurify.sanitize(dirtyHTML);
-        {#document.querySelector('#reply-content').value = cleanHTML;#}
-        document.querySelector('#reply-content').value = quill.root.innerHTML;
-
-        console.log("Reply Content:", cleanHTML); // Debugging
-        console.log("Form Data:", new FormData(this)); // Debugging
-    };
-
-
     function scrollToTop() {
         const container = document.getElementById('emailChainContainer');
-        container.scrollTo({ top: 0, behavior: 'smooth' }); // Smooth scroll to the top
+        container.scrollTop = 0; // Scroll to the top
     }
 
     function scrollToBottom() {
         const container = document.getElementById('emailChainContainer');
-        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' }); // Smooth scroll to the bottom
+        container.scrollTop = container.scrollHeight; // Scroll to the bottom
     }
-
 
     function redirectToView(view) {
         switch (view) {
@@ -875,26 +776,5 @@
 
         console.log(`Content for ${chainId} is now ${isHidden ? 'visible' : 'hidden'}`);
     }
-
-    document.querySelector('form').onsubmit = async function (e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        try {
-            const response = await fetch(this.action, {
-                method: 'POST',
-                body: formData
-            });
-            const result = await response.json();
-            if (result.success) {
-                alert('Reply sent successfully!');
-                location.reload();
-            } else {
-                alert('Failed to send the reply. Please try again.');
-            }
-        } catch (error) {
-            alert('An error occurred while sending the reply.');
-        }
-    };
-
 
 </script>
