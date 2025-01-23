@@ -16,7 +16,6 @@ from datetime import datetime, timedelta
 from user_profiling import UserProfiling
 from email_processor import EmailProcessor
 from project_scheduler import ProjectScheduler
-from email_notification import send_email_notification
 from flask import request
 from dotenv import load_dotenv
 load_dotenv()
@@ -285,7 +284,17 @@ def project_creation():
         if success:
             # Send email notifications to authorized users
             if authorized_emails_list:
-                send_email_notification(to_emails=authorized_emails_list, project_name=project_name)
+                subject = f"Notification: Added to Project '{project_name}'"
+                content = (
+                f"Hello,\n\n"
+                f"You have been added as an authorized user to the project: {project_name}.\n\n"
+                f"This is an automated message from Craigslist Safebot. "
+                f"Please do not reply to this email as responses are not monitored.\n\n"
+                f"If you have any questions, contact the admin directly.\n\n"
+                f"Best regards,\n"
+                f"Craigslist Safebot"
+                )
+                email_handler.send_notification(to_emails=authorized_emails_list, content=content, subject=subject)
             return redirect(url_for('all_projects_view'))
         else:
             logging.error(f"Error during project creation: {message}")

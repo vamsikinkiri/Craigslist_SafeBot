@@ -254,7 +254,7 @@ class EmailHandler:
             msg['From'] = self.user
             msg['To'] = to_address
             msg['Subject'] = subject
-            msg.attach(MIMEText(content, 'html'))
+            # msg.attach(MIMEText(content, 'html'))
             if message_id:
                 msg['In-Reply-To'] = message_id
             if references is not None:
@@ -274,10 +274,17 @@ class EmailHandler:
         except Exception as e:
             logging.error(f"Failed to send email: {e}")
     
-    def send_notification(self, to_address, content, subject=None):
+    def send_notification(self, to_emails, content, subject=None):
         """
         Send an email notification to admins.
         """
+        # Flatten and normalize the list of email addresses
+        if isinstance(to_emails, list):
+            if any(isinstance(email, list) for email in to_emails):
+                to_emails = [email for sublist in to_emails for email in sublist]
+            to_emails = list(set(to_emails))  # Remove duplicates
+        else:
+            to_emails = [to_emails]
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
         # sendgrid_api_key = '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'
@@ -286,7 +293,7 @@ class EmailHandler:
         try:
             msg = MIMEMultipart()
             msg['From'] = from_address
-            msg['To'] = to_address
+            msg["To"] = ", ".join(to_emails)
             msg['Subject'] = subject
             msg.attach(MIMEText(content, 'plain'))
             with smtplib.SMTP(smtp_server, smtp_port) as server:
@@ -295,6 +302,7 @@ class EmailHandler:
                 server.send_message(msg)
         except Exception as e:
             logging.error(f"Failed to send email: {e}")
+    
 
     def extract_keywords(self, emails):
         """

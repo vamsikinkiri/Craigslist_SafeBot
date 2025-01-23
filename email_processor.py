@@ -169,7 +169,7 @@ class EmailProcessor:
             f"Craigslist SafeBot Team"
         )
 
-        email_handler.send_notification(to_address=admin_email, content=notification_content, subject=subject)
+        email_handler.send_notification(to_emails=admin_email, content=notification_content, subject=subject)
         # email_handler.send_email(from_address=session_email, app_password=app_password, to_address=admin_email, content=notification_content, subject=subject)
         logging.info('*'*10 + "Email sent successfully to Admin" + "*"*10)               
 
@@ -272,17 +272,20 @@ class EmailProcessor:
         quoted_conversation = ""
         for msg in reversed(conversation_history):
             if "We replied:" in msg:
-                quoted_conversation += f"On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, {session_email} wrote:\n"
-                quoted_conversation += f"> {msg.replace('We replied:', '').strip()}\n"
+                quoted_conversation += (
+                    f"On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, {session_email} wrote:\n"
+                    f"> {msg.replace('We replied:', '').strip()}\n"
+                )
             elif "Suspect sent:" in msg:
-                quoted_conversation += f"On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, {email['from']} wrote:\n"
-                quoted_conversation += f"> {msg.replace('Suspect sent:', '').strip()}\n"
+                quoted_conversation += (
+                    f"On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, {email['from']} wrote:\n"
+                    f"> {msg.replace('Suspect sent:', '').strip()}\n"
+                )
 
+        # Ensure only unique conversation history content is added to the email
         email_with_quote = (
             f"{response_text}\n\n"
-            f"{quoted_conversation}"  # Include the quoted conversation history
-            # f"> On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, {email['from']} wrote:\n"
-            # f"{email['content'].strip()}"
+            f"{quoted_conversation.strip()}"  # Strip trailing whitespace for neatness
         )
 
         to_address = email['from']
