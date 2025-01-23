@@ -254,19 +254,19 @@ class EmailHandler:
             msg['From'] = self.user
             msg['To'] = to_address
             msg['Subject'] = subject
-            # msg.attach(MIMEText(content, 'html'))
             if message_id:
                 msg['In-Reply-To'] = message_id
             if references is not None:
                 msg['References'] = ' '.join(references + [message_id])
             msg.attach(MIMEText(content, 'plain'))
             if attachments:
-                for attachment in attachments:
-                    part = MIMEBase('application', 'octet-stream')
-                    part.set_payload(attachment.read())
-                    encoders.encode_base64(part)
-                    part.add_header('Content-Disposition', f'attachment; filename={attachment.filename}')
-                    msg.attach(part)
+                for filepath in attachments:
+                    with open(filepath, 'rb') as file:
+                        part = MIMEBase('application', 'octet-stream')
+                        part.set_payload(file.read())
+                        encoders.encode_base64(part)
+                        part.add_header('Content-Disposition', f'attachment; filename={os.path.basename(filepath)}')
+                        msg.attach(part)
             with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
                 server.starttls()
                 server.login(self.user, self.password)

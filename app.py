@@ -17,6 +17,7 @@ from user_profiling import UserProfiling
 from email_processor import EmailProcessor
 from project_scheduler import ProjectScheduler
 from flask import request
+from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -234,8 +235,11 @@ def project_creation():
             if not all(re.match(r"[^@]+@[^@]+\.[^@]+", email) for email in authorized_emails_list):
                 raise ValueError("One or more emails have an invalid format.")
         except (ValueError, json.JSONDecodeError) as e:
+            authorized_emails = []
             logging.error(f"Error validating email format: {e}")
-            return jsonify({"error": "Invalid email format. Ensure all emails are properly formatted."}), 400
+            flash("Required fields in Project Information, Keyword Prioritization and authorization settings must be filled.", "error")
+            return redirect(url_for('project_creation'))
+            # return jsonify({"error": "Invalid email format. Ensure all emails are properly formatted."}), 400
 
         project_success, message = knowledge_base.is_email_unique_in_projects(email)
         if not project_success:
@@ -975,6 +979,7 @@ def unarchiving_emails():
         return jsonify({"success": False, "message": message}), 500
 
 
+
 # Updated backend route
 @app.route('/email_thread_reply/<thread_id>', methods=['GET'])
 @login_required
@@ -996,16 +1001,29 @@ def email_thread_reply(thread_id):
 @login_required
 def send_reply(thread_id):
     reply_content = request.form.get('reply_content')
-    files = request.files.getlist('attachments')
+    attachments  = request.files.getlist('attachments')
     if not reply_content:
         flash("Reply content cannot be empty.", "error")
         return redirect(url_for('email_thread_reply', thread_id=thread_id))
+
     app.logger.info(f"Reply content: {reply_content}")
     app.logger.info(f"Thread ID: {thread_id}")
 
+    if not attachments or not any(file.filename for file in attachments):
+        flash("No file selected.", "error")
+        return redirect(url_for('email_thread_reply', thread_id=thread_id))
+
+    upload_folder = 'uploads'
+    if not os.path.exists(upload_folder):
+        os.makedirs(upload_folder)
     # Process attachments
-    for file in files:
-        file.save(os.path.join('uploads', file.filename))
+    saved_files = []
+    for file in attachments:
+        if file:
+            filename = secure_filename(file.filename)
+            filepath = os.path.join('uploads', filename)
+            file.save(filepath)
+            saved_files.append(filepath)
 
     # Fetch the latest email in the thread
     success, emails = email_handler.fetch_email_by_thread_id(
@@ -1016,7 +1034,7 @@ def send_reply(thread_id):
     if not success:
         flash(emails, "error")
         return redirect(url_for('email_thread_reply', thread_id=thread_id))
-    
+
     # Send the response as a reply and include the original email as quoted content
     latest_email = emails[-1]  # Use the most recent email in the chain
     quoted_conversation = ""
@@ -1036,7 +1054,7 @@ def send_reply(thread_id):
         # f"> On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, {email['from']} wrote:\n"
         # f"{email['content'].strip()}"
     )
-    
+
     email_handler.send_email(
         from_address=session['email'],
         app_password=session['app_password'],
@@ -1045,7 +1063,7 @@ def send_reply(thread_id):
         references=latest_email.get('references', []),
         message_id=latest_email.get('message_id'),
         subject="Re: " + latest_email.get('subject', "No Subject"),
-        attachments=files
+        attachments=saved_files
     )
 
     # Refresh the email thread to include the new reply
@@ -1059,14 +1077,6 @@ def send_reply(thread_id):
 
     logging.info("Reply sent successfully!")
     return render_template('email_thread_reply.html', emails=emails, thread_id=thread_id)
-
-# @app.route('/upload', methods=['POST'])
-# def upload():
-#     if 'file' in request.files:
-#         file = request.files['file']
-#         file.save(f'uploads/{file.filename}')
-#         return {'success': True, 'url': f'/uploads/{file.filename}'}
-#     return {'success': False, 'message': 'No file uploaded'}
 
 def parse_email_from_field(email_field):
     match = re.match(r'(.*)<(.*)>', email_field)

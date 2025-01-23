@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/@joeattardi/emoji-button@5.3.2/dist/index.css">
+    <script src="https://unpkg.com/@joeattardi/emoji-button@5.3.2/dist/index.js"></script>
 
     <title>Email Thread:{{ emails[0]['subject'] }}</title>
     <style>
@@ -15,7 +17,8 @@
             padding: 20px;
         }
         body {
-            font-family: 'Arial', sans-serif;
+        {#font-family: 'Arial', sans-serif;#}
+            font-family: 'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif;
             background-color: #eaeaea;
             color: #333;
             margin: 0;
@@ -129,9 +132,9 @@
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
-            resize: none; /* Prevent resizing */
             margin-bottom: 10px;
             height: 100px;
+            resize: vertical;
         }
 
         .reply-form-container button {
@@ -629,6 +632,46 @@
             opacity: 1; /* Show tooltip on hover */
         }
 
+        .emoji-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            color: #007bff;
+        }
+
+        .emoji-button:hover {
+            color: #0056b3;
+        }
+
+        .emoji-picker-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            margin-left: 10px;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+        }
+
+        .emoji-picker {
+            z-index: 1000; /* Ensure it's on top */
+            position: absolute; /* Position it relative to the button */
+            background: #fff; /* Make it visible */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+
+
+
+
 
 
     </style>
@@ -704,22 +747,26 @@
 
     <!-- Fixed Reply Form -->
     <div class="reply-form-container">
-        <form method="POST" action="{{ url_for('send_reply', thread_id=thread_id) }}">
-            <textarea name="reply_content" placeholder="Type your reply here..." required></textarea>
+        <form method="POST" action="{{ url_for('send_reply', thread_id=thread_id) }}" enctype="multipart/form-data">
+            <textarea id="reply-content" name="reply_content" placeholder="Type your reply here..." required></textarea>
+            <!-- File Attachment Input -->
+            <label for="file-attachment">Attach Files:</label>
+            <input type="file" id="file-attachment" name="attachments" multiple>
             <button type="submit" class="btn btn-primary">Send Reply</button>
         </form>
     </div>
-
-    <!-- Back to Dashboard -->
-    <div class="navigation">
-        <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Dashboard</a>
-    </div>
 </div>
-
 </body>
 </html>
 
+<script src="https://unpkg.com/@joeattardi/emoji-button@5.3.2/dist/index.js"></script>
 <script>
+
+    // Initialize Twemoji Picker for emojis
+    const picker = new EmojiPicker({
+        trigger: document.querySelector('#emoji-button'),
+        target: document.querySelector('#reply-content')
+    });
 
     function scrollToTop() {
         const container = document.getElementById('emailChainContainer');
@@ -776,5 +823,52 @@
 
         console.log(`Content for ${chainId} is now ${isHidden ? 'visible' : 'hidden'}`);
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const emojiButton = document.querySelector('#emoji-button');
+        const replyContent = document.querySelector('#reply-content');
+
+        // Initialize the EmojiButton picker
+        const picker = new EmojiButton();
+
+        picker.on('emoji', emoji => {
+            // Insert emoji into the textarea at the cursor position
+            const cursorPosition = replyContent.selectionStart;
+            const text = replyContent.value;
+            replyContent.value =
+                text.slice(0, cursorPosition) + emoji + text.slice(cursorPosition);
+            replyContent.focus(); // Keep focus on the textarea
+        });
+
+        emojiButton.addEventListener('click', () => {
+            console.log('Emoji button clicked'); // Debug log
+            picker.togglePicker(emojiButton);
+        });
+    });
+
+
+    // Handle Form Submission
+    document.querySelector('form').addEventListener('submit', function (event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const formData = new FormData(this);
+
+        // Log the email content for debugging
+        console.log('Reply Content:', formData.get('reply_content'));
+
+        // Example POST request to your backend
+        fetch('{{ url_for("send_reply", thread_id=thread_id) }}', {
+            method: 'POST',
+            body: formData,
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('Reply sent successfully!');
+                } else {
+                    alert('Failed to send reply.');
+                }
+            })
+            .catch(error => console.error('Error sending reply:', error));
+    });
 
 </script>

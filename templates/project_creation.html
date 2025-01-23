@@ -231,14 +231,14 @@
 
         /* Icon inside the input-wrapper */
         .info-icon {
-            {#top: auto; /* Removes fixed vertical positioning */#}
-            {#transform: none; /* Removes transform property */#}
-            {#right: 0; /* Aligns it properly with the input field */#}
-            {#display: inline-block; /* Ensures proper inline alignment */#}
-            {#font-size: 16px;#}
-            {#color: #6b7280;#}
-            {#cursor: pointer;#}
-            {#margin-left: 10px; /* Adds spacing from the input field */#}
+        {#top: auto; /* Removes fixed vertical positioning */#}
+        {#transform: none; /* Removes transform property */#}
+        {#right: 0; /* Aligns it properly with the input field */#}
+        {#display: inline-block; /* Ensures proper inline alignment */#}
+        {#font-size: 16px;#}
+        {#color: #6b7280;#}
+        {#cursor: pointer;#}
+        {#margin-left: 10px; /* Adds spacing from the input field */#}
             position: relative;
             display: inline-block;
             cursor: pointer;
@@ -879,7 +879,7 @@
                     <!-- Dynamically added emails with Remove button -->
                 </div>
             </fieldset>
-            <input type="hidden" name="authorized_emails" id="authorized-emails-input">
+            <input type="hidden" name="authorized_emails" id="authorized-emails-input" value="[]">
         </div>
 
 
@@ -894,7 +894,7 @@
         </div>
 
         <div class="tab-content" id="interaction-settings" >
-        <fieldset>
+            <fieldset>
                 <legend>Interaction Settings</legend>
                 <input type="text" id="posed_name" name="posed_name" placeholder="Enter posed name. For example: Karen, Jason"
                        title="Enter the alias or name being used for interaction.">
@@ -1114,9 +1114,7 @@
             return;
         }
 
-        // Parse the existing authorized emails
-        // Parse the existing authorized emails
-        let currentEmails = [];
+        let currentEmails = JSON.parse(authorizedEmailsInput.value || "[]");
         try {
             currentEmails = JSON.parse(authorizedEmailsInput.value || "[]");
         } catch (e) {

@@ -8,3 +8,4 @@ pyyaml
 langchain-groq
 apscheduler
 python-dotenv
+werkzeug
