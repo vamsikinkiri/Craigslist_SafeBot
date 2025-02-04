@@ -8,7 +8,7 @@ The primary objectives of Craigslist SafeBot are:
 
 - **Baiting Suspects:** Initiate conversations with potential offenders on monitored online marketplaces (e.g., Craigslist).  
 - **AI-Driven Engagement:** Utilize an **LLM-powered chatbot** to generate **realistic, context-aware responses**.  
-- **Keyword-Based Risk Assessment:** Analyze email interactions in real time and **assign risk scores** based on suspicious keywords.  
+- **Keyword-Based Risk Assessment:** Analyze email interactions in real-time and **assign risk scores** based on suspicious keywords.  
 - **Automated to Manual Switching:** When a conversation meets specific criteria or risk score thresholds, the system **automatically hands over control** to a human officer.  
 - **User Profiling & Evidence Collection:** Maintain records of **suspect interactions, contact details, and behavioral patterns** for law enforcement analysis.
 
@@ -68,7 +68,7 @@ postgresql:
 The system uses an **open-source Large Language Model (LLM)** to analyze conversations and generate realistic email responses. To enable this functionality:
 
 ### Step 1: Obtain an LLM API Key
-- We have used GroqCloud to Register for an API key. Go to [Groq](https://console.groq.com/) or any other supported LLM provider (would need changes in `response_generator.py`) and generate an API key.
+- We have used GroqCloud to register for an API key. Go to [Groq](https://console.groq.com/) or any other supported LLM provider (would need changes in `response_generator.py`) and generate an API key.
 - Retrieve your **Groq API Key** from your account dashboard.
 - Decide on which model to be used to analyze and generate responses.
 
@@ -124,7 +124,7 @@ The `db_tables_setup.py` file is responsible for creating the necessary database
     or
     python3 app.py
    ```
-5. **Access the website in your local system (Port number might change depending on where the flask application is ran):**
+5. **Access the website in your local system (The port number might change depending on where the flask application is run):**
     ```cpp
     http://127.0.0.1:5000
     ```
@@ -132,7 +132,7 @@ The `db_tables_setup.py` file is responsible for creating the necessary database
 
 ## 6. Initial Website Setup
 
-When the website is loaded for the first time, you will need to create an admin account and then proceed to create a project for bait engagement. This is assuming you have already setup the bait engagement post on Craigslist or any other monitored online marketplaces. This ensures that the chatbot receives emails to investigate. Below are detailed steps and explanations for each step.
+When the website is loaded for the first time, you will need to create an admin account and then proceed to create a project for bait engagement. This is assuming you have already set up the bait engagement post on Craigslist or any other monitored online marketplaces. This ensures that the chatbot receives emails to investigate. Below are detailed steps and explanations for each step.
 
 ---
 
@@ -150,7 +150,7 @@ When the website is loaded for the first time, you will need to create an admin 
 
 ### **Step 2: Create a Project**
 
-Once the admin account is created, login using those credentials and proceed to the **Project Creation Page**. Below is an explanation of each term and its significance:
+Once the admin account is created, log in using those credentials and proceed to the **Project Creation Page**. Below is an explanation of each term and its significance:
 
 #### **1. Project Information**
 - **Project Type**: Choose the type of project (e.g., Child Predator Catcher or Theft Investigation).
@@ -206,7 +206,7 @@ By following these steps, the Craigslist SafeBot will be set up and ready to eng
 
 # Project Dashboard Overview
 
-The **Project Dashboard** is the central interface for managing ongoing investigations, monitoring email threads, and customizing project settings. Once a project is created, the chatbot periodically scans for new emails, analyzes conversations, and takes automated actions like generating responses, notifying admins in case of the need to manual takeover, or escalating scenarios for manual intervention.
+The **Project Dashboard** is the central interface for managing ongoing investigations, monitoring email threads, and customizing project settings. Once a project is created, the chatbot periodically scans for new emails, analyzes conversations, and takes automated actions like generating responses, notifying admins in case of the need for manual takeover, or escalating scenarios for manual intervention.
 
 Below is a detailed breakdown of the main features and options available on the dashboard:
 
@@ -216,7 +216,7 @@ Below is a detailed breakdown of the main features and options available on the 
 The dashboard displays all email threads related to the selected project. For each thread, the following details are shown:
 - **Email Address**: The suspect's email address.
 - **Subject**: The subject of the email thread.
-- **Score**: The risk score calculated based on keywords and engagement thresholds.
+- **Score**: The risk score is calculated based on keywords and engagement thresholds.
 - **AI Response State**: 
   - **Green (Automated)**: The chatbot is handling the conversation automatically.
   - **Red (Manual)**: The conversation has been or will need to be taken over by the detectives.
@@ -263,7 +263,7 @@ Detectives can modify any and all project configurations currently set from the 
 
 ### **7. Automated and Manual Workflow**
 The system ensures an efficient workflow:
-- The chatbot monitors email threads in real-time.
+- The chatbot monitors email threads in real time.
 - Detectives can step in to manually handle conversations as needed.
 - All actions, updates, and settings are logged to maintain full transparency and traceability.
 
@@ -332,7 +332,7 @@ The system is designed using a modular architecture to ensure **scalability, mai
 - **Scores emails** based on keyword detection.
 - Checks if the AI should continue responding or **switch to manual intervention** by analyzing the conversation history and checking for any predefined scenarios that trigger the change of state from automated to manual with the help of `response_generator.py`.
 - Flags emails that **exceed predefined risk thresholds**.
-- Notifies **detectives** if any of the scenarios occur or an email coversation crosses the manual engagement threshold.
+- Notifies **detectives** if any of the scenarios occur or an email conversation crosses the manual engagement threshold.
 
 > **Key Components:**
 > - Implements **risk scoring** by analyzing email contents.
@@ -354,7 +354,7 @@ The system is designed using a modular architecture to ensure **scalability, mai
 ---
 
 ### **7. `response_generator.py` - AI-Powered Reply System**
-- Analyzes conversations to scan for any predined scenarios and generates **realistic replies** using **LLMs** (e.g., Groq's Llama models).
+- Analyzes conversations to scan for any predefined scenarios and generates **realistic replies** using **LLMs** (e.g., Groq's Llama models).
 - Uses `ChatGroq` to call the **LLM API** with custom prompt instructions.
 - Dynamically **adjusts responses** based on risk assessment.
 
@@ -422,7 +422,7 @@ This modular design ensures **clear separation of concerns**, making the system 
 | `/update_account_profile`  | PATCH   | Update admin account settings |
 | `/user_profiles`           | GET     | Extract all suspect profiles and display them |
 | `/archived_emails`         | GET     | Extract all archived emails and display them|
-| `/email_thread_reply/<id>` | POST    | Send a manual email response to an email with particular id |
+| `/email_thread_reply/<id>` | POST    | Send a manual email response to an email with a particular id |
 
 ---
 
