@@ -55,7 +55,7 @@ class EmailProcessor:
         # Check if the email is already processed
         success, is_email_processed = knowledge_base.is_email_processed(email['message_id'])
         if not success:
-            flash(is_email_processed, "error")
+            logging.error(is_email_processed, "error")
             return
         if is_email_processed:
             return  # Skip already processed emails
@@ -79,11 +79,10 @@ class EmailProcessor:
         project_success, project_details = knowledge_base.get_project_details(session_email)
         if not project_success:
             logging.error(f"Error retrieving project information. Please check your inputs and try again.", "error")
-            flash("Error retrieving project information. Please check your inputs and try again.", "error")
             return
         
         # logging.info(f"PROJECT: {project_details}")
-        # project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, project_type, last_updated  = project_details
+        # project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, project_type, last_updated, active_start, active_end  = project_details
 
         self._update_email_thread(email, thread_id, session_email, project_details, score, seen_keywords)
         # Determine and act on the AI response state
@@ -94,7 +93,7 @@ class EmailProcessor:
             return {}
         success, seen_keywords = knowledge_base.get_seen_keywords(thread_id)
         if not success:
-            flash(seen_keywords, "error")
+            logging.error(seen_keywords)
             return {}
         return seen_keywords
 
@@ -108,13 +107,12 @@ class EmailProcessor:
             seen_keywords=seen_keywords
         )
         if not success:
-            flash(result, "error")
+            logging.error(result)
 
     def _handle_ai_response_state(self, email, thread_id, session_email, project_details, score, conversation_history, from_address):
         # Extract the user profile
         user_success, user_profile = knowledge_base.get_user_profile(from_address, project_id=project_details[0])
         if not user_success:
-            flash("Failed to fetch user profile for notification.", "error")
             logging.error("Failed to fetch user profile for notification.")
             return
         user_id, primary_email, project_id, thread_ids, email_list, contact_numbers, active_user, actions_remarks, last_active_db, last_updated = user_profile
@@ -123,7 +121,7 @@ class EmailProcessor:
         # Extract the AI response state
         ai_success, ai_state = knowledge_base.get_ai_response_state(thread_id)
         if not ai_success:
-            flash(ai_state, "error")
+            logging.error(ai_state)
             return
 
         project_name = project_details[2]
@@ -184,9 +182,9 @@ class EmailProcessor:
         randomized_response_frequency = max(5, response_frequency + random.randint(-10, 10))
         send_time = email_received_time + timedelta(minutes=randomized_response_frequency)
 
-        # Define acceptable send hours
-        start_hour = 8  # 8 AM
-        end_hour = 20   # 8 PM
+        # Extract active hours to send an email
+        start_hour = project_details[18]  # Default is 8 AM
+        end_hour = project_details[19]   # Default is 8 PM
 
         if send_time.hour < start_hour:
             # If send_time is before 8 AM, move it to 8 AM on the same day
@@ -216,6 +214,15 @@ class EmailProcessor:
 
 
     def generate_and_send_response(self, project_details, email, conversation_history, session_email, thread_id, score, user_details):
+        # Verify the latest AI Response state of the Thread before sending the reply
+        ai_success, ai_state = knowledge_base.get_ai_response_state(thread_id)
+        if not ai_success:
+            logging.error(ai_state)
+            return
+        if ai_state != 'Automated':
+            logging.info(f"The AI Response state for the thread has been changed to Manual. No longer sending the AI generated reply to the email!")
+            return
+
         # Step 1: Extract project details and combine conversation history into a single string
         project_name = project_details[2]
         app_password = project_details[3]

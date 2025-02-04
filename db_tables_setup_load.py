@@ -101,7 +101,9 @@ def create_tables(cursor):
             POSED_LOCATION VARCHAR(255), -- Geographical location being posed
             SWITCH_MANUAL_CRITERIAS JSONB,
             PROJECT_TYPE TEXT,
-            LAST_UPDATED TIMESTAMP
+            LAST_UPDATED TIMESTAMP,
+            ACTIVE_START INTEGER,
+            ACTIVE_END INTEGER
         );
 
 

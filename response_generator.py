@@ -1,16 +1,28 @@
 import logging
 from langchain_groq import ChatGroq
+import os
+import yaml
 
 class ResponseGenerator:
 
     def __init__(self):
         # Initialize the LLM instance
+        project_root = os.path.dirname(os.path.abspath(__file__))
+        credentials_path = os.path.join(project_root, "credentials.yaml")
+
+        with open(credentials_path) as f:
+            my_credentials = yaml.load(f, Loader=yaml.FullLoader)
+
+        llm_config = my_credentials['llm']
         self.llm = ChatGroq(
             temperature=0.7,  # Adjusting temperature for more conversational responses
-            groq_api_key="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",
-            #model_name="llama-3.1-8b-instant"
-            model_name="llama-3.3-70b-versatile"
-            #model_name="gemma-7b-it"
+            #groq_api_key="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",
+            groq_api_key=llm_config['groq_api_key'],
+            #model_name="llama-3.3-70b-versatile"
+            model_name=llm_config['model_name']
+            # Different models - Untested
+            # model_name="llama-3.1-8b-instant"
+            # model_name="gemma-7b-it"
         )
 
     def generate_response(self, full_prompt):

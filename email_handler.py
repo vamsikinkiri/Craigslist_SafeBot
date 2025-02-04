@@ -244,7 +244,7 @@ class EmailHandler:
         """
         Send an email reply with threading information.
         """
-        #logging.info(f" '*'*50 {subject}, {references}")
+        # logging.info(f" '*'*50 {subject}, {references}")
         self.user = from_address
         self.password = app_password
         if not self.user or not self.password:
@@ -271,6 +271,7 @@ class EmailHandler:
                 server.starttls()
                 server.login(self.user, self.password)
                 server.send_message(msg)
+            logging.info("Reply sent successfully!")
         except Exception as e:
             logging.error(f"Failed to send email: {e}")
     

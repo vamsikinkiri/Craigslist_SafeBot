@@ -202,6 +202,8 @@ def project_creation():
         posed_sex = request.form.get('posed_sex', POSED_SEX_DEFAULT)
         posed_location = request.form.get('posed_location', POSED_LOCATION_DEFAULT)
         project_type = request.form.get('project_type')
+        active_start_time = 8
+        active_end_time = 20
         # Fetch prompts and criteria for the selected project type
         success, project_data  = knowledge_base.get_project_type_prompts(project_type)
         if not success:
@@ -282,7 +284,9 @@ def project_creation():
                                                          posed_sex=posed_sex,
                                                          posed_location=posed_location,
                                                          switch_manual_criterias=switch_manual_criterias,
-                                                         project_type=project_type
+                                                         project_type=project_type,
+                                                         active_start=active_start_time,
+                                                         active_end=active_end_time
                                                          )
 
         if success:
@@ -291,7 +295,7 @@ def project_creation():
                 subject = f"Notification: Added to Project '{project_name}'"
                 content = (
                 f"Hello,\n\n"
-                f"You have been added as an authorized user to the project: {project_name}.\n\n"
+                f"You have been added as an authorized admin to the project: {project_name}.\n\n"
                 f"This is an automated message from Craigslist Safebot. "
                 f"Please do not reply to this email as responses are not monitored.\n\n"
                 f"If you have any questions, contact the admin directly.\n\n"
@@ -388,7 +392,9 @@ def get_project_data(email):
             "posed_location": project_info[14],
             "switch_manual_criterias": project_info[15],
             "project_type": project_info[16],
-            "last_updated": project_info[17]
+            "last_updated": project_info[17],
+            "active_start": project_info[18],
+            "active_end": project_info[19]
         }
         logging.info(f"Successfully processed project data for email: {email}")
         logging.info(f"Get criterias 1: {project_info[15]}")
@@ -532,6 +538,9 @@ def update_project():
             posed_age = int(request.form.get('posed_age', project_info.get('posed_age', 0)))
             posed_sex = request.form.get('posed_sex', project_info.get('posed_sex', ''))
             posed_location = request.form.get('posed_location', project_info.get('posed_location', ''))
+            # Get these values from the form
+            active_start = 8
+            active_end = 20
 
             # Parse and process manual criteria
             # Update project details in the knowledge base
@@ -549,7 +558,9 @@ def update_project():
                 posed_sex=posed_sex,
                 posed_location=posed_location,
                 switch_manual_criterias=json.dumps(switch_manual_criterias),
-                project_type=existing_project_type
+                project_type=existing_project_type,
+                active_start=active_start,
+                active_end=active_end
             )
 
             if success:
@@ -662,7 +673,7 @@ def all_projects_view():
                     project_id, email_id, project_name, app_password, ai_prompt_text,
                     response_frequency, keywords_data, owner_admin_id, lower_threshold,
                     upper_threshold, authorized_emails, posed_name, posed_age, posed_sex,
-                    posed_location, switch_manual_criterias, project_type, last_updated
+                    posed_location, switch_manual_criterias, project_type, last_updated, active_start, active_end
                 ) = project_details
                 logging.info(f"Fetched project details for email {email}: {project_details}")
 
@@ -704,7 +715,7 @@ def delete_project(project_id):
         return redirect(url_for('all_projects_view'))
 
     # Extract owner_admin_id from project_details tuple owner_admin_id
-    project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, project_type, last_updated  = project_details
+    project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, project_type, last_updated, active_start, active_end  = project_details
 
     # Check if the current session's admin_id matches the owner_admin_id
     session_admin_id = session.get('admin_id')
@@ -999,7 +1010,7 @@ def email_thread_reply(thread_id):
 
 @app.route('/send_reply/<thread_id>', methods=['POST'])
 @login_required
-def send_reply(thread_id):
+def send_reply(thread_id):    
     reply_content = request.form.get('reply_content')
     attachments  = request.files.getlist('attachments')
     if not reply_content:
@@ -1009,21 +1020,21 @@ def send_reply(thread_id):
     app.logger.info(f"Reply content: {reply_content}")
     app.logger.info(f"Thread ID: {thread_id}")
 
-    if not attachments or not any(file.filename for file in attachments):
-        flash("No file selected.", "error")
-        return redirect(url_for('email_thread_reply', thread_id=thread_id))
+    # if not attachments or not any(file.filename for file in attachments):
+    #     flash("No file selected.", "error")
+    #     return redirect(url_for('email_thread_reply', thread_id=thread_id))
 
-    upload_folder = 'uploads'
-    if not os.path.exists(upload_folder):
-        os.makedirs(upload_folder)
-    # Process attachments
-    saved_files = []
-    for file in attachments:
-        if file:
-            filename = secure_filename(file.filename)
-            filepath = os.path.join('uploads', filename)
-            file.save(filepath)
-            saved_files.append(filepath)
+    # upload_folder = 'uploads'
+    # if not os.path.exists(upload_folder):
+    #     os.makedirs(upload_folder)
+    # # Process attachments
+    # saved_files = []
+    # for file in attachments:
+    #     if file:
+    #         filename = secure_filename(file.filename)
+    #         filepath = os.path.join('uploads', filename)
+    #         file.save(filepath)
+    #         saved_files.append(filepath)
 
     # Fetch the latest email in the thread
     success, emails = email_handler.fetch_email_by_thread_id(
@@ -1063,7 +1074,7 @@ def send_reply(thread_id):
         references=latest_email.get('references', []),
         message_id=latest_email.get('message_id'),
         subject="Re: " + latest_email.get('subject', "No Subject"),
-        attachments=saved_files
+        #attachments=saved_files
     )
 
     # Refresh the email thread to include the new reply
@@ -1076,6 +1087,8 @@ def send_reply(thread_id):
         emails = updated_emails
 
     logging.info("Reply sent successfully!")
+    knowledge_base.update_ai_response_state(thread_id=thread_id, new_state="Manual")
+
     return render_template('email_thread_reply.html', emails=emails, thread_id=thread_id)
 
 def parse_email_from_field(email_field):
