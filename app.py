@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import pytz
 import logging
 from datetime import date, datetime
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -20,6 +21,7 @@ from flask import request
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 load_dotenv()
+
 
 # Initialize the Flask application
 app = Flask(__name__)
@@ -74,6 +76,30 @@ class User(UserMixin):
 
     def get_id(self):
         return self.id
+
+
+@app.route('/help')
+def help_page():
+    return render_template('help.html')  # For now, this page is blank.
+
+@app.route('/contact-us')
+def contact_us():
+    referrer = request.referrer or url_for('home')  # Default to home if no referrer
+    return render_template('contact_us.html', referrer=referrer)
+
+TIMEZONE_MAPPING = {
+    "PST": "America/Los_Angeles",
+    "EST": "America/New_York",
+    "CST": "America/Chicago",
+    "MST": "America/Denver",
+    "UTC": "UTC",
+    "IST": "Asia/Kolkata",
+    "GMT": "Etc/GMT",
+    "CET": "Europe/Paris",
+    "EET": "Europe/Bucharest",
+    "JST": "Asia/Tokyo",
+    "AEST": "Australia/Sydney",
+}
 
 # Routes for login, logout and load user for login session management
 @app.route('/login', methods=['GET', 'POST'])
@@ -202,8 +228,32 @@ def project_creation():
         posed_sex = request.form.get('posed_sex', POSED_SEX_DEFAULT)
         posed_location = request.form.get('posed_location', POSED_LOCATION_DEFAULT)
         project_type = request.form.get('project_type')
-        active_start_time = 8
-        active_end_time = 20
+        # active_start_time = 8
+        # active_end_time = 20
+        active_start_time_raw = int(request.form.get('active_start_time', 8))
+        active_end_time_raw = int(request.form.get('active_end_time', 20))
+        user_timezone = request.form.get('timezone', 'UTC')
+
+        # Map user-selected timezone to pytz
+        user_tz_name = TIMEZONE_MAPPING.get(user_timezone, "UTC")  # Default to UTC if invalid
+        user_tz = pytz.timezone(user_tz_name)
+        pst_tz = pytz.timezone("America/Los_Angeles")
+        try:
+            # Convert start time
+            start_time = datetime.now().replace(hour=active_start_time_raw, minute=0, second=0, microsecond=0)
+            start_time = user_tz.localize(start_time).astimezone(pst_tz)
+            active_start_time = start_time.hour  # Extract hour as integer
+
+            # Convert end time
+            end_time = datetime.now().replace(hour=active_end_time_raw, minute=0, second=0, microsecond=0)
+            end_time = user_tz.localize(end_time).astimezone(pst_tz)
+            active_end_time = end_time.hour  # Extract hour as integer
+        except Exception as e:
+            flash("Invalid time or timezone selection. Please try again.", "error")
+            return redirect(url_for('project_creation'))
+
+        logging.info(f"Converted Active Start Time (PST): {active_start_time}, End Time (PST): {active_end_time}")
+
         # Fetch prompts and criteria for the selected project type
         success, project_data  = knowledge_base.get_project_type_prompts(project_type)
         if not success:
@@ -420,8 +470,6 @@ def get_project_data_specific_project_type():
         "default_switch_manual_criterias": project_data.get("default_switch_manual_criterias", [])
     })
 
-
-
 @app.route('/update_project', methods=['GET', 'POST'])
 @login_required
 def update_project():
@@ -506,27 +554,44 @@ def update_project():
             updated_emails_raw = parse_json_field(updated_emails_data, [])
             updated_emails = list(set(updated_emails_raw))
 
-            # logging.info(f"Form data received: {request.form}")
-            # logging.info(f"Raw switch_manual_criterias: {new_switch_manual_criterias}, type: {type(new_switch_manual_criterias)}")
             existing_criterias = project_info.get('switch_manual_criterias', '[]')
             if isinstance(existing_criterias, str):
                 existing_criterias = parse_json_field(existing_criterias, [])
 
             new_switch_manual_criterias = request.form.get('switch_manual_criterias', '[]')
-            if new_switch_manual_criterias:
-                try:
-                    # Parse JSON from the request form field
-                    parsed_criterias = parse_json_field(new_switch_manual_criterias, []) if isinstance(new_switch_manual_criterias, str) else new_switch_manual_criterias
-                    if not isinstance(parsed_criterias, list):
-                        raise ValueError(f"Parsed criterias must be a list, got {type(parsed_criterias)} instead.")
-                    updated_criterias = list(set(parsed_criterias))
-                except ValueError as e:
-                    logging.error(f"Failed to parse switch_manual_criterias: {e}")
-                    updated_criterias  = []
-            else:
-                updated_criterias = existing_criterias
-            # Final updated criterias
+            try:
+                if isinstance(new_switch_manual_criterias, str):
+                    parsed_criterias = parse_json_field(new_switch_manual_criterias, [])
+                else:
+                    parsed_criterias = new_switch_manual_criterias
+
+                if not isinstance(parsed_criterias, list):
+                    raise ValueError(f"Parsed criterias must be a list, got {type(parsed_criterias)} instead.")
+
+                # Merge existing and new criteria while ensuring no duplicates
+                updated_criterias = list(set(existing_criterias + parsed_criterias))
+
+                # Log the final criteria list for debugging
+                logging.info(f"Final updated switch_manual_criterias: {updated_criterias}")
+            except ValueError as e:
+                logging.error(f"Failed to parse switch_manual_criterias: {e}")
+                updated_criterias = existing_criterias  # Keep the existing criteria if parsing fails
             switch_manual_criterias = updated_criterias
+
+            # if new_switch_manual_criterias:
+            #     try:
+            #         # Parse JSON from the request form field
+            #         parsed_criterias = parse_json_field(new_switch_manual_criterias, []) if isinstance(new_switch_manual_criterias, str) else new_switch_manual_criterias
+            #         if not isinstance(parsed_criterias, list):
+            #             raise ValueError(f"Parsed criterias must be a list, got {type(parsed_criterias)} instead.")
+            #         updated_criterias = list(set(parsed_criterias))
+            #     except ValueError as e:
+            #         logging.error(f"Failed to parse switch_manual_criterias: {e}")
+            #         updated_criterias  = []
+            # else:
+            #     updated_criterias = existing_criterias
+            # # Final updated criterias
+            # switch_manual_criterias = updated_criterias
 
             # Handle AI prompt text
             ai_prompt_text = (
@@ -539,10 +604,29 @@ def update_project():
             posed_sex = request.form.get('posed_sex', project_info.get('posed_sex', ''))
             posed_location = request.form.get('posed_location', project_info.get('posed_location', ''))
             # Get these values from the form
-            active_start = 8
-            active_end = 20
+            # active_start = 8
+            # active_end = 20
+            user_start_hour = int(request.form.get('active_start_time'))
+            user_end_hour = int(request.form.get('active_end_time'))
+            user_timezone = request.form.get('timezone', 'UTC')
 
-            # Parse and process manual criteria
+            if user_timezone in TIMEZONE_MAPPING:
+                user_timezone = TIMEZONE_MAPPING[user_timezone]
+            else:
+                logging.error(f"Invalid timezone selected: {user_timezone}")
+                flash("Invalid timezone selected. Please choose a valid option.", "error")
+                return redirect(url_for('update_project'))
+
+            user_tz = pytz.timezone(user_timezone)
+            pst_tz = pytz.timezone('America/Los_Angeles')
+
+            start_time_utc = datetime.now(user_tz).replace(hour=user_start_hour, minute=0, second=0)
+            active_start = start_time_utc.astimezone(pst_tz).hour
+
+            end_time_utc = datetime.now(user_tz).replace(hour=user_end_hour, minute=0, second=0)
+            active_end = end_time_utc.astimezone(pst_tz).hour
+
+        # Parse and process manual criteria
             # Update project details in the knowledge base
             success, message = knowledge_base.update_project(
                 email=email,
@@ -761,18 +845,20 @@ def user_profiles():
             if email_filter.lower() in user.get("primary_email", "").lower()
         ]
     logging.info(f"Users before score filtering: {len(all_users)}")
-    score_filter = request.args.get("score_filter", None)
-    if score_filter:
-        try:
-            score_filter = int(score_filter)
-            all_users = [user for user in all_users if user_scores.get(user.get("primary_email"), {}).get("total_score", 0) >= score_filter]
-        except ValueError:
-            logging.error("Invalid score filter value.")
-    logging.info(f"Score filter value: {score_filter}")
+    score_min = request.args.get("score_min", "0")  # Default to 0
+    try:
+        score_min = int(score_min)  # Convert safely
+        all_users = [
+            user for user in all_users
+            if user_scores.get(user.get("primary_email"), {}).get("total_score", 0) >= score_min
+        ]
+    except ValueError:
+        logging.error("Invalid score filter value, defaulting to 0.")
+
+    logging.info(f"Score filter applied: {score_min}")
 
     # Handle 'last_active_filter' query parameter
     last_active_filter = request.args.get("last_active_filter", "all")  # Default to 'all'
-
     # Calculate the current date
     current_date = datetime.now()
 
@@ -783,9 +869,9 @@ def user_profiles():
             all_users = [
                 user for user in all_users
                 if user.get("last_active")
-                   and (current_date - datetime.strptime(user["last_active"], "%Y-%m-%d %H:%M:%S")).days <= days_filter 
+                   and (current_date - datetime.strptime(user["last_active"], "%Y-%m-%d %H:%M:%S")).days <= days_filter
             ]
-            
+
         except ValueError:
             logging.error("Invalid last_active_filter value. Showing all users.")
 
@@ -1024,17 +1110,20 @@ def send_reply(thread_id):
     #     flash("No file selected.", "error")
     #     return redirect(url_for('email_thread_reply', thread_id=thread_id))
 
-    # upload_folder = 'uploads'
-    # if not os.path.exists(upload_folder):
-    #     os.makedirs(upload_folder)
-    # # Process attachments
-    # saved_files = []
-    # for file in attachments:
-    #     if file:
-    #         filename = secure_filename(file.filename)
-    #         filepath = os.path.join('uploads', filename)
-    #         file.save(filepath)
-    #         saved_files.append(filepath)
+    upload_folder = 'uploads'
+    if not os.path.exists(upload_folder):
+        os.makedirs(upload_folder)
+    # Process attachments
+    ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'docx', 'txt'}
+    saved_files = []
+    for file in attachments:
+        if file:
+            filename = secure_filename(file.filename)
+            filepath = os.path.join('uploads', filename)
+            file.save(filepath)
+            saved_files.append(filepath)
+
+    app.logger.info(f"Saved attachments: {saved_files}")  # Log saved attachments
 
     # Fetch the latest email in the thread
     success, emails = email_handler.fetch_email_by_thread_id(
@@ -1074,7 +1163,7 @@ def send_reply(thread_id):
         references=latest_email.get('references', []),
         message_id=latest_email.get('message_id'),
         subject="Re: " + latest_email.get('subject', "No Subject"),
-        #attachments=saved_files
+        attachments=saved_files
     )
 
     # Refresh the email thread to include the new reply

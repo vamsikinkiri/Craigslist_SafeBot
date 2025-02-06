@@ -40,7 +40,7 @@
             flex: 1;
             text-align: center;
             font-size: 34px;
-            margin-left: 0%;
+            margin-left: 15%;
         }
 
         /* Sidebar styling */
@@ -91,6 +91,7 @@
             font-size: 20px;
             font-weight: 600;
             margin-top: 10px;
+            text-decoration: none;
         }
         .sidebar-item:hover {
             background-color: #eaeaea;
@@ -123,8 +124,9 @@
             align-items: center;
             text-decoration: none;
             margin-right: 30px;
+            margin-left: -25px;
         }
-        .settings-button .icon, .logout-button .icon{
+        .settings-button .icon, .logout-button .icon ,.contact-us, .help-icon{
             margin-right: 10px;
             font-size: 20px;
         }
@@ -184,7 +186,7 @@
             background-color: #ffffff;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
             text-align: center;
-            margin-top: 140px;
+            margin-top: 90px;
             margin-right: 100px; /* Adjust to account for sidebar */
         }
 
@@ -284,6 +286,34 @@
             font-size: 20px;
 
         }
+        .help-icon {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            gap: 5px;
+            text-decoration: none;
+            margin-right: 32px;
+        }
+        .contact-us {
+            margin-left: auto; /* Push Contact Us to the rightmost */
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            text-decoration: none;
+            gap: 5px;
+        }
 
 
     </style>
@@ -309,6 +339,16 @@
             <i class="fas fa-cog icon"></i> Manage Profile
         </a>
     </div>
+
+    <!-- Contact Us (Rightmost) -->
+    <a href="{{ url_for('contact_us') }}" class="contact-us">
+        <i class="fas fa-envelope"></i> Contact Us
+    </a>
+    <!-- Help Page Link -->
+    <a href="{{ url_for('help_page') }}" class="help-icon" title="Help & FAQs">
+        <i class="fas fa-question-circle"></i> Help
+    </a>
+
     <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
         <button class="logout-button">
             <i class="fas fa-sign-out-alt icon"></i> Logout

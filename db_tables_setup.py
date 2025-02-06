@@ -135,11 +135,19 @@ def setup_database():
 
 
     except Exception as e:
-        logging.error(f"An error occurred:", e)
+        # logging.error(f"An error occurred:", e)
+        logging.error(f"An error occurred: {e}")
 
+
+    # finally:
+    #     cursor.close()
+    #     conn.close()
     finally:
-        cursor.close()
-        conn.close()
+        if 'cursor' in locals() and cursor:
+            cursor.close()
+        if 'conn' in locals() and conn:
+            conn.close()
+
 
 # # def create_project_type():
 #     base_prompt = '''${admin_prompt}\nThe following is an email conversation between the suspect (potential criminal) and an AI assistant. The suspect does not know they are having a conversation with an AI assistant.\n${previous_conversations}'''

@@ -38,7 +38,7 @@
             flex: 1;
             text-align: center;
             font-size: 34px;
-            margin-left: 3%;
+            margin-left: 5%;
         }
 
         .logout-button {
@@ -51,10 +51,11 @@
             display: flex;
             align-items: center;
             text-decoration: none;
-            margin-right: 20px;
+            margin-right: 30px;
+            margin-left: -25px;
         }
 
-        .logout-button .icon {
+        .logout-button .icon, .contact-us, .help-icon  {
             margin-right: 10px;
         }
 
@@ -182,6 +183,36 @@
             background-color: #c9302c;
         }
 
+        help-icon {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            gap: 5px;
+            text-decoration: none;
+            margin-right: 32px;
+        }
+        .contact-us {
+            margin-left: auto; /* Push Contact Us to the rightmost */
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            text-decoration: none;
+            gap: 5px;
+        }
+
+
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .header-title {
@@ -264,6 +295,35 @@
                 font-size: 14px; /* Slightly smaller text for smaller screens */
             }
         }
+
+        .help-icon {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            gap: 5px;
+            text-decoration: none;
+            margin-right: 32px;
+        }
+        .contact-us {
+            margin-left: auto; /* Push Contact Us to the rightmost */
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            text-decoration: none;
+            gap: 5px;
+        }
     </style>
 </head>
 <body>
@@ -272,6 +332,16 @@
 <header class="header">
     <div class="header-title">Craigslist Safebot</div>
     <!-- Logout Button on the right -->
+
+    <!-- Contact Us (Rightmost) -->
+    <a href="{{ url_for('contact_us') }}" class="contact-us">
+        <i class="fas fa-envelope"></i> Contact Us
+    </a>
+    <!-- Help Page Link -->
+    <a href="{{ url_for('help_page') }}" class="help-icon" title="Help & FAQs">
+        <i class="fas fa-question-circle"></i> Help
+    </a>
+
     <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
         <button class="logout-button">
             <i class="fas fa-sign-out-alt icon"></i> Logout

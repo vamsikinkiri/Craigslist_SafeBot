@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #eaeaea;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .left a {
+            margin-left: 20px; /* Push Home button to the right */
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Header styling */
+        .header {
+            background-color: #134258;
+            color: white;
+            padding: 20px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 28px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .header-title {
+            flex: 1;
+            text-align: center;
+            font-size: 34px;
+            margin-left: 15%;
+        }
+
+        .menu-icon {
+            font-size: 24px;
+            cursor: pointer;
+            margin-right: auto;
+        }
+
+        .contact-us, .help-icon, .logout-button {
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-right: 20px;
+        }
+
+        .logout-button {
+            background: none;
+            border: none;
+        }
+
+        .contact-us:hover, .help-icon:hover, .logout-button:hover {
+            text-decoration: none;
+        }
+
+        /* Container */
+        .container {
+            background-color: white;
+            padding: 51px;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 653px;
+            margin: 142px auto 50px auto;
+            text-align: center;
+        }
+
+        h1 {
+            color: #134258;
+            margin-bottom: 60px;
+            font-size: 40px;
+        }
+
+        p {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .email {
+            font-weight: bold;
+            color: #007195;
+            text-decoration: none;
+        }
+
+        .email:hover {
+            text-decoration: underline;
+        }
+
+        .info-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-left: 5px solid #134258;
+            text-align: left;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .help-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007195;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .help-link:hover {
+            background-color: #134258;
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="left">
+        <a href="{{ url_for('index') }}" class="nav-item">
+            <i class="fas fa-home icon"></i> Home
+        </a>
+    </div>
+    <div class="header-title">Craigslist Safebot</div>
+    <!-- Logout Button on the right -->
+    <div class="right">
+        <!-- Contact Us (Rightmost) -->
+        <a href="{{ url_for('contact_us') }}" class="contact-us">
+            <i class="fas fa-envelope"></i> Contact Us
+        </a>
+        <!-- Help Page Link -->
+        <a href="{{ url_for('help_page') }}" class="help-icon" title="Help & FAQs">
+            <i class="fas fa-question-circle"></i> Help
+        </a>
+        <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
+            <button class="logout-button">
+                <i class="fas fa-sign-out-alt icon"></i> Logout
+            </button>
+        </form>
+    </div>
+</header>
+
+<div class="container">
+    <h1>Contact Us</h1>
+    <p>For any inquiries or support, reach out to us:</p>
+
+    <div class="email-container">
+        <p><strong>Email Support:</strong></p>
+        <ul style="list-style: none; padding: 0;">
+            <li>
+                <a href="mailto:vagelish@gmail.com?subject=Support Inquiry - Craigslist Safebot" class="email">
+                    vagelish@gmail.com
+                </a>
+            </li>
+            <li>
+                <a href="mailto:mfaloutsos@gmail.com?subject=Support Inquiry - Craigslist Safebot" class="email">
+                    mfaloutsos@gmail.com
+                </a>
+            </li>
+            <li>
+                <a href="mailto:saivamsireddy.kinkiri1@email.ucr.edu?subject=Support Inquiry - Craigslist Safebot" class="email">
+                    saivamsireddy.kinkiri1@email.ucr.edu
+                </a>
+            </li>
+            <li>
+                <a href="mailto:asuba006@ucr.edu?subject=Support Inquiry - Craigslist Safebot" class="email">
+                    asuba006@ucr.edu
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="info-box">
+        <p><strong>Expected Response Time:</strong> Please allow <strong>3-4 business days</strong> for a response.</p>
+        <p><strong>Working Hours:</strong> Monday - Friday, <strong>9:00 AM - 5:00 PM (PST)</strong>.</p>
+    </div>
+    <div style="text-align: center;">
+    <a href="{{ url_for('help_page') }}" class="help-link">Go to Help Page</a>
+    <br><br> <!-- Adds spacing -->
+    <a href="{{ referrer }}" class="btn btn-secondary"> Back to the Dashboard</a>
+    </div>
+</div>
+
+<script>
+    function toggleSidebar() {
+        alert("Sidebar toggle function not implemented yet!");
+    }
+</script>
+
+</body>
+</html>

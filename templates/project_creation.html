@@ -46,7 +46,7 @@
             flex: 1;
             text-align: center;
             font-size: 34px;
-            margin-left: 3%;
+            margin-left: 15%;
         }
 
         .header span {
@@ -65,6 +65,7 @@
             margin-bottom: 20px;
             overflow-x: auto;
             flex-wrap: wrap;
+            font-weight: bold;
         }
 
 
@@ -94,7 +95,7 @@
         /* Tab Content */
         .tab-content {
             display: none;
-            padding: 20px;
+            padding: 15px;
             border-radius: 0 0 15px 15px;
             background-color: #ffffff;
         }
@@ -150,11 +151,15 @@
             margin-right: 8px;
             font-size: 20px; /* Adjust icon size if necessary */
         }
+        .logout-button .icon, .contact-us, .help-icon  {
+            margin-right: 10px;
+            font-size: 20px;
+        }
 
         /* Container styling */
         .container {
-            width: 1000px; /* Increased width to match other page */
-            height: 700px;
+            width: 1080px; /* Increased width to match other page */
+            height: 750px;
             padding: 29px;
             border-radius: 25px;
             background-color: #ffffff;
@@ -162,6 +167,9 @@
             text-align: center;
             margin-top: 30px; /* Reduced margin for alignment */
             position: fixed;
+            overflow: auto; /* Enables scrolling when content overflows */
+        {#position: relative; /* Changed from fixed to relative */#}
+            max-height: 90vh; /* Ensures it fits within the viewport */
         }
 
         h1 {
@@ -202,7 +210,7 @@
             outline: none;
             transition: background-color 0.3s;
             height: 150px;
-            resize: vertical;
+            resize: None;
         }
 
 
@@ -219,6 +227,35 @@
             outline: none;
             transition: background-color 0.3s;
             resize: None;
+        }
+
+
+        .help-icon {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            gap: 5px;
+            text-decoration: none;
+        }
+        .contact-us {
+            margin-left: auto; /* Push Contact Us to the rightmost */
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            text-decoration: none;
+            gap: 5px;
         }
 
         .custom-select {
@@ -543,20 +580,50 @@
         .remove-keyword-btn:hover {
             background-color: #c82333;
         }
-        .button-container {
+
+        /* Subtle styling for Save Project button */
+        .button-container-next-create #next-btn {
+            margin-top: 20px;
+            padding: 12px 20px;
+            width: 90%;
+            border: none;
+            background-color: #007195;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-left: 5%;
+        }
+
+        /* Optional hover effect */
+        .button-container-next-create #next-btn:hover {
+            background-color: #134258;
+        }
+
+        {#button2[type="button"]{#}
+        {#    margin-top: 20px;#}
+        {#    padding: 12px 20px;#}
+        {#    width: 90%;#}
+        {#    border: none;#}
+        {#    background-color: #007195;#}
+        {#    color: #ffffff;#}
+        {#    font-weight: bold;#}
+        {#    font-size: 16px;#}
+        {#    border-radius: 15px;#}
+        {#    cursor: pointer;#}
+        {#    transition: background-color 0.3s;#}
+        {#    margin-left: 5%;#}
+
+        .button-container-back{
             text-align: center; /* Center the button horizontally */
             padding: 20px 0; /* Add padding for spacing */
             background-color: #ffffff; /* Same background as the container */
             width: 100%; /* Stretch across the entire width */
-            z-index: 10; /* Ensure it stays above other content */
-            position: absolute; /* Positioned inside the container */
-            bottom: 20px; /* Place it above the bottom of the container */
-            left: 50%; /* Center the button horizontally */
-            transform: translateX(-50%); /* Center alignment */
-
+            font-size: 16px;
 
         }
-
 
         /* Subtle styling for Save Project button */
         button[type="submit"] {
@@ -571,6 +638,7 @@
             border-radius: 15px;
             cursor: pointer;
             transition: background-color 0.3s;
+            margin-left: 5%;
         }
 
         button[type="submit"]:hover {
@@ -579,7 +647,7 @@
         .button-container .back-link {
             text-align: center;
             margin-top: 10px;
-            font-size: 14px;
+            font-size: 16px;
         }
         .button-container .back-link .back-link a {
             color: #007bff;
@@ -721,8 +789,9 @@
             text-align: left;
             margin-top: 10px;
             font-family: 'Sans Serif';
-            font-size: 16px;
+            font-size: 18px;
             color: #333;
+            margin-left: 2%;
         }
         #criteria-list .bullet {
             font-size: 20px;
@@ -791,6 +860,52 @@
             font-size: 16px;
             color: #3b3b3b;
         }
+        .time-zone-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .time-zone-container label {
+            flex: 1;
+            font-weight: bold;
+            color: #5A5A5A;
+        }
+
+        .time-zone-container select {
+            flex: 1.2;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: white;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .time-zone-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;  /* Adjust spacing between elements */
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .time-dropdown,
+        .timezone-dropdown {
+            flex: 1;  /* Ensures equal width for all dropdowns */
+        }
+
+        .custom-select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background-color: #e7eef0;
+            font-size: 16px;
+        }
+
+
 
     </style>
 
@@ -799,6 +914,16 @@
 <div class="header">
     <div class="header-title">Craigslist Safebot</div>
     <!-- Logout Button on the right -->
+
+    <!-- Contact Us (Rightmost) -->
+    <a href="{{ url_for('contact_us') }}" class="contact-us">
+        <i class="fas fa-envelope"></i> Contact Us
+    </a>
+    <!-- Help Page Link -->
+    <a href="{{ url_for('help_page') }}" class="help-icon" title="Help & FAQs">
+        <i class="fas fa-question-circle"></i> Help
+    </a>
+
     <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
         <button class="logout-button">
             <i class="fas fa-sign-out-alt icon"></i> Logout
@@ -854,13 +979,77 @@
                             <i class="fas fa-info-circle"></i>
                             <span class="tooltip" id="tooltip">
                                 <p>Please use this link to access the app password:</p>
-{#                                <a href="https://support.google.com/accounts/answer/185833?hl=en" target="_blank">Generate App Password</a>#}
                                 <p><a href="https://support.google.com/accounts/answer/185833?hl=en" target="_blank">Generate App Password</a></p>
                             </span>
                     </span>
                 </div>
             </fieldset>
         </div>
+
+        <div class="tab-content" id="bot-settings" >
+            <fieldset>
+                <legend>Safe Bot Settings</legend>
+                <textarea id="prompt_text" name="ai_prompt_text" rows="3" placeholder="Instructions to Safe Bot" title="Provide specific instructions or preferences for the SafeBot’s behavior and responses.">{{ project_data['DEFAULT_ADMIN_PROMPT'] }}</textarea>
+                <div class="input-wrapper">
+                    <input type="number" id="response_frequency" name="response_frequency" placeholder="Response Frequency in Minutes (Default: 10)" min="1" title="Specify roughly how often (in minutes) the bot should check for new emails and respond automatically." style="margin-top: 10px;">
+                </div>
+                <fieldset class="time-zone-container" title="Define the bot's active working hours and your timezone.">
+                    <!-- Active Start Time -->
+                    <div class="time-dropdown">
+                        <label for="active_start_time">Active Start Time:</label>
+                        <select id="active_start_time" name="active_start_time" class="custom-select">
+                            {% for hour in range(24) %}
+                                <option value="{{ hour }}" {% if project_data.get('active_start', 8)|int == hour %}selected{% endif %}>
+                                    {{ "%02d" % (hour % 12 if hour % 12 else 12) }} {{ "AM" if hour < 12 else "PM" }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Active End Time -->
+                    <div class="time-dropdown">
+                        <label for="active_end_time">Active End Time:</label>
+                        <select id="active_end_time" name="active_end_time" class="custom-select">
+                            {% for hour in range(24) %}
+                                <option value="{{ hour }}" {% if project_data.get('active_end', 20)|int == hour %}selected{% endif %}>
+                                    {{ "%02d" % (hour % 12 if hour % 12 else 12) }} {{ "AM" if hour < 12 else "PM" }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Timezone Selection -->
+                    <div class="timezone-dropdown">
+                        <label for="timezone">Select Your Timezone:</label>
+                        <select id="timezone" name="timezone" class="custom-select">
+                            {% for tz in ["UTC", "PST", "EST", "CST", "MST", "IST", "GMT", "CET", "EET", "JST", "AEST"] %}
+                                <option value="{{ tz }}" {% if project_data.get('timezone', 'UTC') == tz %}selected{% endif %}>{{ tz }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </fieldset>
+            </fieldset>
+        </div>
+
+
+
+
+        <div class="tab-content" id="thresholds" >
+            <fieldset>
+                <legend>Engagement Thresholds</legend>
+                <div class="field-wrapper">
+                    <input type="number" id="lower_threshold" name="lower_threshold"
+                           class="threshold-box" placeholder="Automated engagement threshold (Default: 0)"
+                           min="0" title="The minimum score required to initiate automated responses for this project.">
+                </div>
+                <div class="field-wrapper">
+                    <input type="number" id="upper_threshold" name="upper_threshold"
+                           class="threshold-box" placeholder="Manual Engagement Threshold (Default: 75)"
+                           min="1" title="The score above which the system switches to manual intervention mode and intimate the admins to send responses.">
+                </div>
+            </fieldset>
+        </div>
+
 
         <div class="tab-content" id="admin-settings" >
             <fieldset>
@@ -883,15 +1072,29 @@
         </div>
 
 
-        <div class="tab-content" id="bot-settings" >
+        <div class="tab-content" id="manual-intervention-settings" >
             <fieldset>
-                <legend>Safe Bot Settings</legend>
-                <textarea id="prompt_text" name="ai_prompt_text" rows="3" placeholder="Instructions to Safe Bot" title="Provide specific instructions or preferences for the SafeBot’s behavior and responses.">{{ project_data['DEFAULT_ADMIN_PROMPT'] }}</textarea>
-                <div class="input-wrapper">
-                    <input type="number" id="response_frequency" name="response_frequency" placeholder="Response Frequency in Minutes (Default: 10)" min="1" title="Specify roughly how often (in minutes) the bot should check for new emails and respond automatically." style="margin-top: 10px;">
+                <legend>Criteria for Manual Switch</legend>
+                <!-- Add Custom Condition -->
+                <div class="keyword-frequency-wrapper" style="margin-top: 10px;">
+                    <!-- Text Input for New Criteria -->
+                    <input type="text" id="new_criteria" placeholder="Add a new condition" class="keyword-box"
+                           title="Enter additional scenarios where you would like to switch the response state from automated to manual.">
+                    <!-- Add Button -->
+                    <button type="button" class="add-keyword-btn" onclick="addManualCriteria()">
+                        <i class="fas fa-plus"></i>
+                    </button>
                 </div>
+                <ul id="criteria-list">
+                    {% for criteria in project_data.default_switch_manual_criterias %}
+                        <li>{{ criteria }}</li>
+                    {% endfor %}
+                </ul>
+                <!-- Hidden Input to Store All Criteria -->
+                <input type="hidden" id="criteria-data" name="criteria_data" value="[]">
             </fieldset>
         </div>
+
 
         <div class="tab-content" id="interaction-settings" >
             <fieldset>
@@ -918,47 +1121,7 @@
             </fieldset>
         </div>
 
-        <div class="tab-content" id="manual-intervention-settings" >
-            <fieldset>
-                <legend>Criteria for Manual Switch</legend>
-                <!-- Add Custom Condition -->
-                <div class="keyword-frequency-wrapper" style="margin-top: 10px;">
-                    <!-- Text Input for New Criteria -->
-                    <input type="text" id="new_criteria" placeholder="Add a new condition" class="keyword-box"
-                           title="Enter additional scenarios where you would like to switch the response state from automated to manual.">
-                    <!-- Add Button -->
-                    <button type="button" class="add-keyword-btn" onclick="addManualCriteria()">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-                <div id="criteria-list">
-                    {% for criteria in project_data.default_switch_manual_criterias %}
-                        <div>
-                            <li>{{ criteria }}</li>
-                        </div>
-                    {% endfor %}
-                </div>
-                <!-- Hidden Input to Store All Criteria -->
-                <input type="hidden" id="criteria-data" name="criteria_data" value="[]">
-            </fieldset>
-        </div>
 
-
-        <div class="tab-content" id="thresholds" >
-            <fieldset>
-                <legend>Engagement Thresholds</legend>
-                <div class="field-wrapper">
-                    <input type="number" id="lower_threshold" name="lower_threshold"
-                           class="threshold-box" placeholder="Automated engagement threshold (Default: 0)"
-                           min="0" title="The minimum score required to initiate automated responses for this project.">
-                </div>
-                <div class="field-wrapper">
-                    <input type="number" id="upper_threshold" name="upper_threshold"
-                           class="threshold-box" placeholder="Manual Engagement Threshold (Default: 75)"
-                           min="1" title="The score above which the system switches to manual intervention mode and intimate the admins to send responses.">
-                </div>
-            </fieldset>
-        </div>
         <div class="tab-content" id="keyword-prioritization" >
             <fieldset>
                 <legend>Keyword Prioritization</legend>
@@ -985,16 +1148,18 @@
             <input type="hidden" name="keywords_data" id="keywords-input">
         </div>
 
-        <div class="button-container">
-            <a href="{{ url_for('all_projects_view') }}">
-                <button type="submit">Create Project</button>
-            </a>
+        <div class="button-container-next-create">
+            <button type="button" id="next-btn" onclick="goToNextTab()">Next</button>
+            <button type="submit" id="create-btn" style="display: none;">Create Project</button>
+        </div>
+        <div class="button-container-back">
             <div class="back-link">
                 <p>Already have a project? <a href="{{ url_for('all_projects_view') }}">Log in here</a></p>
             </div>
         </div>
     </form>
 </div>
+
 
 
 <script>
@@ -1042,11 +1207,10 @@
 
     // Password validation
     const passwordInput = document.getElementById('password');
-    const retypePasswordInput = document.getElementById('retype-password');
-    const passwordError = document.getElementById('password-error');
-    retypePasswordInput.addEventListener('input', () => {
-        passwordError.style.display = (passwordInput.value !== retypePasswordInput.value) ? 'block' : 'none';
-    });
+    {#const retypePasswordInput = document.getElementById('retype-password');#}
+    {#const passwordError = document.getElementById('password-error');#}
+    {#retypePasswordInput.addEventListener('input', () => {#}
+    {#    passwordError.style.display = (passwordInput.value !== retypePasswordInput.value) ? 'block' : 'none';});#}
 
     function addKeyword() {
         const keywordInput = document.getElementById("keyword-input");
@@ -1221,6 +1385,8 @@
     let criteriaData = [];
     const defaultCriteria = {{ default_switch_manual_criterias | tojson | default('[]') }};
     const customCriteria = JSON.parse(document.getElementById('criteria-data').value || '[]');
+    {#const defaultCriteria = JSON.parse('{{ default_switch_manual_criterias | tojson | safe }}');#}
+    {#const customCriteria = JSON.parse(document.getElementById('criteria-data').value || '[]');#}
 
     function addManualCriteria() {
         const criteriaInput = document.getElementById('new_criteria');
@@ -1242,9 +1408,12 @@
 
         // Add the new criterion visually
         const criterionDiv = document.createElement('div');
+    {#    criterionDiv.innerHTML = `#}
+    {#    <span class="bullet">•</span>#}
+    {#    <span>${newCriterion}</span>#}
+    {#`;#}
         criterionDiv.innerHTML = `
-        <span class="bullet">•</span>
-        <span>${newCriterion}</span>
+        <li>${newCriterion}</li>
     `;
         criteriaList.appendChild(criterionDiv);
 
@@ -1256,47 +1425,181 @@
         criteriaInput.value = '';
     }
 
-    function renderCriteriaList(defaultCriteria, customCriteria = []) {
-        const criteriaList = document.getElementById('criteria-list');
-        criteriaList.innerHTML = ''; // Clear existing list
 
-        // Combine default and custom criteria
-        const allCriteria = [...defaultCriteria, ...customCriteria];
-
-        allCriteria.forEach(criteria => {
-            const newDiv = document.createElement('div');
-            newDiv.innerHTML = `
-            <span class="bullet">•</span>
-            <span>${criteria}</span>
-        `;
-            criteriaList.appendChild(newDiv);
+    function goToNextTab() {
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        let activeTabIndex = -1;
+        // Find the index of the currently active tab
+        tabs.forEach((tab, index) => {
+            if (tab.classList.contains('active')) {
+                activeTabIndex = index;
+            }
         });
 
-        // Update hidden input to include all criteria
-        const hiddenInput = document.getElementById('criteria-data');
-        hiddenInput.value = JSON.stringify(customCriteria);
+        // Deactivate current tab and content
+        tabs[activeTabIndex].classList.remove('active');
+        tabContents[activeTabIndex].classList.remove('active');
+
+        // Activate next tab and content, or wrap around to the first tab if it's the last one
+        let nextTabIndex = (activeTabIndex + 1) % tabs.length;
+        tabs[nextTabIndex].classList.add('active');
+        tabContents[nextTabIndex].classList.add('active');
+
+        // Update button visibility based on the active tab index
+        updateButtonVisibility(nextTabIndex, tabs.length);
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        renderCriteriaList(defaultCriteria, customCriteria);
+    function updateButtonVisibility(tabIndex, totalTabs) {
+        const nextButton = document.getElementById('next-btn');
+        const createButton = document.getElementById('create-btn');
 
-        const tabs = document.querySelectorAll(".tab");
-        const tabContents = document.querySelectorAll(".tab-content");
+        if (tabIndex === totalTabs - 1) { // Last tab
+            nextButton.style.display = 'none';
+            createButton.style.display = 'block';
+        } else {
+            nextButton.style.display = 'block';
+            createButton.style.display = 'none';
+        }
+    }
+
+    async function updateProjectData() {
+        const projectType = document.getElementById('project_type').value;
+        try {
+            // Fetch project data for the selected project type
+            const response = await fetch(`/get_project_data_specific_project_type?project_type=${encodeURIComponent(projectType)}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch project data');
+            }
+
+            const data = await response.json();
+
+            // Update the UI with the fetched data
+            document.getElementById('prompt_text').value = data.DEFAULT_ADMIN_PROMPT || ''; // Update prompt text
+            const scenariosList = document.getElementById('criteria-list');
+            scenariosList.innerHTML = ''; // Clear existing scenarios
+            data.default_switch_manual_criterias.forEach((criteria) => {
+                const li = document.createElement('li');
+                li.textContent = criteria;
+                scenariosList.appendChild(li);
+            });
+        } catch (error) {
+            console.error('Error fetching project data:', error);
+            alert('Failed to update project data. Please try again.');
+        }
+    }
+
+    function updateTabContent(tabId, fields) {
+        const tabContent = document.getElementById(tabId);
+        if (!tabContent) {
+            console.error(`Tab content element with ID '${tabId}' not found.`);
+            return;
+        }
+
+        tabContent.innerHTML = ''; // Clear existing content
+
+        if (!fields || fields.length === 0) {
+            tabContent.innerHTML = '<p>No settings available for this project type in this section.</p>';
+            return;
+        }
+
+        fields.forEach(field => {
+            let fieldElement;
+            if (field.type === 'textarea') {
+                fieldElement = document.createElement('textarea');
+                fieldElement.placeholder = field.placeholder;
+            }
+            else if (field.type === 'select') {
+                fieldElement = document.createElement('select');
+                fieldElement.classList.add('custom-input', 'custom-select');
+                if (field.options && Array.isArray(field.options)) {
+                    field.options.forEach(optionText => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = optionText;
+                        optionElement.textContent = optionText;
+                        fieldElement.appendChild(optionElement);
+                    });
+                }
+            }
+
+            else {
+                fieldElement = document.createElement('input');
+                fieldElement.type = field.type || 'text'; // Default to text if type is not specified
+                fieldElement.placeholder = field.placeholder;
+            }
+
+            fieldElement.name = field.name;
+            fieldElement.id = field.id;
+            fieldElement.title = field.title;
+            fieldElement.required = field.required;
+
+            const fieldWrapper = document.createElement('div');
+            fieldWrapper.classList.add('input-wrapper');
+
+            const labelElement = document.createElement('label');
+            labelElement.textContent = field.label;
+            labelElement.setAttribute('for', field.id);
+
+            fieldWrapper.appendChild(labelElement);
+            fieldWrapper.appendChild(fieldElement);
+            tabContent.appendChild(fieldWrapper);
+        });
+    }
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+
+        renderCriteriaList(defaultCriteria, customCriteria);
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        // Initially hide all tab contents except the first one
+        tabContents.forEach((content, index) => {
+            if (index > 0) {
+                content.classList.remove('active');
+            }
+        });
 
         tabs.forEach(tab => {
-            tab.addEventListener("click", () => {
-                // Remove 'active' class from all tabs and tab contents
-                tabs.forEach(t => t.classList.remove("active"));
-                tabContents.forEach(content => content.classList.remove("active"));
+            tab.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
 
-                // Add 'active' class to the clicked tab and corresponding content
-                tab.classList.add("active");
-                const target = tab.getAttribute("data-tab");
-                document.getElementById(target).classList.add("active");
+                // Deactivate all tabs and tab contents
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+
+                // Activate the clicked tab and its content
+                this.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+
+                // Update button visibility based on the clicked tab index
+                const tabIndex = Array.from(tabs).indexOf(this);
+                updateButtonVisibility(tabIndex, tabs.length);
             });
-        });
-    });
 
+            // Enforce hourly selection for time inputs
+            const startTimeInput = document.getElementById("active_start_time");
+            const endTimeInput = document.getElementById("active_end_time");
+
+            function enforceHourlySelection(inputElement) {
+                inputElement.addEventListener("input", function () {
+                    let value = inputElement.value;
+                    if (value) {
+                        let [hours, minutes] = value.split(":");
+                        if (minutes !== "00") {
+                            inputElement.value = `${hours}:00`;
+                        }
+                    }
+                });
+            }
+
+            enforceHourlySelection(startTimeInput);
+            enforceHourlySelection(endTimeInput);
+
+                });
+
+        // Initial button visibility setup for the first tab
+        updateButtonVisibility(0, tabs.length);});
 
 
 </script>

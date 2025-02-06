@@ -34,7 +34,7 @@
             flex: 1;
             text-align: center;
             font-size: 34px;
-            margin-left: 0%;
+            margin-left: 15%;
         }
         .menu-icon {
             font-size: 24px;
@@ -213,7 +213,8 @@
             display: flex;
             align-items: center;
             text-decoration: none;
-            margin-right: 30px;
+            margin-right: 10px;
+            margin-left: -25px;
         }
         /* Add margins to position Home and Logout */
         .left a {
@@ -224,7 +225,7 @@
             text-decoration: none; /* Remove underline */
         }
 
-        .logout-button .icon, .settings-button .icon {
+        .logout-button .icon, .settings-button .icon ,.contact-us, .help-icon {
             margin-right: 10px;
             font-size: 20px;
         }
@@ -256,7 +257,6 @@
             display: flex;
             align-items: center;
             padding: 0;
-            margin-right: 20px;
             text-decoration: none;
         }
         .dropdown-content {
@@ -416,7 +416,6 @@
 
         }
 
-
         .score-range-container label {
             font-size: 20px;
             color: #134258;
@@ -459,6 +458,49 @@
             background-color: #134258;
         }
 
+        .score-min-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .score-min-container input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 100px;
+            text-align: center;
+        }
+        .help-icon {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            gap: 5px;
+            text-decoration: none;
+        }
+        .contact-us {
+            margin-left: auto; /* Push Contact Us to the rightmost */
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            text-decoration: none;
+            gap: 5px;
+        }
+
+
     </style>
 </head>
 <body>
@@ -478,11 +520,21 @@
                 <i class="fas fa-cog icon"></i> Manage Profile
             </a>
         </div>
+        <!-- Contact Us (Rightmost) -->
+        <a href="{{ url_for('contact_us') }}" class="contact-us">
+            <i class="fas fa-envelope"></i> Contact Us
+        </a>
+        <!-- Help Page Link -->
+        <a href="{{ url_for('help_page') }}" class="help-icon" title="Help & FAQs">
+            <i class="fas fa-question-circle"></i> Help
+        </a>
         <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
             <button class="logout-button">
                 <i class="fas fa-sign-out-alt icon"></i> Logout
             </button>
         </form>
+
+
     </div>
 </header>
 
@@ -505,28 +557,30 @@
 
 <h1>Suspect Profiles</h1>
 
-    <div class="filters-container">
-        <!-- Email Filter -->
-        <label for="email-filter">Email Search: </label>
-        <input type="text" id="email-filter" placeholder="Filter by Email"
-               value="{{ request.args.get('email_filter', '') }}">
+<div class="filters-container">
+    <!-- Email Filter -->
+    <label for="email-filter">Email Search: </label>
+    <input type="text" id="email-filter" placeholder="Filter by Email"
+           value="{{ request.args.get('email_filter', '') }}">
 
-        <!-- Score Range Filter -->
-        <div class="score-range-container">
-            <label for="score-range">Score:</label>
-            <input type="range" id="score-range" min="1" max="100" value="50" onchange="updateScoreDisplay(this.value)">
-            <span id="score-display">50</span>
-        </div>
+    <div class="score-min-container">
+        <label for="score-min">Min Score:</label>
+        <input type="number" id="score-min" name="score_min"
+               placeholder="Enter min score"
+               min="0" max="100"
+               value="{{ request.args.get('score_min', '0') }}"
+               title="Enter a minimum score to filter results. Only scores ≥ this value will be displayed. Default is 0.">
+    </div>
 
-        <label for="last-active-filter" >Filter by Last Active:</label>
-        <select id="last-active-filter" name="last_active_filter">
-            <option value="all" {% if last_active_filter == 'all' %}selected{% endif %}>All</option>
-            <option value="10" {% if last_active_filter == '10' %}selected{% endif %}>Last 10 Days</option>
-            <option value="30" {% if last_active_filter == '30' %}selected{% endif %}>Last 30 Days</option>
-            <option value="90" {% if last_active_filter == '90' %}selected{% endif %}>Last 90 Days</option>
-        </select>
+    <label for="last-active-filter" >Filter by Last Active:</label>
+    <select id="last-active-filter" name="last_active_filter">
+        <option value="all" {% if last_active_filter == 'all' %}selected{% endif %}>All</option>
+        <option value="10" {% if last_active_filter == '10' %}selected{% endif %}>Last 10 Days</option>
+        <option value="30" {% if last_active_filter == '30' %}selected{% endif %}>Last 30 Days</option>
+        <option value="90" {% if last_active_filter == '90' %}selected{% endif %}>Last 90 Days</option>
+    </select>
 
-        <button onclick="applyFilters()">Apply Filters</button>
+    <button onclick="applyFilters()">Apply Filters</button>
 </div>
 
 
@@ -616,12 +670,18 @@
 
     function applyFilters() {
         const emailFilter = document.getElementById('email-filter').value;
-        const scoreFilter = document.getElementById('score-range').value;
+        const minScore = document.getElementById('score-min').value || '0';
         const lastActiveFilter = document.getElementById('last-active-filter').value;
+
+        // Ensure valid number input
+        if (isNaN(minScore) || minScore < 0 || minScore > 100) {
+            alert("Please enter a valid score between 0 and 100.");
+            return;
+        }
 
         const url = new URL(window.location.href);
         url.searchParams.set('email_filter', emailFilter);
-        url.searchParams.set('score_filter', scoreFilter);
+        url.searchParams.set('score_min', minScore);
         url.searchParams.set('last_active_filter', lastActiveFilter);
 
         window.location.href = url.toString();

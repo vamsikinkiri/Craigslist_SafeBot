@@ -11,7 +11,7 @@
 
     <style>
         .email-score {
-            width: 10%;
+            width: 12%;
             font-size: 14px;
             font-weight: bold;
             color: #134258; /* Match theme */
@@ -52,7 +52,7 @@
             flex: 1;
             text-align: center;
             font-size: 34px;
-            margin-right: 10%;
+            margin-left: 5%;
             text-decoration: none;
         }
         .header-content {
@@ -186,8 +186,8 @@
             padding: 15px;
             margin-top: 10px;
             border-radius: 10px;
-            {#box-shadow: 0 2px 5px rgba(0,0,0,0.1);#}
-            {#transition: box-shadow 0.3s ease;#}
+        {#box-shadow: 0 2px 5px rgba(0,0,0,0.1);#}
+        {#transition: box-shadow 0.3s ease;#}
             display: flex;
             flex-direction: column;
         }
@@ -403,6 +403,7 @@
             align-items: center;
             text-decoration: none;
             margin-right: 30px;
+            margin-left: -25px;
         }
         /* Add margins to position Home and Logout */
         .left a {
@@ -418,7 +419,7 @@
             align-items: center;
             gap: 20px;
         }
-        .settings-button .icon, .logout-button .icon{
+        .settings-button .icon, .logout-button .icon ,.contact-us, .help-icon {
             margin-right: 10px;
             font-size: 20px;
         }
@@ -458,7 +459,7 @@
             display: flex;
             align-items: center;
             padding: 0;
-            margin-right: 20px;
+            margin-right: 5px;
             text-decoration: none;
         }
 
@@ -501,6 +502,34 @@
             padding: 15px;
             font-size: 20px;
             color: #ffffff;
+        }
+
+        .help-icon {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            gap: 5px;
+            text-decoration: none;
+        }
+        .contact-us {
+            margin-left: auto; /* Push Contact Us to the rightmost */
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            text-decoration: none;
+            gap: 5px;
         }
 
         .nav-item {
@@ -546,6 +575,7 @@
             position: fixed;
             top: 80px;
             left: -250px;
+            {#left:0;#}
             height: 100%;
             transition: left 0.3s ease;
             z-index: 999;
@@ -895,8 +925,8 @@
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            gap: 90px;
-            margin: -18px 7px;
+            gap: 26px;
+            margin: -35px 7px;
             font-size: 16px;
             color: #134258; /* Match theme color */
             margin-top: 10px;
@@ -913,6 +943,37 @@
             align-items: center;
             gap: 5px;
         }
+
+        .toggle-label {
+            font-size: 16px;
+            font-weight: bold;
+            color: #134258;
+            text-align: center;
+            width: 22%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        /* Manual Mode - Red Dot */
+        .manual-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background-color: #b31524; /* Red for Manual */
+            border-radius: 50%;
+        }
+
+        /* Automated Mode - Green Dot */
+        .automated-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background-color: #0c600c; /* Green for Automated */
+            border-radius: 50%;
+        }
+
 
         .sort-button:hover {
             color: #007195;
@@ -992,16 +1053,22 @@
         }
 
         .email-thread-row {
-             display: flex;
-             align-items: center;
-             justify-content: space-between;
-             gap: 10px;
-         }
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
 
 
         .reply-icon:hover {
             color: #083564;
             cursor: pointer;
+        }
+
+        .reply-container {
+            position: relative;
+            display: flex;
+            align-items: center;
         }
 
         .reply-icon::after {
@@ -1021,6 +1088,11 @@
             pointer-events: none; /* Prevent tooltip from blocking mouse events */
             transition: opacity 0.3s ease-in-out;
         }
+        .reply-container:hover .reply-tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
 
         .reply-icon:hover::after {
             opacity: 1; /* Show tooltip on hover */
@@ -1127,6 +1199,37 @@
         input:checked + .slider:before {
             transform: translateX(20px);
         }
+        .reply-icon-main {
+            position: relative;
+            text-decoration: none;
+            color: #164679; /* Primary color for the icon */
+            font-size: 20px; /* Adjust icon size */
+            margin-left: 10px;
+        }
+        .reply-icon-main:hover {
+            color: #083564; /* Darker color on hover */
+            cursor: pointer;
+        }
+        .reply-icon-main::after {
+            content: attr(title); /* Tooltip text from the title attribute */
+            position: absolute;
+            top: -35px; /* Position above the icon */
+            left: 50%; /* Center align the tooltip */
+            transform: translateX(-50%);
+            background-color: #333; /* Dark background for tooltip */
+            color: #fff; /* White text */
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap; /* Prevent wrapping */
+            z-index: 1000; /* Ensure tooltip is on top */
+            opacity: 0; /* Initially hidden */
+            pointer-events: none; /* Prevent tooltip from blocking mouse events */
+            transition: opacity 0.3s ease-in-out;
+        }
+        .reply-icon-main:hover::after {
+            opacity: 1; /* Show tooltip on hover */
+        }
 
 
     </style>
@@ -1152,6 +1255,19 @@
                 <i class="fas fa-cog icon"></i> Manage Profile
             </a>
         </div>
+
+        <!-- Contact Us (Rightmost) -->
+        <a href="{{ url_for('contact_us') }}" class="contact-us">
+            <i class="fas fa-envelope"></i> Contact Us
+        </a>
+
+
+        <!-- Help Page Link -->
+        <a href="{{ url_for('help_page') }}" class="help-icon" title="Help & FAQs">
+            <i class="fas fa-question-circle"></i> Help
+        </a>
+
+
         <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
             <button class="logout-button">
                 <i class="fas fa-sign-out-alt icon"></i> Logout
@@ -1168,7 +1284,7 @@
     </div>
 </div>
 
-<div class="sidebar" id="sidebar">
+<div class="sidebar active" id="sidebar">
     <div class="sidebar-item" onclick="window.location.href='{{ url_for('user_profiles') }}'">
         Suspect Profiles
     </div>
@@ -1214,7 +1330,6 @@
                 <button type="button" id="last-30-days-button" class="date-range-button" onclick="setDateRange(30); setButtonState(this, 'active-30');">Last 30 Days</button>
                 <button type="button" id="last-60-days-button" class="date-range-button" onclick="setDateRange(60); setButtonState(this, 'active-60');">Last 60 Days</button>
             </div>
-
             <select name="keyword">
                 <option value="">Relevant Keywords</option>
                 {% for keyword in keywords %}
@@ -1225,10 +1340,8 @@
                 <button type="submit" name="search">Search</button>
                 <button type="button" onclick="clearFilters()">Clear Filters</button>
             </div>
-
         </form>
     </div>
-
     <!-- Sorting Options -->
     <div class="sort-container">
         <div class="email-thread-label" title="Click below to view the Email Threads.">
@@ -1239,6 +1352,9 @@
             <i class="fas fa-arrow-up" id="score-asc" style="display: none;"></i>
             <i class="fas fa-arrow-down" id="score-desc"></i>
         </button>
+        <div class="toggle-label">
+            <span class="manual-dot"></span>Manual<span class="automated-dot"></span>Automated
+        </div>
         <button class="sort-button" onclick="sortBy('time')">
             Time
             <i class="fas fa-arrow-up" id="time-asc" style="display: none;"></i>
@@ -1266,12 +1382,20 @@
                             <div class="email-subject" title="The subject of an email thread">
                                 {{ details[0]['subject'].replace('Re: ', '') | truncate(30) }}
                             </div>
-                            <div class="email-score"  
-                            title="Indicates how suspicious this thread is based on the target profile (scored out of 100)" 
-                            style="width: 20%; text-align: right;">
-                            Score: {{ conversations_score.get(key, '0') }}
+                            <div class="email-score"
+                                 title="Indicates how suspicious this thread is based on the target profile (scored out of 100)"
+                                 style="width: 20%; text-align: right;">
+                                Score: {{ "%.2f"|format(conversations_score.get(key, 0.00)) }}
                             </div>
-
+                            <!-- Corrected: Display one Reply Icon per thread -->
+                            <div class="button-box">
+                                <a href="{{ url_for('email_thread_reply', thread_id=key) }}"
+                                   class="reply-icon-main"
+                                   title="Reply"
+                                   onclick="event.stopPropagation();">
+                                    <i class="fas fa-reply"></i>
+                                </a>
+                            </div>
                             <div class="email-toggle">
                                 <label class="toggle-switch" title="Click on this to toggle AI response state between automated and manual. (Automated: Green | Manual: Red)">
                                     <input type="checkbox" id="toggleChatGPT{{ loop.index }}"
@@ -1437,10 +1561,12 @@
         }
     }        );
 
-    // Toggle sidebar visibility
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('active');
-    }
+    {#// Toggle sidebar visibility#}
+    {#function toggleSidebar() {#}
+        {#document.getElementById('sidebar').classList.toggle('active');#}
+    {#    const sidebar = document.getElementById("sidebar");#}
+    {#    sidebar.classList.toggle("active"); }#}
+
 
     function toggleDropdown(id) {
         const dropdown = document.getElementById(id);
@@ -1473,6 +1599,39 @@
     document.addEventListener('DOMContentLoaded', function () {
         const filtersContainer = document.getElementById('filters-container');
         const toggleFiltersButton = document.getElementById('toggle-filters-btn');
+        const sidebar = document.getElementById("sidebar");
+        const menuIcon = document.querySelector(".menu-icon");
+
+        // Check if it's the user's first visit
+        if (!sessionStorage.getItem("sidebarOpenedBefore")) {
+            sidebar.classList.add("active");  // Keep sidebar open on first visit
+            sessionStorage.setItem("sidebarOpenedBefore", "true"); // Store flag
+        }
+
+
+        // Function to toggle the sidebar
+        function toggleSidebar() {
+            sidebar.classList.toggle("active");
+
+            // Store the current sidebar state (open/closed)
+            if (sidebar.classList.contains("active")) {
+                localStorage.setItem("sidebarState", "open");
+            } else {
+                localStorage.setItem("sidebarState", "closed");
+            }
+        }
+
+        // Load the previous sidebar state (if available)
+        const savedSidebarState = localStorage.getItem("sidebarState");
+        if (savedSidebarState === "open") {
+            sidebar.classList.add("active");
+        } else if (savedSidebarState === "closed") {
+            sidebar.classList.remove("active");
+        }
+
+        // Add event listener for toggling
+        menuIcon.addEventListener("click", toggleSidebar);
+
 
         // Ensure filters are hidden on page load
         filtersContainer.style.display = 'none';
@@ -1544,19 +1703,6 @@
     }
     let currentSort = { field: '', direction: 'desc' };
 
-    {#function sortBy(field) {#}
-    {#    const isAscending = currentSort.field === field && currentSort.direction === 'asc';#}
-    {#    currentSort = { field, direction: isAscending ? 'desc' : 'asc' };#}
-    {##}
-    {#    // Toggle visibility of icons#}
-    {#    document.getElementById(`${field}-asc`).style.display = isAscending ? 'none' : 'inline';#}
-    {#    document.getElementById(`${field}-desc`).style.display = isAscending ? 'inline' : 'none';#}
-    {##}
-    {#    // Call a backend API or re-sort the DOM elements as needed#}
-    {#    console.log(`Sorting by ${field} in ${currentSort.direction} order`);#}
-    {#    // Add your sorting logic here, e.g., AJAX request or client-side sorting#}
-
-
     function showFlashMessage(message, type) {
         // Create a new div element for the flash message
         const flashMessageDiv = document.createElement('div');
@@ -1600,19 +1746,6 @@
         // Append the sorted email chains back to the container
         emailChains.forEach(chain => container.appendChild(chain));
     }
-
-    {#document.querySelectorAll('.email-chain-content').forEach(chain => {#}
-    {#    const emails = chain.querySelectorAll('.email');#}
-    {#    if (emails.length > 0) {#}
-    {#        const latestEmail = emails[0]; // Assuming the first email is the latest#}
-    {#        const replyIcon = document.createElement('a');#}
-    {#        replyIcon.href = '#'; // Replace with your actual reply link#}
-    {#        replyIcon.className = 'reply-icon';#}
-    {#        replyIcon.innerHTML = `<i class="fas fa-reply"></i>`;#}
-    {#        latestEmail.appendChild(replyIcon);#}
-    {#    }{);#}
-    {##}
-
 
 
 

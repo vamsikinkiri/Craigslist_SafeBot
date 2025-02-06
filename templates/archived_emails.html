@@ -48,7 +48,7 @@
             flex: 1;
             text-align: center;
             font-size: 34px;
-            margin-right: 10%;
+            margin-left: 15%;
             text-decoration: none;
         }
         .header-content {
@@ -67,7 +67,7 @@
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             width: 90%;
             max-width: 950px;
-            margin-top: 10px; /* Reduced margin-top */
+            margin-top: -12px; /* Reduced margin-top */
             margin-bottom: 20px;
             display: flex;
             flex-direction: column;
@@ -388,7 +388,8 @@
             display: flex;
             align-items: center;
             text-decoration: none;
-            margin-right: 30px;
+            margin-right: 10px;
+            margin-left: -25px;
         }
         /* Add margins to position Home and Logout */
         .left a {
@@ -404,7 +405,7 @@
             align-items: center;
             gap: 20px;
         }
-        .settings-button .icon, .logout-button .icon{
+        .settings-button .icon, .logout-button .icon ,.contact-us, .help-icon{
             margin-right: 10px;
             font-size: 20px;
         }
@@ -446,6 +447,7 @@
             padding: 0;
             margin-right: 20px;
             text-decoration: none;
+
         }
 
         .dropdown-content {
@@ -919,6 +921,33 @@
             z-index: 10;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
         }
+        .help-icon {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            gap: 5px;
+            text-decoration: none;
+        }
+        .contact-us {
+            margin-left: auto; /* Push Contact Us to the rightmost */
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            text-decoration: none;
+            gap: 5px;
+        }
 
 
     </style>
@@ -944,6 +973,14 @@
                 <i class="fas fa-cog icon"></i> Manage Profile
             </a>
         </div>
+        <!-- Contact Us (Rightmost) -->
+        <a href="{{ url_for('contact_us') }}" class="contact-us">
+            <i class="fas fa-envelope"></i> Contact Us
+        </a>
+        <!-- Help Page Link -->
+        <a href="{{ url_for('help_page') }}" class="help-icon" title="Help & FAQs">
+            <i class="fas fa-question-circle"></i> Help
+        </a>
         <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
             <button class="logout-button">
                 <i class="fas fa-sign-out-alt icon"></i> Logout
@@ -1002,7 +1039,7 @@
                 {% endfor %}
             </select>
             <div class="button-container">
-                <button type="submit" name="search">Search</button>
+                <button type="submit" name="search">Customize Search Filters</button>
                 <button type="button" onclick="clearFilters()">Clear Filters</button>
                 <button type="button" onclick="handleLogout()">Logout</button>
             </div>
@@ -1018,7 +1055,7 @@
                             <div class="subject-box" style="width: 70%;">{{ email_list[0]['subject'] }}
                             </div>
                             <div class="email-score"
-                                title="Indicates how suspicious this thread is based on the target profile (scored out of 100)">
+                                 title="Indicates how suspicious this thread is based on the target profile (scored out of 100)">
                                 {% set conversations_score = conversations_score.get(thread_id, 'N/A') %}
                                 <strong>Score:</strong> {{ conversations_score }}
                             </div>
@@ -1193,7 +1230,7 @@
 
             // Ensure filters are hidden on page load
             filtersContainer.style.display = 'none';
-            toggleFiltersButton.textContent = 'Search'; // Set initial button text
+            toggleFiltersButton.textContent = 'Customize Search Filters'; // Set initial button text
 
             // Add event listener to toggle visibility
             toggleFiltersButton.addEventListener('click', function () {
@@ -1202,7 +1239,7 @@
                     this.textContent = 'Hide Filters'; // Change button text
                 } else {
                     filtersContainer.style.display = 'none'; // Hide filters
-                    this.textContent = 'Search'; // Change button text back
+                    this.textContent = 'Customize Search Filters'; // Change button text back
                 }
             });
         });

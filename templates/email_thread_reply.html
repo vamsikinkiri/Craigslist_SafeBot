@@ -232,7 +232,7 @@
             align-items: center;
             gap: 20px;
         }
-        .settings-button .icon, .logout-button .icon{
+        .settings-button .icon, .logout-button .icon ,.contact-us, .help-icon {
             margin-right: 10px;
             font-size: 20px;
         }
@@ -668,6 +668,33 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
+        .help-icon {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            gap: 5px;
+            text-decoration: none;
+        }
+        .contact-us {
+            margin-left: auto; /* Push Contact Us to the rightmost */
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            text-decoration: none;
+            gap: 5px;
+        }
 
 
 
@@ -847,28 +874,33 @@
     });
 
 
-    // Handle Form Submission
     document.querySelector('form').addEventListener('submit', function (event) {
         event.preventDefault(); // Prevent default form submission
 
         const formData = new FormData(this);
 
-        // Log the email content for debugging
-        console.log('Reply Content:', formData.get('reply_content'));
+        // Log files for debugging
+        const files = formData.getAll('attachments');
+        console.log('Selected Files:', files);
 
-        // Example POST request to your backend
         fetch('{{ url_for("send_reply", thread_id=thread_id) }}', {
             method: 'POST',
             body: formData,
         })
-            .then(response => {
-                if (response.ok) {
+            .then(response => response.json()) // Expecting JSON response
+            .then(data => {
+                if (data.success) {
                     alert('Reply sent successfully!');
+                    location.reload(); // Reload page to reflect changes
                 } else {
-                    alert('Failed to send reply.');
+                    alert('Failed to send reply: ' + data.error);
                 }
             })
-            .catch(error => console.error('Error sending reply:', error));
+            .catch(error => {
+                console.error('Error sending reply:', error);
+                alert('An error occurred while sending the reply.');
+            });
     });
+
 
 </script>
