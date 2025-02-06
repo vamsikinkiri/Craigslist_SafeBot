@@ -52,6 +52,7 @@ The login page is the entry point for administrators. It ensures that only autho
 ![Login_Page](/static/UI_Images/Login_Page.png)
 
 
+
 ### **Create Admin Account**
 
 #### **Description:**

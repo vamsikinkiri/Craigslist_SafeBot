@@ -81,7 +81,7 @@ class User(UserMixin):
 
 @app.route('/help')
 def help_page():
-    with open("help_page.md", "r", encoding="utf-8") as f:
+    with open("HELP_PAGE.md", "r", encoding="utf-8") as f:
         content = f.read()
     # Replace Markdown image paths with Flask static URLs
     content = content.replace("UI_Images/", url_for('static', filename='UI_Images/'))
