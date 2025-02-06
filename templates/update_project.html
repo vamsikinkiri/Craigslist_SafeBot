@@ -169,14 +169,6 @@
             overflow-y: auto; /* Add scroll if the list exceeds the max height */
         }
 
-        /* Grouping keyword, frequency, and add button into one line */
-        .field-group {
-            display: flex;
-            align-items: center;
-            gap: 20px; /* Space between items */
-            margin-bottom: 10px;
-        }
-
         /* Individual input fields for keywords and frequency */
         .field-item {
             flex: 1;
@@ -783,10 +775,11 @@
             display: block;
         }
         .field-group {
-            display: flex;
-            gap: 10px;
             margin-bottom: 10px;
             margin-right: 10px;
+            display: flex;
+            align-items: center;
+            gap: 20px; /* Space between items */
         }
 
         .list-container {
