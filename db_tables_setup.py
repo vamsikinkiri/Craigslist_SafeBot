@@ -35,7 +35,8 @@ def create_tables(cursor):
             INTERACTION_SCORE REAL,
             AI_RESPONSE_STATE TEXT NOT NULL DEFAULT 'Automated',
             SEEN_KEYWORDS_DATA JSONB,
-            LAST_UPDATED TIMESTAMP
+            LAST_UPDATED TIMESTAMP,
+            FOREIGN KEY (PROJECT_EMAIL) REFERENCES PROJECTS(EMAIL_ID) ON DELETE CASCADE
         );
         """,
         """
@@ -43,13 +44,14 @@ def create_tables(cursor):
             MESSAGE_ID TEXT PRIMARY KEY,
             THREAD_ID TEXT NOT NULL,
             PROJECT_NAME TEXT,
-            LAST_UPDATED TIMESTAMP DEFAULT NOW()
+            LAST_UPDATED TIMESTAMP DEFAULT NOW(),
+            FOREIGN KEY (THREAD_ID) REFERENCES EMAIL_THREADS(THREAD_ID) ON DELETE CASCADE
         );
         """,
         """
         CREATE TABLE IF NOT EXISTS PROJECT_TYPES (
-            PROJECT_TYPE TEXT PRIMARY KEY UNIQUE,
-            PROJECT_TYPE_ID TEXT UNIQUE,
+            PROJECT_TYPE_ID TEXT PRIMARY KEY UNIQUE,
+            PROJECT_TYPE TEXT UNIQUE,
             DEFAULT_ADMIN_PROMPT TEXT,
             BASE_PROMPT TEXT,
             SCENARIO_PROMPT TEXT,
@@ -69,7 +71,8 @@ def create_tables(cursor):
             ACTIVE_USER BOOLEAN,
             ACTION_REMARKS TEXT, 
             LAST_ACTIVE TIMESTAMP,
-            LAST_UPDATED TIMESTAMP
+            LAST_UPDATED TIMESTAMP,
+            FOREIGN KEY (PROJECT_ID) REFERENCES PROJECTS(PROJECT_ID) ON DELETE CASCADE
         );
         """,
         """
@@ -85,9 +88,10 @@ def create_tables(cursor):
         """
         CREATE TABLE IF NOT EXISTS PROJECTS (
             PROJECT_ID TEXT PRIMARY KEY,
-            EMAIL_ID VARCHAR(255) UNIQUE,
+            EMAIL_ID VARCHAR(255) UNIQUE NOT NULL,
             PROJECT_NAME VARCHAR(255) NOT NULL,
             APP_PASSWORD TEXT NOT NULL,
+            PROJECT_TYPE TEXT,
             AI_PROMPT_TEXT TEXT,
             RESPONSE_FREQUENCY INTEGER,
             KEYWORDS_DATA JSONB,
@@ -100,10 +104,11 @@ def create_tables(cursor):
             POSED_SEX VARCHAR(10), -- Sex of the young person being posed
             POSED_LOCATION VARCHAR(255), -- Geographical location being posed
             SWITCH_MANUAL_CRITERIAS JSONB,
-            PROJECT_TYPE TEXT,
-            LAST_UPDATED TIMESTAMP,
             ACTIVE_START INTEGER,
-            ACTIVE_END INTEGER
+            ACTIVE_END INTEGER,
+            LAST_UPDATED TIMESTAMP,
+            FOREIGN KEY (OWNER_ADMIN_ID) REFERENCES ADMIN_ACCOUNTS(ADMIN_ID) ON DELETE SET NULL,
+            FOREIGN KEY (PROJECT_TYPE) REFERENCES PROJECT_TYPES(PROJECT_TYPE) ON DELETE SET NULL
         );
 
 

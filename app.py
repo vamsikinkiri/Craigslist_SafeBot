@@ -81,21 +81,21 @@ class User(UserMixin):
 
 @app.route('/help')
 def help_page():
-    with open("HELP_PAGE.md", "r", encoding="utf-8") as f:
+    with open("Help_Documentation.md", "r", encoding="utf-8") as f:
         content = f.read()
     # Replace Markdown image paths with Flask static URLs
-    content = content.replace("UI_Images/", url_for('static', filename='UI_Images/'))
+    # content = content.replace("UI_Images/", url_for('static', filename='UI_Images/'))
     help_html = markdown.markdown(content, extensions=['extra'])
 
-    # Replace Markdown image syntax with Flask's url_for links
-    help_html = help_html.replace("static/UI_Images/Project_Settings.png",
-                                  "{{ url_for('static', filename='UI_Images/Project_Settings.png') }}")
-    help_html = help_html.replace("static/UI_Images/Suspect_Profiles.png",
-                                  "{{ url_for('static', filename='UI_Images/Suspect_Profiles.png') }}")
-    help_html = help_html.replace("static/UI_Images/Manage_Profile.png",
-                                  "{{ url_for('static', filename='UI_Images/Manage_Profile.png') }}")
-    help_html = help_html.replace("static/UI_Images/Contact_us.png",
-                                  "{{ url_for('static', filename='UI_Images/Contact_us.png') }}")
+    # # Replace Markdown image syntax with Flask's url_for links
+    # help_html = help_html.replace("static/UI_Images/Project_Settings.png",
+    #                               "{{ url_for('static', filename='UI_Images/Project_Settings.png') }}")
+    # help_html = help_html.replace("static/UI_Images/Suspect_Profiles.png",
+    #                               "{{ url_for('static', filename='UI_Images/Suspect_Profiles.png') }}")
+    # help_html = help_html.replace("static/UI_Images/Manage_Profile.png",
+    #                               "{{ url_for('static', filename='UI_Images/Manage_Profile.png') }}")
+    # help_html = help_html.replace("static/UI_Images/Contact_us.png",
+    #                               "{{ url_for('static', filename='UI_Images/Contact_us.png') }}")
     return render_template('help.html', help_content=help_html)
 
 @app.route('/contact-us')

@@ -138,9 +138,26 @@
             color: white;
             text-decoration: none;
             border-radius: 5px;
+            font-weight: bold;
+
         }
 
         .help-link:hover {
+            background-color: #134258;
+        }
+        /* Back Button */
+        .btn-secondary {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007195;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-secondary:hover {
             background-color: #134258;
         }
     </style>
@@ -209,7 +226,7 @@
     <div style="text-align: center;">
     <a href="{{ url_for('help_page') }}" class="help-link">Go to Help Page</a>
     <br><br> <!-- Adds spacing -->
-    <a href="{{ referrer }}" class="btn btn-secondary"> Back to the Dashboard</a>
+    <a href="{{ referrer }}" class="btn-secondary"> Back to the Dashboard</a>
     </div>
 </div>
 
