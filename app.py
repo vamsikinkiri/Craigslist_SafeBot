@@ -83,19 +83,7 @@ class User(UserMixin):
 def help_page():
     with open("Help_Documentation.md", "r", encoding="utf-8") as f:
         content = f.read()
-    # Replace Markdown image paths with Flask static URLs
-    # content = content.replace("UI_Images/", url_for('static', filename='UI_Images/'))
     help_html = markdown.markdown(content, extensions=['extra'])
-
-    # # Replace Markdown image syntax with Flask's url_for links
-    # help_html = help_html.replace("static/UI_Images/Project_Settings.png",
-    #                               "{{ url_for('static', filename='UI_Images/Project_Settings.png') }}")
-    # help_html = help_html.replace("static/UI_Images/Suspect_Profiles.png",
-    #                               "{{ url_for('static', filename='UI_Images/Suspect_Profiles.png') }}")
-    # help_html = help_html.replace("static/UI_Images/Manage_Profile.png",
-    #                               "{{ url_for('static', filename='UI_Images/Manage_Profile.png') }}")
-    # help_html = help_html.replace("static/UI_Images/Contact_us.png",
-    #                               "{{ url_for('static', filename='UI_Images/Contact_us.png') }}")
     return render_template('help.html', help_content=help_html)
 
 @app.route('/contact-us')
@@ -216,10 +204,6 @@ def project_creation():
         return redirect(url_for('all_projects_view'))
 
     ai_prompt_text = project_data['base_prompt']
-    # logging.info(f"Loaded ai_prompt_text for {default_project_type}: {ai_prompt_text}")
-    # Debugging information
-    # logging.info(f"Loaded project_data for type '{default_project_type}': {project_data}")
-    # default_switch_manual_criterias = project_data.get("default_switch_manual_criterias", [])
 
     if request.method == 'POST':
         email = request.form['email']
@@ -594,21 +578,6 @@ def update_project():
                 updated_criterias = existing_criterias  # Keep the existing criteria if parsing fails
             switch_manual_criterias = updated_criterias
 
-            # if new_switch_manual_criterias:
-            #     try:
-            #         # Parse JSON from the request form field
-            #         parsed_criterias = parse_json_field(new_switch_manual_criterias, []) if isinstance(new_switch_manual_criterias, str) else new_switch_manual_criterias
-            #         if not isinstance(parsed_criterias, list):
-            #             raise ValueError(f"Parsed criterias must be a list, got {type(parsed_criterias)} instead.")
-            #         updated_criterias = list(set(parsed_criterias))
-            #     except ValueError as e:
-            #         logging.error(f"Failed to parse switch_manual_criterias: {e}")
-            #         updated_criterias  = []
-            # else:
-            #     updated_criterias = existing_criterias
-            # # Final updated criterias
-            # switch_manual_criterias = updated_criterias
-
             # Handle AI prompt text
             ai_prompt_text = (
                 request.form.get('ai_prompt_text') if mode == 'edit'
@@ -619,9 +588,6 @@ def update_project():
             posed_age = int(request.form.get('posed_age', project_info.get('posed_age', 0)))
             posed_sex = request.form.get('posed_sex', project_info.get('posed_sex', ''))
             posed_location = request.form.get('posed_location', project_info.get('posed_location', ''))
-            # Get these values from the form
-            # active_start = 8
-            # active_end = 20
             user_start_hour = int(request.form.get('active_start_time'))
             user_end_hour = int(request.form.get('active_end_time'))
             user_timezone = request.form.get('timezone', 'UTC')
@@ -718,7 +684,6 @@ def update_account_profile():
                 'affiliation': affiliation,
                 'email_id': email_id})
 
-
 @app.route('/all_projects_view', methods=['GET', 'POST'])
 @login_required
 def all_projects_view():
@@ -732,11 +697,8 @@ def all_projects_view():
 
     if not success:
         return render_template('error.html', message=projects), 500  # Display error if fetch fails
-
     authorized_projects = [project for project in projects if session['admin_email'] in project[10]]
-
     logging.info(f"Authorized Projects created are: {authorized_projects}")
-
     search_query = request.args.get('search_query', "").strip().lower()
     if search_query:
         authorized_projects = [
@@ -941,8 +903,6 @@ def update_actions_remarks_for_user():
         logging.error(f"Error saving remarks for {email_id}: {str(e)}")
         return jsonify({'success': False, 'message': 'Error saving remarks'}), 500
 
-
-
 @app.route('/update_ai_response_state', methods=['POST'])
 @login_required
 def update_ai_response_state():
@@ -1020,7 +980,6 @@ def archive_email():
 
     # Mark the email thread as archived
     success, message = email_processor.switch_to_archive(thread_id)
-
     if success:
         # Use the current project data from a central store instead of a session
         project_data = project_scheduler.process_projects(session_email=session.get('email'),
@@ -1029,8 +988,6 @@ def archive_email():
         if 'conversations' in project_data and thread_id in project_data['conversations']:
             email_list = project_data['conversations'].pop(thread_id)
             project_data['archived_emails'][thread_id] = email_list
-
-
         return jsonify({"success": True, "message": "Thread archived successfully."})
     else:
         return jsonify({"success": False, "message": message}), 500
@@ -1041,13 +998,11 @@ def view_archived_emails():
     # Use process_projects to get the latest project data without relying on session variables
     project_data = project_scheduler.process_projects(session_email=session.get('email'),
                                                       session_password=session.get('app_password'))
-
     archived_emails = project_data.get('archived_emails', {})
     latest_timestamps = project_data.get('latest_timestamp', {})
     ai_response_state = project_data.get('ai_response_state', {})
     conversations_score = project_data.get('conversations_score', {})
     current_date = datetime.now().date()
-
     return render_template('archived_emails.html', archived_emails=archived_emails, conversations_score = conversations_score, latest_timestamp=latest_timestamps, ai_response_state = ai_response_state,current_date=current_date)
 @app.route('/unarchiving_emails', methods=['POST'])
 @login_required
@@ -1076,10 +1031,6 @@ def unarchiving_emails():
         # Automatically switch to automated state
         success, message = email_processor.switch_archive_to_automated(
             thread_id=thread_id,
-            # session_email=session.get('email'),
-            # app_password=session.get('app_password'),
-            # response_frequency=response_frequency,
-            # admin_prompt=prompt
         )
     except Exception as error:
         logging.error(f"Error switching email thread to Automated: {error}")
@@ -1122,10 +1073,6 @@ def send_reply(thread_id):
     app.logger.info(f"Reply content: {reply_content}")
     app.logger.info(f"Thread ID: {thread_id}")
 
-    # if not attachments or not any(file.filename for file in attachments):
-    #     flash("No file selected.", "error")
-    #     return redirect(url_for('email_thread_reply', thread_id=thread_id))
-
     upload_folder = 'uploads'
     if not os.path.exists(upload_folder):
         os.makedirs(upload_folder)
@@ -1167,8 +1114,6 @@ def send_reply(thread_id):
     email_with_quote = (
         f"{reply_content}\n\n"
         f"{quoted_conversation}"  # Include the quoted conversation history
-        # f"> On {email['date'].strftime('%a, %b %d, %Y at %I:%M %p')}, {email['from']} wrote:\n"
-        # f"{email['content'].strip()}"
     )
 
     email_handler.send_email(
@@ -1288,7 +1233,6 @@ def index():
     data['ai_response_state'] = ai_response_state
     current_date = datetime.now().date()
     return render_template('index.html', **data, current_date=current_date)
-
 
 if __name__ == '__main__':
     app.run(debug=True)
