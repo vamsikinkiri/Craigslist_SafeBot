@@ -23,7 +23,6 @@ from dotenv import load_dotenv
 import markdown
 load_dotenv()
 
-
 # Initialize the Flask application
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))  # Use environment variable or random key
@@ -1236,4 +1235,5 @@ def index():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    # app.run(host="0.0.0.0", port=5000, debug=True)
 

@@ -81,7 +81,7 @@ class EmailProcessor:
             logging.error(f"Error retrieving project information. Please check your inputs and try again.", "error")
             return
         
-        # logging.info(f"PROJECT: {project_details}")
+        logging.info(f"PROJECT: {project_details}")
         # project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, project_type, last_updated, active_start, active_end  = project_details
 
         self._update_email_thread(email, thread_id, session_email, project_details, score, seen_keywords)
@@ -127,11 +127,14 @@ class EmailProcessor:
         project_name = project_details[2]
         app_password = project_details[3]
         response_frequency = project_details[5]
-        lower_threshold = project_details[8]
-        upper_threshold = project_details[9]
+        lower_threshold = float(project_details[8])
+        upper_threshold = float(project_details[9])
         authorized_emails = project_details[10]
         project_type = project_details[16]
-
+        print(project_details)
+        # print(score)
+        print(score,lower_threshold)
+        print(type(score),type(lower_threshold))
         if ai_state == 'Manual':
             # Notify all the authorized admins
             for admin_email in authorized_emails:
@@ -185,6 +188,8 @@ class EmailProcessor:
         # Extract active hours to send an email
         start_hour = project_details[18]  # Default is 8 AM
         end_hour = project_details[19]   # Default is 8 PM
+        # start_hour = 8
+        # end_hour = 20
 
         if send_time.hour < start_hour:
             # If send_time is before 8 AM, move it to 8 AM on the same day

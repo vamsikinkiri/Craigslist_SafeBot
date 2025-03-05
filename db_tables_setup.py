@@ -14,12 +14,12 @@ logging.basicConfig(
 # Function to drop tables if they exist
 def drop_tables(cursor):
     drop_tables_queries = [
-        "DROP TABLE IF EXISTS SCORED_EMAILS;",
-        "DROP TABLE IF EXISTS EMAIL_THREADS;",
-        "DROP TABLE IF EXISTS USER_PROFILES;",
         # "DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
-        # "DROP TABLE IF EXISTS PROJECTS;"
-        "DROP TABLE IF EXISTS PROJECT_TYPES;"
+        # "DROP TABLE IF EXISTS PROJECT_TYPES;",
+        # "DROP TABLE IF EXISTS PROJECTS;",
+        # "DROP TABLE IF EXISTS EMAIL_THREADS;",
+        # "DROP TABLE IF EXISTS SCORED_EMAILS;",
+        # "DROP TABLE IF EXISTS USER_PROFILES;"
     ]
     for query in drop_tables_queries:
         cursor.execute(query)
@@ -28,30 +28,19 @@ def drop_tables(cursor):
 def create_tables(cursor):
     create_tables_queries = [
         """
-        CREATE TABLE IF NOT EXISTS EMAIL_THREADS (
-            THREAD_ID TEXT PRIMARY KEY,
-            PROJECT_EMAIL TEXT,
-            PROJECT_NAME TEXT,
-            INTERACTION_SCORE REAL,
-            AI_RESPONSE_STATE TEXT NOT NULL DEFAULT 'Automated',
-            SEEN_KEYWORDS_DATA JSONB,
-            LAST_UPDATED TIMESTAMP,
-            FOREIGN KEY (PROJECT_EMAIL) REFERENCES PROJECTS(EMAIL_ID) ON DELETE CASCADE
-        );
-        """,
-        """
-        CREATE TABLE IF NOT EXISTS SCORED_EMAILS (
-            MESSAGE_ID TEXT PRIMARY KEY,
-            THREAD_ID TEXT NOT NULL,
-            PROJECT_NAME TEXT,
-            LAST_UPDATED TIMESTAMP DEFAULT NOW(),
-            FOREIGN KEY (THREAD_ID) REFERENCES EMAIL_THREADS(THREAD_ID) ON DELETE CASCADE
-        );
-        """,
+       CREATE TABLE IF NOT EXISTS ADMIN_ACCOUNTS (
+           ADMIN_ID TEXT PRIMARY KEY,
+           PASSWORD TEXT,
+           EMAIL_ID TEXT UNIQUE,
+           CONTACT_NUMBER TEXT,
+           AFFILIATION VARCHAR,
+           LAST_UPDATED TIMESTAMP
+       );
+       """,
         """
         CREATE TABLE IF NOT EXISTS PROJECT_TYPES (
-            PROJECT_TYPE_ID TEXT PRIMARY KEY UNIQUE,
-            PROJECT_TYPE TEXT UNIQUE,
+            PROJECT_TYPE TEXT PRIMARY KEY UNIQUE,
+            PROJECT_TYPE_ID TEXT UNIQUE,
             DEFAULT_ADMIN_PROMPT TEXT,
             BASE_PROMPT TEXT,
             SCENARIO_PROMPT TEXT,
@@ -61,41 +50,16 @@ def create_tables(cursor):
         );
         """,
         """
-        CREATE TABLE IF NOT EXISTS USER_PROFILES (
-            USER_ID TEXT PRIMARY KEY,
-            PRIMARY_EMAIL TEXT,
-            PROJECT_ID TEXT,
-            THREAD_IDS TEXT,
-            EMAIL_LIST TEXT,
-            CONTACT_NUMBERS JSON,
-            ACTIVE_USER BOOLEAN,
-            ACTION_REMARKS TEXT, 
-            LAST_ACTIVE TIMESTAMP,
-            LAST_UPDATED TIMESTAMP,
-            FOREIGN KEY (PROJECT_ID) REFERENCES PROJECTS(PROJECT_ID) ON DELETE CASCADE
-        );
-        """,
-        """
-        CREATE TABLE IF NOT EXISTS ADMIN_ACCOUNTS (
-            ADMIN_ID TEXT PRIMARY KEY,
-            PASSWORD TEXT,
-            EMAIL_ID TEXT UNIQUE,
-            CONTACT_NUMBER TEXT,
-            AFFILIATION VARCHAR,
-            LAST_UPDATED TIMESTAMP
-        );
-        """,
-        """
         CREATE TABLE IF NOT EXISTS PROJECTS (
             PROJECT_ID TEXT PRIMARY KEY,
-            EMAIL_ID VARCHAR(255) UNIQUE NOT NULL,
+            EMAIL_ID VARCHAR(255) UNIQUE ,
             PROJECT_NAME VARCHAR(255) NOT NULL,
             APP_PASSWORD TEXT NOT NULL,
-            PROJECT_TYPE TEXT,
             AI_PROMPT_TEXT TEXT,
             RESPONSE_FREQUENCY INTEGER,
             KEYWORDS_DATA JSONB,
-            OWNER_ADMIN_ID TEXT,
+            --OWNER_ADMIN_ID TEXT,
+            OWNER_ADMIN_ID TEXT REFERENCES ADMIN_ACCOUNTS(ADMIN_ID) ON DELETE SET NULL,
             LOWER_THRESHOLD INTEGER,
             UPPER_THRESHOLD INTEGER,
             AUTHORIZED_EMAILS JSONB,
@@ -104,14 +68,49 @@ def create_tables(cursor):
             POSED_SEX VARCHAR(10), -- Sex of the young person being posed
             POSED_LOCATION VARCHAR(255), -- Geographical location being posed
             SWITCH_MANUAL_CRITERIAS JSONB,
-            ACTIVE_START INTEGER,
-            ACTIVE_END INTEGER,
+            --PROJECT_TYPE TEXT,
+            PROJECT_TYPE TEXT REFERENCES PROJECT_TYPES(PROJECT_TYPE) ON DELETE SET NULL,
             LAST_UPDATED TIMESTAMP,
-            FOREIGN KEY (OWNER_ADMIN_ID) REFERENCES ADMIN_ACCOUNTS(ADMIN_ID) ON DELETE SET NULL,
-            FOREIGN KEY (PROJECT_TYPE) REFERENCES PROJECT_TYPES(PROJECT_TYPE) ON DELETE SET NULL
+            ACTIVE_START INTEGER,
+            ACTIVE_END INTEGER
+
         );
-
-
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS EMAIL_THREADS (
+            THREAD_ID TEXT PRIMARY KEY,
+            --PROJECT_EMAIL TEXT,
+            PROJECT_EMAIL TEXT REFERENCES PROJECTS(EMAIL_ID) ON DELETE CASCADE,
+            PROJECT_NAME TEXT,
+            INTERACTION_SCORE REAL, 
+            AI_RESPONSE_STATE TEXT NOT NULL DEFAULT 'Automated',
+            SEEN_KEYWORDS_DATA JSONB,
+            LAST_UPDATED TIMESTAMP
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS SCORED_EMAILS (
+            MESSAGE_ID TEXT PRIMARY KEY,
+            -- THREAD_ID TEXT NOT NULL,
+            THREAD_ID TEXT NOT NULL REFERENCES EMAIL_THREADS(THREAD_ID) ON DELETE CASCADE,
+            PROJECT_NAME TEXT,
+            LAST_UPDATED TIMESTAMP DEFAULT NOW()
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS USER_PROFILES (
+            USER_ID TEXT PRIMARY KEY,
+            PRIMARY_EMAIL TEXT,
+           -- PROJECT_ID TEXT,
+            PROJECT_ID TEXT REFERENCES PROJECTS(PROJECT_ID) ON DELETE CASCADE,
+            THREAD_IDS TEXT,
+            EMAIL_LIST TEXT,
+            CONTACT_NUMBERS JSON,
+            ACTIVE_USER BOOLEAN,
+            ACTION_REMARKS TEXT, 
+            LAST_ACTIVE TIMESTAMP,
+            LAST_UPDATED TIMESTAMP
+        );
         """
     ]
     for query in create_tables_queries:
