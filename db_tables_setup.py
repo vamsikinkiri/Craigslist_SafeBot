@@ -14,12 +14,12 @@ logging.basicConfig(
 # Function to drop tables if they exist
 def drop_tables(cursor):
     drop_tables_queries = [
-        # "DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
-        # "DROP TABLE IF EXISTS PROJECT_TYPES;",
-        # "DROP TABLE IF EXISTS PROJECTS;",
-        # "DROP TABLE IF EXISTS EMAIL_THREADS;",
-        # "DROP TABLE IF EXISTS SCORED_EMAILS;",
-        # "DROP TABLE IF EXISTS USER_PROFILES;"
+        "DROP TABLE IF EXISTS ADMIN_ACCOUNTS CASCADE;",
+        "DROP TABLE IF EXISTS PROJECT_TYPES CASCADE;",
+        "DROP TABLE IF EXISTS PROJECTS CASCADE;",
+        "DROP TABLE IF EXISTS EMAIL_THREADS CASCADE;",
+        "DROP TABLE IF EXISTS SCORED_EMAILS CASCADE;",
+        "DROP TABLE IF EXISTS USER_PROFILES CASCADE;"
     ]
     for query in drop_tables_queries:
         cursor.execute(query)
