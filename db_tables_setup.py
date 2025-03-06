@@ -14,9 +14,9 @@ logging.basicConfig(
 # Function to drop tables if they exist
 def drop_tables(cursor):
     drop_tables_queries = [
+        "DROP TABLE IF EXISTS PROJECTS;",
         "DROP TABLE IF EXISTS ADMIN_ACCOUNTS;",
         "DROP TABLE IF EXISTS PROJECT_TYPES;",
-        "DROP TABLE IF EXISTS PROJECTS;",
         "DROP TABLE IF EXISTS EMAIL_THREADS;",
         "DROP TABLE IF EXISTS SCORED_EMAILS;",
         "DROP TABLE IF EXISTS USER_PROFILES;"
@@ -91,8 +91,7 @@ def create_tables(cursor):
             AI_PROMPT_TEXT TEXT,
             RESPONSE_FREQUENCY INTEGER,
             KEYWORDS_DATA JSONB,
-            --OWNER_ADMIN_ID TEXT,
-            OWNER_ADMIN_ID TEXT REFERENCES ADMIN_ACCOUNTS(ADMIN_ID) ON DELETE SET NULL,
+            OWNER_ADMIN_ID TEXT,
             LOWER_THRESHOLD INTEGER,
             UPPER_THRESHOLD INTEGER,
             AUTHORIZED_EMAILS JSONB,

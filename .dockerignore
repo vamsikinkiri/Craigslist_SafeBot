@@ -23,4 +23,3 @@ Thumbs.db
 
 # Ignore local configuration files
 *.env
-credentials.yaml
