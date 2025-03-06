@@ -186,11 +186,11 @@ class EmailProcessor:
         send_time = email_received_time + timedelta(minutes=randomized_response_frequency)
 
         # Extract active hours to send an email
-        start_hour = project_details[18]  # Default is 8 AM
-        end_hour = project_details[19]   # Default is 8 PM
-        # start_hour = 8
-        # end_hour = 20
-
+        #start_hour = project_details[18]  # Default is 8 AM
+        #end_hour = project_details[19]   # Default is 8 PM
+        start_hour = 8  # Default is 8 AM
+        end_hour = 20   # Default is 8 PM
+        # logging.info(f"**** {project_details} {send_time.hour}, {end_hour}, {type(send_time.hour)}, {type(end_hour)}")
         if send_time.hour < start_hour:
             # If send_time is before 8 AM, move it to 8 AM on the same day
             send_time = send_time.replace(hour=start_hour, minute=0, second=0, microsecond=0)
@@ -257,7 +257,7 @@ class EmailProcessor:
             logging.error(replaced_prompts)
         
         response_text = response_generator.generate_response(scenario_prompt)
-        # logging.info(f"!!!!!!!!!!!!!!!!!!!!!!!!!! LLM Evaluation Result !!!!!!!!!!!!!!!!!!!!!!!!!!:\n{response_text}")
+        logging.info(f"!!!!!!!!!!!!!!!!!!!!!!!!!! LLM Evaluation Result !!!!!!!!!!!!!!!!!!!!!!!!!!:\n{response_text}")
 
         if "Manual Switch needs to happen" in response_text:
             # Print matching scenarios
@@ -278,7 +278,7 @@ class EmailProcessor:
 
         # No scenarios matched, generating a response
         response_text = response_generator.generate_response(response_prompt)
-        # logging.info(f"!!!!!!!!!!!!!!!!!!!!!!!!!! LLM Evaluation Result !!!!!!!!!!!!!!!!!!!!!!!!!!:\n{response_text}")
+        logging.info(f"!!!!!!!!!!!!!!!!!!!!!!!!!! LLM Evaluation Result !!!!!!!!!!!!!!!!!!!!!!!!!!:\n{response_text}")
 
         # Step 3: Send the response as a reply and include the original email as quoted content
         quoted_conversation = ""

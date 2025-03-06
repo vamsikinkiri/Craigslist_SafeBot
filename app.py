@@ -1233,7 +1233,8 @@ def index():
     current_date = datetime.now().date()
     return render_template('index.html', **data, current_date=current_date)
 
-if __name__ == '__main__':
-    app.run(debug=True)
-    # app.run(host="0.0.0.0", port=5000, debug=True)
+# Commenting for production. Uncomment this for development testing.
+# if __name__ == '__main__':
+#     # app.run(debug=True)
+#     app.run(host='0.0.0.0', port=8080)
 

@@ -1,0 +1,26 @@
+# Ignore Git repository
+.git/
+.gitignore
+
+# Ignore Python cache and compiled files
+__pycache__/
+*.py[cod]
+
+# Ignore Virtual Environments
+env/
+venv/
+.venv/
+
+# Ignore Log files
+*.log
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE specific files
+.idea/
+
+# Ignore local configuration files
+*.env
+credentials.yaml
