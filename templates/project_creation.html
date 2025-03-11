@@ -923,13 +923,13 @@
     <form action="{{ url_for('project_creation') }}" method="POST">
 
         <div class="tabs" role="tablist">
-            <div class="tab active" data-tab="project-info" aria-expanded="true">Project Information</div>
+            <div class="tab active" data-tab="project-info" aria-expanded="true">Project Information*</div>
             <div class="tab" data-tab="bot-settings" aria-expanded="false">Bot Interaction</div>
             <div class="tab" data-tab="thresholds" aria-expanded="false">Engagement Thresholds</div>
-            <div class="tab" data-tab="admin-settings" aria-expanded="false">Admin Authorization</div>
+            <div class="tab" data-tab="admin-settings" aria-expanded="false">Admin Authorization*</div>
             <div class="tab" data-tab="manual-intervention-settings" aria-expanded="false">Manual Intervention Criteria</div>
             <div class="tab" data-tab="interaction-settings" aria-expanded="false">Interaction Settings</div>
-            <div class="tab" data-tab="keyword-prioritization" aria-expanded="false">Keyword Prioritization</div>
+            <div class="tab" data-tab="keyword-prioritization" aria-expanded="false">Keyword Prioritization*</div>
         </div>
 
         <div class="tab-content active" id="project-info">
@@ -997,15 +997,13 @@
                         <label for="timezone">Select Your Timezone:</label>
                         <select id="timezone" name="timezone" class="custom-select">
                             {% for tz in ["UTC", "PST", "EST", "CST", "MST", "IST", "GMT", "CET", "EET", "JST", "AEST"] %}
-                                <option value="{{ tz }}" {% if project_data.get('timezone', 'UTC') == tz %}selected{% endif %}>{{ tz }}</option>
+                                <option value="{{ tz }}" {% if project_data.get('timezone', 'PST') == tz %}selected{% endif %}>{{ tz }}</option>
                             {% endfor %}
                         </select>
                     </div>
                 </fieldset>
             </fieldset>
         </div>
-
-
 
 
         <div class="tab-content" id="thresholds" >

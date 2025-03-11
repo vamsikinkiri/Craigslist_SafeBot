@@ -186,10 +186,10 @@ class EmailProcessor:
         send_time = email_received_time + timedelta(minutes=randomized_response_frequency)
 
         # Extract active hours to send an email
-        #start_hour = project_details[18]  # Default is 8 AM
-        #end_hour = project_details[19]   # Default is 8 PM
-        start_hour = 8  # Default is 8 AM
-        end_hour = 20   # Default is 8 PM
+        start_hour = project_details[18]  # Default is 8 AM
+        end_hour = project_details[19]   # Default is 8 PM
+        # start_hour = 8  # Default is 8 AM
+        # end_hour = 20   # Default is 8 PM
         # logging.info(f"**** {project_details} {send_time.hour}, {end_hour}, {type(send_time.hour)}, {type(end_hour)}")
         if send_time.hour < start_hour:
             # If send_time is before 8 AM, move it to 8 AM on the same day

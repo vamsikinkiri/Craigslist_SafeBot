@@ -65,7 +65,7 @@
 
         /* Sidebar styling */
         .sidebar {
-            width: 250px;
+            width: 184px;
             background-color: #ffffff;
             color: #333;
             padding: 20px;
@@ -931,6 +931,17 @@
             cursor: pointer;
         }
 
+        #interaction-settings {
+            max-height: 400px; /* Ensures a limited height */
+            overflow-y: auto; /* Enables scrolling */
+            padding-right: 10px; /* Prevents content from overlapping scrollbar */
+            border-radius: 0 0 15px 15px; /* Consistent rounded edges */
+            background-color: #ffffff; /* Matches other sections */
+            box-sizing: border-box; /* Ensures padding doesn’t overflow */
+            position: relative;
+        }
+
+
 
 
     </style>
@@ -1081,7 +1092,7 @@
                             <label for="timezone">Select Your Timezone:</label>
                             <select id="timezone" name="timezone" class="custom-select">
                                 {% for tz in ["UTC", "PST", "EST", "CST", "MST", "IST", "GMT", "CET", "EET", "JST", "AEST"] %}
-                                    <option value="{{ tz }}" {% if project_details.get('timezone', 'UTC') == tz %}selected{% endif %}>{{ tz }}</option>
+                                    <option value="{{ tz }}" {% if project_details.get('timezone', 'PST') == tz %}selected{% endif %}>{{ tz }}</option>
                                 {% endfor %}
                             </select>
                         </div>

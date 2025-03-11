@@ -61,19 +61,27 @@
             margin: 0 auto;
         }
         .container {
+            margin-left: 250px;
             background-color: #ffffff;
-            padding: 40px 50px;
             border-radius: 10px;
+            padding: 3vw; /* Adjusts padding based on screen size */
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            width: 90%;
-            max-width: 950px;
-            margin-top: -12px; /* Reduced margin-top */
-            margin-bottom: 20px;
+            overflow-y: auto;
+            transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
+            min-width: 280px; /* Ensures it's not too small */
+            width: calc(100% - 200px);
+            max-width: 1200px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap:2vw;
             box-sizing: border-box;
             position: relative;
+            bottom: 20px;
+        }
+        .sidebar.collapsed ~ .container {
+            margin-left: 0 !important;
+            width: 90% !important;
+
         }
         .chatgpt-button {
             background-color: #989898;
@@ -445,11 +453,8 @@
             display: flex;
             align-items: center;
             padding: 0;
-            margin-right: 20px;
             text-decoration: none;
-
         }
-
         .dropdown-content {
             display: none;
             position: absolute;
@@ -524,26 +529,44 @@
             margin-right: 8px;
         }
 
+
         /* Sidebar styling with a complementary color */
         .sidebar {
-            width: 250px;
-            background-color: #ffffff; /* Light complementary color */
+            width: 183px;
+            transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
+            background-color: #ffffff;
             color: #333;
-            padding: 20px;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            padding: 15px;
             position: fixed;
-            top: 80px;
-            left: -250px;
-            height: 100%;
-            transition: left 0.3s ease;
-            z-index: 999;
-            border-right: 1px solid #e0e0e0;
-        }
-        .sidebar.active {
+            top: 70px;
             left: 0;
+            height: 100%;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            border-right: 1px solid #e0e0e0;
+            {#transition: width 0.3s ease-in-out;#}
+            overflow: hidden;
         }
+
+        .sidebar {
+            transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+        .sidebar.collapsed {
+            width: 0 !important;
+            min-width: 0 !important;
+            padding: 0 !important;
+            visibility: hidden;
+            transition: all 0.3s ease-in-out;
+        }
+        .sidebar.collapsed .sidebar-item {
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-item span {
+            display: none; /* Hide text but keep icons */
+        }
+
+
         .sidebar h2 {
-            font-size: 30px;
+            font-size: 1.2rem;
             margin-bottom: 20px;
             font-weight: 700;
             color: #0a597e; /* Matching color to the header for branding consistency */
@@ -561,7 +584,8 @@
             margin-bottom: 10px;
             font-size: 20px;
             font-weight: 600;
-            margin-top: 10px;
+            margin-top: 40px;
+            text-decoration: none;
         }
         .sidebar-item:hover {
             background-color: #eaeaea;
@@ -596,7 +620,7 @@
             width: 100%;
             text-align: center;
             margin-bottom: 10px; /* Space above the container */
-            font-size: 30px;
+            font-size: 26px;
             font-weight: bold;
             color: #134258; /* Match theme color */
         }
@@ -949,6 +973,60 @@
             gap: 5px;
         }
 
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 72px;
+            }
+            .container {
+                margin-left: 72px;
+                width: calc(100% - 72px);
+            }
+        }
+        @media (max-width: 768px) {  /* For tablets and mobile */
+            .sidebar {
+                width: 0;
+                visibility: hidden;
+            }
+
+            .sidebar.collapsed {
+                display: none;
+            }
+
+            .container {
+                margin-left: 0 !important;
+                {#width: 100% !important;#}
+                width: calc(100% - 72px);
+            }
+
+            .container {
+                padding: 5vw;
+            }
+
+            .email-chain-header {
+                flex-wrap: wrap;
+                justify-content: space-between;
+                gap: 10px;
+            }
+
+            .email-score {
+                font-size: 14px;
+            }
+        }
+
+
+        /* Ensure no overlapping of UI elements */
+        @media (max-width: 480px) {
+            .container {
+                padding: 3vw;
+            }
+            .email-thread-label {
+                font-size: 14px;
+            }
+            .customize-filters-button {
+                width: 100%;
+                font-size: 14px;
+            }
+        }
 
     </style>
 </head>
@@ -1224,9 +1302,55 @@
                     break;
             }
         }
+
         document.addEventListener('DOMContentLoaded', function () {
             const filtersContainer = document.getElementById('filters-container');
             const toggleFiltersButton = document.getElementById('toggle-filters-btn');
+            const sidebar = document.getElementById("sidebar");
+            const container = document.querySelector(".container");
+            const menuIcon = document.querySelector(".menu-icon");
+
+            // Function to update container size based on sidebar state
+            function updateContainer() {
+                if (sidebar.classList.contains("collapsed")) {
+                    container.style.marginLeft = "72px";
+                    container.style.width = "calc(100% - 72px)";
+                } else {
+                    container.style.marginLeft = "250px";
+                    container.style.width = "calc(100% - 250px)";
+                }
+            }
+
+            function toggleSidebar() {
+
+                if (sidebar.classList.contains("collapsed")) {
+                    sidebar.style.width = "184px";
+                    sidebar.style.visibility = "visible";
+                    container.style.marginLeft = "250px";
+                    container.style.width = "calc(100% - 185px)";
+                } else {
+                    sidebar.style.width = "0";
+                    sidebar.style.visibility = "hidden";
+                    container.style.marginLeft = "0";
+                    container.style.width = "90%";
+                }
+                sidebar.classList.toggle("collapsed");
+
+                localStorage.setItem("sidebarState", sidebar.classList.contains("collapsed") ? "collapsed" : "expanded");
+
+                updateContainer();
+            }
+
+            // Restore sidebar state from local storage
+            if (localStorage.getItem("sidebarState") === "collapsed") {
+                sidebar.classList.add("collapsed");
+            }
+
+            // Ensure correct container size on page load
+            updateContainer();
+
+            // Attach event listener to menu icon
+            menuIcon.addEventListener("click", toggleSidebar);
 
             // Ensure filters are hidden on page load
             filtersContainer.style.display = 'none';
@@ -1243,6 +1367,7 @@
                 }
             });
         });
+
         function toggleMode() {
             const button = document.getElementById('modeButton');
 
@@ -1366,10 +1491,6 @@
             document.getElementById(`${field}-desc`).style.display =
                 document.getElementById(`${field}-desc`).style.display === 'none' ? 'inline' : 'none';
         }
-
-
-
-
 
 
     </script>

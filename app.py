@@ -231,10 +231,10 @@ def project_creation():
         # active_end_time = 20
         active_start_time_raw = int(request.form.get('active_start_time', 8))
         active_end_time_raw = int(request.form.get('active_end_time', 20))
-        user_timezone = request.form.get('timezone', 'UTC')
+        user_timezone = request.form.get('timezone', 'PST')
 
         # Map user-selected timezone to pytz
-        user_tz_name = TIMEZONE_MAPPING.get(user_timezone, "UTC")  # Default to UTC if invalid
+        user_tz_name = TIMEZONE_MAPPING.get(user_timezone, "PST")  # Default to UTC if invalid
         user_tz = pytz.timezone(user_tz_name)
         pst_tz = pytz.timezone("America/Los_Angeles")
         try:
@@ -589,7 +589,7 @@ def update_project():
             posed_location = request.form.get('posed_location', project_info.get('posed_location', ''))
             user_start_hour = int(request.form.get('active_start_time'))
             user_end_hour = int(request.form.get('active_end_time'))
-            user_timezone = request.form.get('timezone', 'UTC')
+            user_timezone = request.form.get('timezone', 'PST')
 
             if user_timezone in TIMEZONE_MAPPING:
                 user_timezone = TIMEZONE_MAPPING[user_timezone]
@@ -1195,7 +1195,6 @@ def index():
                 email['to_name'] = parsed_email_to.get('name', 'Unknown')  # Default to 'Unknown' if name is None
                 email['to_email'] = parsed_email_to['email']
 
-
     if filters.get('email'):
         logging.info(f"Filtering conversations for email: {filters['email']}")
         original_count = len(conversations)
@@ -1234,7 +1233,7 @@ def index():
     return render_template('index.html', **data, current_date=current_date)
 
 # Commenting for production. Uncomment this for development testing.
-# if __name__ == '__main__':
-#     # app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)
 #     app.run(host='0.0.0.0', port=8080)
 

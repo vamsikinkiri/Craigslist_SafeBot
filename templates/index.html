@@ -10,8 +10,7 @@
 
     <style>
         .email-score {
-            width: 12%;
-            font-size: 14px;
+            font-size: 18px;
             font-weight: bold;
             color: #134258; /* Match theme */
             padding: 5px 10px;
@@ -64,20 +63,42 @@
             margin: 0 auto;
         }
         .container {
+            margin-left: 250px;
             background-color: #ffffff;
-            padding: 35px 35px;
             border-radius: 10px;
+            padding: 3vw; /* Adjusts padding based on screen size */
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            width: 90%;
-            max-width: 1300px;
-            margin-top: 10px; /* Reduced margin-top */
-            margin-bottom: 20px;
+            overflow-y: auto;
+            transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
+        {#width: 90%; /* Makes it fluid up to 90% of the screen */#}
+            min-width: 280px; /* Ensures it's not too small */
+            max-width: 1200px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap:2vw;
             box-sizing: border-box;
             position: relative;
+            bottom: 20px;
         }
+        .sidebar.collapsed ~ .container {
+            margin-left: 0 !important;
+            width: 90% !important;
+
+        }
+
+        .container .sort-button {
+            background: none;
+            border: none;
+            font-size: 1.2rem;  /* Use rem for responsiveness */
+            font-weight: bold;
+            color: #134258;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center; /* Ensure text stays centered */
+            padding: 0.5vw 1vw; /* Use relative padding */
+        }
+
         .chatgpt-button {
             background-color: #989898;
             color: white;
@@ -156,6 +177,7 @@
 
         input[type="text"], button {
             padding: 15px;
+            font-size: 17px;
             border: 2px solid #023e8a;
             border-radius: 5px;
             box-sizing: border-box;
@@ -171,7 +193,7 @@
             background-color: #007195;
             color: white;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 18px;
             border: none;
             border-radius: 5px;
             padding: 10px 20px;
@@ -182,11 +204,9 @@
         }
         .email-chain {
             background: #fff;
-            padding: 15px;
+            padding: 2px;
             margin-top: 10px;
             border-radius: 10px;
-        {#box-shadow: 0 2px 5px rgba(0,0,0,0.1);#}
-        {#transition: box-shadow 0.3s ease;#}
             display: flex;
             flex-direction: column;
         }
@@ -228,7 +248,7 @@
             justify-content: space-between;
             align-items: center;
             font-weight: bold;
-            gap: 15px;
+            gap: 10px;
             flex-grow: 1;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -240,43 +260,30 @@
             box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
 
         }
-        .button-box button {
-            background: none;
-            border: none;
-            color: #0096c7;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 0;
-        }
-        /* Adjustments to the button container */
+
         .button-box {
             display: flex;
             align-items: center;
             gap: 10px;
         }
-
         .button-container {
             display: flex;
             justify-content: space-between; /* Spread buttons evenly across the container */
             width: 100%; /* Make sure the buttons use the whole row */
             padding: 5px 0;
         }
-
         .button-container button {
             flex: 1; /* Each button takes equal space */
             margin-right: 10px; /* Optional: spacing between buttons */
         }
-
         .button-container button:last-child {
             margin-right: 0; /* Remove the right margin from the last button */
         }
-
         .email-chain-content {
             display: none; /* Hidden by default */
             margin-top: 10px;
             transition: none; /* Ensure no transition on display change */
         }
-
         /* Content styling */
         .content {
             margin-left: 220px; /* Ensure it starts after the sidebar */
@@ -285,7 +292,6 @@
             background-color: #f4f4f4;
             box-sizing: border-box;
         }
-
         .email {
             padding: 10px;
             border-radius: 5px;
@@ -299,7 +305,6 @@
             justify-content: flex-end; /* Aligns buttons to the right */
             gap: 10px; /* Spacing between buttons */
         }
-
         .email:nth-child(odd) {
             background-color: #e0e0e0;
         }
@@ -332,8 +337,10 @@
         }
         .toggle-switch {
             position: relative;
+            display: inline-block;
             width: 40px;
             height: 20px;
+            vertical-align: middle;
         }
         .toggle-switch input {
             opacity: 0;
@@ -359,9 +366,9 @@
             width: 16px;
             left: 2px;
             bottom: 2px;
-            background-color: white; /* Circle color */
+            background-color: white;
             transition: .4s;
-            border-radius: 50%; /* Circle shape */
+            border-radius: 50%;
         }
 
         /* Toggle switch - checked state (automated - green) */
@@ -381,8 +388,6 @@
         .toggle-switch input + .slider:before {
             transform: translateX(0); /* Reset the position for the unchecked state */
         }
-
-
         .toggle-button {
             background: none;
             border: none;
@@ -401,12 +406,12 @@
             display: flex;
             align-items: center;
             text-decoration: none;
-            margin-right: 30px;
+            margin-right: 15px;
             margin-left: -25px;
         }
         /* Add margins to position Home and Logout */
         .left a {
-            margin-left: 20px; /* Push Home button to the right */
+            margin-left: 10px; /* Push Home button to the right */
             color: white;
             font-size: 20px;
             font-weight: bold;
@@ -532,7 +537,6 @@
         }
 
         .nav-item {
-            margin-right: 20px;
             position: relative;
         }
 
@@ -563,28 +567,51 @@
         .user-profiles-button .icon {
             margin-right: 8px;
         }
+        .content {
+            margin-left: 220px;
+            padding: 100px 20px 20px; /* Added top padding to prevent overlap */
+            flex-grow: 1;
+            background-color: #f4f4f4;
+            box-sizing: border-box;
+        }
+
 
         /* Sidebar styling with a complementary color */
         .sidebar {
-            width: 250px;
-            background-color: #ffffff; /* Light complementary color */
+            width: 183px;
+            background-color: #ffffff;
             color: #333;
-            padding: 20px;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            padding: 15px;
             position: fixed;
-            top: 80px;
-            left: -250px;
-            {#left:0;#}
-            height: 100%;
-            transition: left 0.3s ease;
-            z-index: 999;
-            border-right: 1px solid #e0e0e0;
-        }
-        .sidebar.active {
+            top: 70px;
             left: 0;
+            height: 100%;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            border-right: 1px solid #e0e0e0;
+            transition: width 0.3s ease-in-out;
+            overflow: hidden;
         }
+
+        .sidebar {
+            transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+        .sidebar.collapsed {
+            width: 0 !important;
+            min-width: 0 !important;
+            padding: 0 !important;
+            visibility: hidden;
+            transition: all 0.3s ease-in-out;
+        }
+        .sidebar.collapsed .sidebar-item {
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-item span {
+            display: none; /* Hide text but keep icons */
+        }
+
+
         .sidebar h2 {
-            font-size: 30px;
+            font-size: 1.2rem;
             margin-bottom: 20px;
             font-weight: 700;
             color: #0a597e; /* Matching color to the header for branding consistency */
@@ -602,7 +629,7 @@
             margin-bottom: 10px;
             font-size: 20px;
             font-weight: 600;
-            margin-top: 10px;
+            margin-top: 40px;
             text-decoration: none;
         }
         .sidebar-item:hover {
@@ -637,8 +664,7 @@
         .project-title {
             width: 100%;
             text-align: center;
-            margin-bottom: 10px; /* Space above the container */
-            font-size: 28px;
+            font-size: 22px;
             font-weight: bold;
             color: #134258; /* Match theme color */
         }
@@ -728,6 +754,7 @@
             border: 2px solid #023e8a;
             border-radius: 5px;
             width: 100%;
+            font-size: 18px;
             box-sizing: border-box;
         }
 
@@ -770,6 +797,11 @@
             display: flex;                      /* Flex to align icon and text */
             align-items: center;
             gap: 5px;                           /* Space between icon and text */
+            justify-content: center;
+        }
+        .reply-icon, .archive-button {
+            height: 24px;
+            width: auto;
         }
 
         .archive-button:hover {
@@ -793,14 +825,57 @@
             opacity: 0;
             transition: opacity 0.3s;
         }
-
-        .tooltip-text {
-            visibility: visible;
-            opacity: 1;
+        /* Tablet Adjustments */
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 72px;
+            }
+            .container {
+                margin-left: 72px;
+                width: calc(100% - 72px);
+            }
         }
-        .email-timestamp {
-            font-size: small;
-            color: #666;
+        @media (max-width: 768px) {  /* For tablets and mobile */
+            .sidebar {
+                width: 0;
+                visibility: hidden;
+            }
+
+            .sidebar.collapsed {
+                display: none;
+            }
+
+            .container {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+        }
+
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 5vw; /* Adjust padding based on screen */
+                width: 95%; /* Use almost full width */
+            }
+
+            .email-chain-header {
+                flex-wrap: wrap; /* Ensure email chains do not get cut off */
+                justify-content: space-between;
+                gap: 10px;
+            }
+
+            .email-score {
+                font-size: 14px; /* Reduce font size */
+            }
+        }
+
+
+        /* Mobile Screens */
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 100vw;
+            }
         }
         .flash-message {
             position: fixed;
@@ -874,10 +949,11 @@
         }
 
         .email-count {
-            font-size: 12px;
-            color: #999;
+            font-size: 16px;
+            color: #666;
             margin-left: 10px;
         }
+
         /* Toolbar styles */
         .toolbar {
             background-color: #f5f5f5; /* Light background color */
@@ -931,20 +1007,13 @@
             margin-top: 10px;
         }
 
-        .sort-button {
-            background: none;
-            border: none;
-            font-size: 16px;
-            font-weight: bold;
-            color: #134258;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+        .sort-button i {
+            color: inherit;
+            margin-left: 5px;
         }
 
         .toggle-label {
-            font-size: 16px;
+            font-size: 1.2rem;
             font-weight: bold;
             color: #134258;
             text-align: center;
@@ -979,18 +1048,6 @@
             background-color: #e4e9eb;
         }
 
-        .sort-button i {
-            font-size: 12px;
-            color: inherit;
-            margin-left: 5px;
-        }
-
-
-        .email-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
         .email-participants {
             font-weight: bold;
             color: #333;
@@ -998,27 +1055,9 @@
             margin-right: 15px;
         }
 
-
-
-
-        .email-timestamp {
-            color: #666;
-            font-size: 12px;
-            white-space: nowrap;
-        }
-        .email-thread {
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            background-color: #f9f9f9;
-        }
-
         .email-thread-label {
             display: flex;
-            font-size: 16px;
+            font-size: 1.2rem;
             font-weight: bold;
             color: #134258;
             margin: 10px 0;
@@ -1101,7 +1140,7 @@
             display: flex; /* Flexbox ensures both elements are on the same line */
             align-items: center; /* Vertically align text */
             gap: 5px; /* Add spacing between email ID and count */
-            font-size: 14px;
+            font-size: 1.2rem;
             font-weight: bold;
             color: #333;
             overflow: hidden; /* Truncate if it overflows */
@@ -1113,32 +1152,30 @@
             font-weight: bold; /* Bold for emphasis */
             color: #333; /* Dark text color */
             text-overflow: ellipsis; /* Add ellipsis ("...") to truncated text */
-            max-width: 180px;
+            max-width: 220px;
             white-space: nowrap; /* Prevent text wrapping to a new line */
             overflow: hidden;
         }
-        .email-count {
-            font-size: 12px; /* Slightly smaller font for count */
-            color: #666; /* Subtle gray color */
-        }
-
 
         .email-subject {
             flex-grow: 2;
             width: 35%; /* Limit subject to 35% width */
-            font-size: 14px;
+            font-size: 1.2rem;
             color: #555;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            margin-right: 15px;
+        {#margin-right: 15px;#}
             font-weight: bold;
         }
 
 
         .email-toggle {
-            width: 10%; /* Fixed width for toggle */
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px; /* Adjust width */
+            height: 24px; /* Ensure same height as other icons */
         }
 
         .email-archive {
@@ -1148,56 +1185,12 @@
 
         .email-date {
             width: 10%; /* Fixed width for date */
-            font-size: 12px;
+            font-size: 16px;
             color: #666;
             text-align: right;
         }
 
-        /* Toggle Switch Styling */
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 20px;
-        }
 
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: 0.4s;
-            border-radius: 20px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 2px;
-            bottom: 2px;
-            background-color: white;
-            transition: 0.4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: #28a745;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(20px);
-        }
         .reply-icon-main {
             position: relative;
             text-decoration: none;
@@ -1229,7 +1222,6 @@
         .reply-icon-main:hover::after {
             opacity: 1; /* Show tooltip on hover */
         }
-
 
     </style>
 </head>
@@ -1388,24 +1380,50 @@
                             </div>
                             <!-- Corrected: Display one Reply Icon per thread -->
                             <div class="button-box">
+                                <!-- Reply Icon -->
                                 <a href="{{ url_for('email_thread_reply', thread_id=key) }}"
                                    class="reply-icon-main"
                                    title="Reply"
                                    onclick="event.stopPropagation();">
                                     <i class="fas fa-reply"></i>
                                 </a>
+
+                                <!-- Toggle Switch -->
+                                <div class="email-toggle">
+                                    <label class="toggle-switch" title="Toggle AI response state (Automated: Green | Manual: Red)">
+                                        <input type="checkbox" id="toggleChatGPT{{ loop.index }}"
+                                               onclick="toggleChatGPT(this)"
+                                                {% if ai_response_state.get(key) == 'Automated' %} checked {% endif %}>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+
+                                <!-- Archive Button -->
+                                <button class="archive-button" title="Archive this email conversation." onclick="archiveEmail(this)">
+                                    <i class="fas fa-archive"></i>
+                                </button>
                             </div>
-                            <div class="email-toggle">
-                                <label class="toggle-switch" title="Click on this to toggle AI response state between automated and manual. (Automated: Green | Manual: Red)">
-                                    <input type="checkbox" id="toggleChatGPT{{ loop.index }}"
-                                           onclick="toggleChatGPT(this)"
-                                            {% if ai_response_state.get(key) == 'Automated' %} checked {% endif %}>
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-                            <button class="archive-button" title="Click on this to archive this email conversation."  onclick="archiveEmail(this)">
-                                <i class="fas fa-archive"></i>
-                            </button>
+
+
+                            {#                            <div class="button-box">#}
+                            {#                                <a href="{{ url_for('email_thread_reply', thread_id=key) }}"#}
+                            {#                                   class="reply-icon-main"#}
+                            {#                                   title="Reply"#}
+                            {#                                   onclick="event.stopPropagation();">#}
+                            {#                                    <i class="fas fa-reply"></i>#}
+                            {#                                </a>#}
+                            {#                            </div>#}
+                            {#                            <div class="email-toggle">#}
+                            {#                                <label class="toggle-switch" title="Click on this to toggle AI response state between automated and manual. (Automated: Green | Manual: Red)">#}
+                            {#                                    <input type="checkbox" id="toggleChatGPT{{ loop.index }}"#}
+                            {#                                           onclick="toggleChatGPT(this)"#}
+                            {#                                            {% if ai_response_state.get(key) == 'Automated' %} checked {% endif %}>#}
+                            {#                                    <span class="slider"></span>#}
+                            {#                                </label>#}
+                            {#                            </div>#}
+                            {#                            <button class="archive-button" title="Click on this to archive this email conversation."  onclick="archiveEmail(this)">#}
+                            {#                                <i class="fas fa-archive"></i>#}
+                            {#                            </button>#}
                             <!-- Conditional timestamp display -->
                             <div class="email-date" style="width: 11%; text-align: center; ">
                                 {% set email_date = latest_timestamp.get(key) %}
@@ -1560,13 +1578,6 @@
         }
     }        );
 
-    {#// Toggle sidebar visibility#}
-    {#function toggleSidebar() {#}
-        {#document.getElementById('sidebar').classList.toggle('active');#}
-    {#    const sidebar = document.getElementById("sidebar");#}
-    {#    sidebar.classList.toggle("active"); }#}
-
-
     function toggleDropdown(id) {
         const dropdown = document.getElementById(id);
         const isVisible = dropdown.style.display === 'block';
@@ -1599,38 +1610,51 @@
         const filtersContainer = document.getElementById('filters-container');
         const toggleFiltersButton = document.getElementById('toggle-filters-btn');
         const sidebar = document.getElementById("sidebar");
+        const container = document.querySelector(".container");
         const menuIcon = document.querySelector(".menu-icon");
 
-        // Check if it's the user's first visit
-        if (!sessionStorage.getItem("sidebarOpenedBefore")) {
-            sidebar.classList.add("active");  // Keep sidebar open on first visit
-            sessionStorage.setItem("sidebarOpenedBefore", "true"); // Store flag
-        }
-
-
-        // Function to toggle the sidebar
-        function toggleSidebar() {
-            sidebar.classList.toggle("active");
-
-            // Store the current sidebar state (open/closed)
-            if (sidebar.classList.contains("active")) {
-                localStorage.setItem("sidebarState", "open");
+        // Function to update container size based on sidebar state
+        function updateContainer() {
+            if (sidebar.classList.contains("collapsed")) {
+                container.style.marginLeft = "72px";
+                container.style.width = "calc(100% - 72px)";
             } else {
-                localStorage.setItem("sidebarState", "closed");
+                container.style.marginLeft = "250px";
+                container.style.width = "calc(100% - 250px)";
             }
         }
 
-        // Load the previous sidebar state (if available)
-        const savedSidebarState = localStorage.getItem("sidebarState");
-        if (savedSidebarState === "open") {
-            sidebar.classList.add("active");
-        } else if (savedSidebarState === "closed") {
-            sidebar.classList.remove("active");
+        function toggleSidebar() {
+
+            if (sidebar.classList.contains("collapsed")) {
+                sidebar.style.width = "184px";
+                sidebar.style.visibility = "visible";
+                container.style.marginLeft = "250px";
+                container.style.width = "calc(100% - 185px)";
+            } else {
+                sidebar.style.width = "0";
+                sidebar.style.visibility = "hidden";
+                container.style.marginLeft = "0";
+                container.style.width = "90%";
+            }
+            sidebar.classList.toggle("collapsed");
+
+            localStorage.setItem("sidebarState", sidebar.classList.contains("collapsed") ? "collapsed" : "expanded");
+
+            updateContainer();
         }
 
-        // Add event listener for toggling
-        menuIcon.addEventListener("click", toggleSidebar);
 
+        // Restore sidebar state from local storage
+        if (localStorage.getItem("sidebarState") === "collapsed") {
+            sidebar.classList.add("collapsed");
+        }
+
+        // Ensure correct container size on page load
+        updateContainer();
+
+        // Attach event listener to menu icon
+        menuIcon.addEventListener("click", toggleSidebar);
 
         // Ensure filters are hidden on page load
         filtersContainer.style.display = 'none';
@@ -1647,6 +1671,8 @@
             }
         });
     });
+
+
     function toggleMode() {
         const button = document.getElementById('modeButton');
 
@@ -1745,9 +1771,6 @@
         // Append the sorted email chains back to the container
         emailChains.forEach(chain => container.appendChild(chain));
     }
-
-
-
 
 </script>
 

@@ -13,6 +13,7 @@
             font-family: 'Arial', sans-serif;
             margin: 0;
             background-color: #eaeaea;
+            overflow-x: hidden;
         }
         header {
             background-color: #134258;
@@ -41,45 +42,102 @@
             cursor: pointer;
             margin-right: auto;
         }
-        .container {
-            display: flex;
-            margin-top: 80px;
-        }
-        /* Sidebar styling with a complementary color */
+
         .sidebar {
-            width: 250px;
-            background-color: #ffffff; /* Light complementary color */
+            width: 183px;
+            background-color: #ffffff;
             color: #333;
-            padding: 20px;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            padding: 15px;
             position: fixed;
-            top: 80px;
-            left: -250px;
-            height: 100%;
-            transition: left 0.3s ease;
-            z-index: 999;
-            border-right: 1px solid #e0e0e0;
-        }
-        .sidebar.active {
+            top: 70px;
             left: 0;
+            height: 100%;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            border-right: 1px solid #e0e0e0;
+            transition: width 0.3s ease-in-out;
+            overflow: hidden;
         }
-        .table-container {
-            overflow-x: auto; /* Enable horizontal scrolling for small screens */
-            margin-top: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+
+
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+            width: 0 !important;
+            min-width: 0 !important;
+            padding: 0 !important;
+            visibility: hidden;
+            transition: width 0.3s ease-in-out;
+        }
+        .sidebar.collapsed .sidebar-item {
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-item span {
+            display: none; /* Hide text but keep icons */
+        }
+
+        /* Ensure table is centered properly when sidebar is collapsed */
+        .sidebar.collapsed ~ .table-container {
+            margin-left: 10% !important;
+            width: 90% !important;
+        }
+
+
+        /* Sidebar handling for different screen sizes */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 72px;
+            }
+            .table-container {
+                margin-left: 72px;
+                width: calc(100% - 72px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 0;
+                visibility: hidden;
+            }
+            .table-container {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+        }
+
+        /* Adjust layout for tablets and smaller screens */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 0;
+                visibility: hidden;
+            }
+
+            .table-container, .user-profiles-container {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+        }
+
+        /* Mobile Screens */
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 100vw;
+            }
+
+            .table-container, .user-profiles-container {
+                padding: 10px;
+            }
         }
 
         .sidebar h2 {
-            font-size: 30px;
+            font-size: 1.2rem;
             margin-bottom: 20px;
             font-weight: 700;
-            color: #0a597e;
+            color: #0a597e; /* Matching color to the header for branding consistency */
             text-align: center;
         }
         .sidebar-item {
             color: #333;
-            padding: 12px 1px;
+            padding: 12px;
             border-radius: 8px;
             cursor: pointer;
             display: flex;
@@ -89,8 +147,11 @@
             margin-bottom: 10px;
             font-size: 20px;
             font-weight: 600;
-            margin-top: 10px;
+            margin-top: 40px;
             text-decoration: none;
+        }
+        .sidebar-item:hover {
+            background-color: #eaeaea;
         }
         label {
             font-size: 14px;
@@ -98,9 +159,6 @@
             margin: 5px 5px;
             text-align: left;
             display: block;
-        }
-        .sidebar-item:hover {
-            background-color: #eaeaea;
         }
         .dropdown-menu {
             display: none;
@@ -164,26 +222,74 @@
             margin: auto;
             margin-top: 60px;
             color: #ffffff;
-            padding-top: 15px;
+            padding-top: 15px;  }
+
+        .user-table th, .user-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;  }
+
+        .user-table th {
+            background-color: #134258;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 12px;
+            text-align: center;}
+
+
+        .user-table tr:nth-child(even) {
+            background-color: #f9f9f9;  }
+
+        .user-table tr:hover {
+            background-color: #f1f1f1;  }
+        .user-table td {
+            color: #6d6a6a;
+            vertical-align: middle;  }
+
+        .user-table td:nth-child(1) {
+            font-weight: bold;
+            color: #134258;  }
+
+        /* Table Container */
+        .table-container {
+            margin-left: 250px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 1vw; /* Adjusts padding based on screen size */
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            {#transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;#}
+            min-width: 280px; /* Ensures it's not too small */
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            gap:2vw;
+            box-sizing: border-box;
+            position: relative;
+            bottom: 20px;
+        }
+
+        /* Table Styling */
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 16px;
+            text-align: left;
+            margin-top: 20px;
         }
 
         .user-table th, .user-table td {
-            padding: 15px 8px;
+            padding: 12px;
             border: 1px solid #ddd;
-            text-align: left;
+            text-align: center;
         }
 
         .user-table th {
             background-color: #134258;
-            color: #ffffff;
+            color: white;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            text-align: center;
-        }
-
-        .user-table tr {
-            transition: background-color 0.3s ease;
         }
 
         .user-table tr:nth-child(even) {
@@ -194,15 +300,29 @@
             background-color: #f1f1f1;
         }
 
-        .user-table td {
-            color: #6d6a6a;
-            vertical-align: middle;
+        /* Editable Input */
+        .editable-input {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 90%;
         }
 
-        .user-table td:nth-child(1) {
-            font-weight: bold;
-            color: #134258;
+        /* Save Button */
+        .save-button {
+            padding: 5px 10px;
+            background-color: #007195;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
+
+        .save-button:hover {
+            background-color: #134258;
+        }
+
+
         .logout-button {
             background: none;
             border: none;
@@ -276,7 +396,7 @@
             padding: 12px 16px;
             text-decoration: none;
             display: block;
-            transition: background-color 0.3s;
+            {#transition: background-color 0.3s;#}
         }
 
         .dropdown-content a:hover {
@@ -288,7 +408,7 @@
         }
 
         h1 {
-            font-size: 40px; /* Adjust as needed */
+            font-size: 34px; /* Adjust as needed */
             color: #134258; /* A visible color for the title */
             text-align: center;
             padding-right: 110px;
@@ -311,7 +431,7 @@
             font-size: 14px;
             vertical-align: middle;
             color: white; /* Default color */
-            transition: color 0.3s ease; /* Smooth transition */
+            {#transition: color 0.3s ease; /* Smooth transition */#}
         }
 
         /* Highlight active arrow */
@@ -327,15 +447,12 @@
             text-align: center;
             align-items: center;
             margin: 22px auto;
-            width: 70%;
-            padding-right: 80px;
+            width: 90%;
             padding-bottom: 25px;
-            padding-top: 25px;
             display: flex;
-            justify-content: space-between;
-            gap: 20px;
             font-size: 18px;
             flex-wrap: wrap;
+            margin-left: 220px;
         }
 
         .last-active-filter label {
@@ -367,6 +484,9 @@
             align-items: center; /* Vertically align range input and label */
             gap: 10px;
         }
+
+        {#th a {#}
+        {#    transition: color 0.3s ease-in-out;}#}
 
         .score-range-container input[type="range"] {
             flex-grow: 1; /* Allow range input to expand */
@@ -431,19 +551,6 @@
             width: 90%;
         }
 
-        .save-button {
-            padding: 5px 10px;
-            background-color: #007195;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .save-button:hover {
-            background-color: #134258;
-        }
-
         button {
             background-color: #007195;
             color: white;
@@ -452,7 +559,8 @@
             border: none;
             border-radius: 5px;
             padding: 10px 20px;
-            transition: background-color 0.3s ease;
+            margin-left: 10px;
+            {#transition: background-color 0.3s ease;#}
         }
         button:hover {
             background-color: #134258;
@@ -499,6 +607,7 @@
             text-decoration: none;
             gap: 5px;
         }
+
 
 
     </style>
@@ -583,89 +692,78 @@
     <button onclick="applyFilters()">Apply Filters</button>
 </div>
 
-
-<table class="user-table" style="margin: 0 auto;">
-    <thead>
-    <tr>
-        <th>
-            PRIMARY EMAIL
-            <a href="?sort=primary_email&order=asc" style="text-decoration: none; color: inherit;">
-                <i class="fas fa-arrow-up"
-                   style="color: {% if sort_key == 'primary_email' and order == 'asc' %}grey{% else %}white{% endif %};"></i>
-            </a>
-            <a href="?sort=primary_email&order=desc" style="text-decoration: none; color: inherit;">
-                <i class="fas fa-arrow-down"
-                   style="color: {% if sort_key == 'primary_email' and order == 'desc' %}grey{% else %}white{% endif %};"></i>
-            </a>
-        </th>
-        <th>
-            SCORE
-            <a href="?sort=score&order=asc" style="text-decoration: none; color: inherit;">
-                <i class="fas fa-arrow-up"
-                   style="color: {% if sort_key == 'score' and order == 'asc' %}grey{% else %}white{% endif %};"></i>
-            </a>
-            <a href="?sort=score&order=desc" style="text-decoration: none; color: inherit;">
-                <i class="fas fa-arrow-down"
-                   style="color: {% if sort_key == 'score' and order == 'desc' %}grey{% else %}white{% endif %};"></i>
-            </a>
-        </th>
-        <th>
-            LAST ACTIVE
-            <a href="?sort=last_active&order=asc" style="text-decoration: none; color: inherit;">
-                <i class="fas fa-arrow-up"
-                   style="color: {% if sort_key == 'last_active' and order == 'asc' %}grey{% else %}white{% endif %};"></i>
-            </a>
-            <a href="?sort=last_active&order=desc" style="text-decoration: none; color: inherit;">
-                <i class="fas fa-arrow-down"
-                   style="color: {% if sort_key == 'last_active' and order == 'desc' %}grey{% else %}white{% endif %};"></i>
-            </a>
-        </th>
-        <th>CONTACT NUMBERS</th>
-        <th>ACTION_REMARKS</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    {% for user in user_data %}
+<div class="table-container">
+    <table class="user-table">
+        <thead>
         <tr>
-            <td>
-                <a href="{{ url_for('index', email=user.primary_email) }}"
-                   style="color: #134258; text-decoration: underline;"
-                   title="Filter Email Threads for {{ user.primary_email }}">
-                    {{ user.primary_email }}
+            <th>
+                PRIMARY EMAIL
+                <a href="?sort=primary_email&order=asc">
+                    <i class="fas fa-arrow-up" style="color: {% if sort_key == 'primary_email' and order == 'asc' %}grey{% else %}white{% endif %};"></i>
                 </a>
-            </td>
-
-            <td>{{ user.score }}</td>
-            <td>{{ user.last_active }}</td>
-            <td>{{ user.contact_numbers }}</td>
-            <td>
-                <input type="text" class="editable-input" id="remarks-{{ user.primary_email }}" placeholder="Add remarks">
-                <button class="save-button" onclick="saveRemarks('{{ user.primary_email }}')">Save</button>
-            </td>
+                <a href="?sort=primary_email&order=desc">
+                    <i class="fas fa-arrow-down" style="color: {% if sort_key == 'primary_email' and order == 'desc' %}grey{% else %}white{% endif %};"></i>
+                </a>
+            </th>
+            <th>
+                SCORE
+                <a href="?sort=score&order=asc">
+                    <i class="fas fa-arrow-up" style="color: {% if sort_key == 'score' and order == 'asc' %}grey{% else %}white{% endif %};"></i>
+                </a>
+                <a href="?sort=score&order=desc">
+                    <i class="fas fa-arrow-down" style="color: {% if sort_key == 'score' and order == 'desc' %}grey{% else %}white{% endif %};"></i>
+                </a>
+            </th>
+            <th>
+                LAST ACTIVE
+                <a href="?sort=last_active&order=asc">
+                    <i class="fas fa-arrow-up" style="color: {% if sort_key == 'last_active' and order == 'asc' %}grey{% else %}white{% endif %};"></i>
+                </a>
+                <a href="?sort=last_active&order=desc">
+                    <i class="fas fa-arrow-down" style="color: {% if sort_key == 'last_active' and order == 'desc' %}grey{% else %}white{% endif %};"></i>
+                </a>
+            </th>
+            <th>CONTACT NUMBERS</th>
+            <th>ACTION REMARKS</th>
         </tr>
-    {% endfor %}
-    </tbody>
-</table>
-</body>
-</html>
+        </thead>
 
+        <tbody>
+        {% for user in user_data %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('index', email=user.primary_email) }}"
+                       class="email-link"
+                       title="Filter Email Threads for {{ user.primary_email }}">
+                        {{ user.primary_email }}
+                    </a>
+                </td>
+                <td>{{ user.score }}</td>
+                <td>{{ user.last_active }}</td>
+                <td>{{ user.contact_numbers }}</td>
+                <td>
+                    <input type="text" class="editable-input" id="remarks-{{ user.primary_email }}" placeholder="Add remarks">
+                    <button class="save-button" onclick="saveRemarks('{{ user.primary_email }}')">Save</button>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
     // Toggle sidebar visibility
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        sidebar.classList.toggle('active');
-
-        if (sidebar.classList.contains('active')) {
-            sidebar.style.left = "0";
-        } else {
-            sidebar.style.left = "-250px";
-        }
-    }
+    {#function toggleSidebar() {#}
+    {#    const sidebar = document.getElementById('sidebar');#}
+    {#    sidebar.classList.toggle('active');#}
+    {##}
+    {#    if (sidebar.classList.contains('active')) {#}
+    {#        sidebar.style.left = "0";#}
+    {#    } else {#}
+    {#        sidebar.style.left = "-250px";#}
+    {#    }}#}
 
 
     function applyFilters() {
@@ -741,6 +839,70 @@
     function handleLogout() {
         window.location.href = "{{ url_for('logout') }}";  // Redirect to the logout route
     }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const sidebar = document.getElementById("sidebar");
+        const tableContainer = document.querySelector(".table-container");
+        const menuIcon = document.querySelector(".menu-icon");
+
+        function updateContainer() {
+            {#const sidebar = document.getElementById("sidebar");#}
+            {#const tableContainer = document.querySelector(".table-container");#}
+
+            if (sidebar.classList.contains("collapsed")) {
+                tableContainer.style.marginLeft = "10%";  // Center the table
+                tableContainer.style.width = "90%";  // Keep width stable
+            } else {
+                tableContainer.style.marginLeft = "250px";
+                tableContainer.style.width = "calc(100% - 250px)";
+            }
+        }
+
+        function toggleSidebar() {
+            if (sidebar.classList.contains("collapsed")) {
+                sidebar.style.width = "184px";
+                sidebar.style.visibility = "visible";
+                tableContainer.style.marginLeft = "250px";
+                tableContainer.style.width = "calc(100% - 185px)";
+                sessionStorage.setItem("sidebarState", "expanded");
+            } else {
+                sidebar.style.width = "0";
+                sidebar.style.visibility = "hidden";
+                tableContainer.style.marginLeft = "0";
+                tableContainer.style.width = "90%";
+                sessionStorage.setItem("sidebarState", "collapsed");
+            }
+            sidebar.classList.toggle("collapsed");
+            {#localStorage.setItem("sidebarState", sidebar.classList.contains("collapsed") ? "collapsed" : "expanded");#}
+            updateContainer();
+        }
+
+        function collapseSidebar() {
+            sidebar.classList.add("collapsed");
+            sidebar.style.width = "0";
+            sidebar.style.visibility = "hidden";
+            sessionStorage.setItem("sidebarState", "collapsed");
+            updateContainer();
+        }
+
+        // Keep sidebar collapsed when sorting or filtering
+        document.querySelectorAll(".user-table th a, .filters-container input, .filters-container select, .filters-container button").forEach(item => {
+            item.addEventListener("click", function () {
+                collapseSidebar();
+            });
+        });
+
+        // Restore sidebar state on reload
+        if (sessionStorage.getItem("sidebarState") === "collapsed") {
+            collapseSidebar();
+        } else {
+            updateContainer();
+        }
+
+        // Attach event listener to menu icon
+        menuIcon.addEventListener("click", toggleSidebar);
+    });
+
 </script>
 
 </body>
