@@ -923,24 +923,26 @@
     <form action="{{ url_for('project_creation') }}" method="POST">
 
         <div class="tabs" role="tablist">
-            <div class="tab active" data-tab="project-info" aria-expanded="true">Project Information*</div>
+            <div class="tab active" data-tab="project-info" aria-expanded="true">Project Information *</div>
             <div class="tab" data-tab="bot-settings" aria-expanded="false">Bot Interaction</div>
             <div class="tab" data-tab="thresholds" aria-expanded="false">Engagement Thresholds</div>
-            <div class="tab" data-tab="admin-settings" aria-expanded="false">Admin Authorization*</div>
+            <div class="tab" data-tab="admin-settings" aria-expanded="false">Admin Authorization *</div>
             <div class="tab" data-tab="manual-intervention-settings" aria-expanded="false">Manual Intervention Criteria</div>
             <div class="tab" data-tab="interaction-settings" aria-expanded="false">Interaction Settings</div>
-            <div class="tab" data-tab="keyword-prioritization" aria-expanded="false">Keyword Prioritization*</div>
+            <div class="tab" data-tab="keyword-prioritization" aria-expanded="false">Keyword Prioritization *</div>
         </div>
 
         <div class="tab-content active" id="project-info">
             <fieldset>
                 <legend>Project Information</legend>
                 <select id="project_type" name="project_type" title = "Select a Project Type from the dropdown" class="custom-input custom-select" onchange="updateProjectData()" required>
+
                     {% for project_type in project_types %}
-                        <option value="{{ project_type.type }}"{% if project_type.type == 'Child Predator' or project_type.type == project_data.get('project_type', '') %}selected{% endif %}>
+                        <option value="{{ project_type.type }}" {% if project_type.type.lower() == 'child predator catcher' %}selected{% endif %}>
                             {{ project_type.type }}
                         </option>
                     {% endfor %}
+
                 </select>
                 <input type="text" name="project_name" placeholder="Project Name" id="project-name"
                        title="Provide a unique name relating to the crime for this project." required>

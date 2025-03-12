@@ -187,7 +187,8 @@ def project_creation():
             default_project_type = project['type']
             break
     if not default_project_type:
-        default_project_type = project_types[0]['type'] if project_types else None
+        # default_project_type = project_types[0]['type'] if project_types else None
+        default_project_type = next((p['type'] for p in project_types if p['type'].lower() == 'child predator catcher'), None) or (project_types[0]['type'] if project_types else None)
 
     logging.info(f"The default is: {default_project_type} and total are: {project_types}")
     project_data = None
