@@ -1234,7 +1234,7 @@ def index():
     return render_template('index.html', **data, current_date=current_date)
 
 # Commenting for production. Uncomment this for development testing.
-if __name__ == '__main__':
-    app.run(debug=True)
+# if __name__ == '__main__':
+#     # app.run(debug=True)
 #     app.run(host='0.0.0.0', port=8080)
 
