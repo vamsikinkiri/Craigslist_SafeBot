@@ -14,12 +14,13 @@ logging.basicConfig(
 # Function to drop tables if they exist
 def drop_tables(cursor):
     drop_tables_queries = [
-        "DROP TABLE IF EXISTS ADMIN_ACCOUNTS CASCADE;",
+        # "DROP TABLE IF EXISTS ADMIN_ACCOUNTS CASCADE;",
         "DROP TABLE IF EXISTS PROJECT_TYPES CASCADE;",
-        "DROP TABLE IF EXISTS PROJECTS CASCADE;",
+        # "DROP TABLE IF EXISTS PROJECTS CASCADE;",
         "DROP TABLE IF EXISTS EMAIL_THREADS CASCADE;",
         "DROP TABLE IF EXISTS SCORED_EMAILS CASCADE;",
-        "DROP TABLE IF EXISTS USER_PROFILES CASCADE;"
+        "DROP TABLE IF EXISTS USER_PROFILES CASCADE;",
+        "DROP TABLE IF EXISTS PASSWORD_RESETS CASCADE;"
     ]
     for query in drop_tables_queries:
         cursor.execute(query)
@@ -111,7 +112,14 @@ def create_tables(cursor):
             LAST_ACTIVE TIMESTAMP,
             LAST_UPDATED TIMESTAMP
         );
+        """,
         """
+        CREATE TABLE IF NOT EXISTS PASSWORD_RESETS (
+            EMAIL_ID TEXT PRIMARY KEY REFERENCES ADMIN_ACCOUNTS(EMAIL_ID) ON DELETE CASCADE,
+            RESET_CODE TEXT NOT NULL,
+            LAST_UPDATED TIMESTAMP DEFAULT NOW()
+        );
+        """,
     ]
     for query in create_tables_queries:
         cursor.execute(query)

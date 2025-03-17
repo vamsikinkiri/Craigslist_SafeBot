@@ -29,21 +29,31 @@ class EmailProcessor:
         for thread_id, emails in grouped_emails.items():
             conversation_history = []
             user_email = ""
+
+            # Maintain a hashset of message id's of emails that a reply was already sent
+            replied_emails = set()
+            for email in reversed(emails):
+                # Extract sender's email for comparison
+                match = re.search(r'<([^>]+)>', email['from'])
+                from_address = match.group(1) if match else email['from'].strip()
+                if from_address == session_email:
+                    if email['in_reply_to'] is not None:
+                        replied_emails.add(email['in_reply_to'].strip())
+
             # Process each email in the thread
             for email in reversed(emails):
                 # Extract sender's email for comparison
                 match = re.search(r'<([^>]+)>', email['from'])
                 from_address = match.group(1) if match else email['from'].strip()
-
                 if from_address == session_email:
                     conversation_history.append(f"We replied: {email['content']}")
-                    continue  # Ignore the emails the chatbot sent
+                    continue  # Ignore processing the emails the chatbot sent
                 else:
                     user_email = from_address
                     conversation_history.append(f"Suspect sent: {email['content']}")
-
+                
                 self._process_single_email(
-                    email, from_address, thread_id, session_email, project_id, project_keywords, conversation_history, len(emails)
+                    email, from_address, thread_id, session_email, project_id, project_keywords, conversation_history, len(emails), replied_emails
                 )
             
             # if user_email != "":
@@ -51,13 +61,14 @@ class EmailProcessor:
             # else:
             #     logging.info(f"This is a manual trigger conversation!!")
 
-    def _process_single_email(self, email, from_address, thread_id, session_email, project_id, project_keywords, conversation_history, email_count):
-        # Check if the email is already processed
+    def _process_single_email(self, email, from_address, thread_id, session_email, project_id, project_keywords, conversation_history, email_count, replied_emails):
+        # Check if the email is already processed and scored
         success, is_email_processed = knowledge_base.is_email_processed(email['message_id'])
         if not success:
             logging.error(is_email_processed, "error")
             return
         if is_email_processed:
+            logging.info(f"Skipping email [{email['message_id']}] - This email has already been processed and scored.")
             return  # Skip already processed emails
 
         # Extract email content and perform profiling
@@ -83,9 +94,14 @@ class EmailProcessor:
         
         logging.info(f"PROJECT: {project_details}")
         # project_id, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, project_type, last_updated, active_start, active_end  = project_details
-
         self._update_email_thread(email, thread_id, session_email, project_details, score, seen_keywords)
-        # Determine and act on the AI response state
+
+        # Check if a reply has already been sent to this email
+        if email['message_id'] in replied_emails:
+            logging.info(f"Skipping email [{email['message_id']}] - A reply has already been sent.")
+            return
+
+        # If no reply has been sent to thie email, determine and act on the AI response state
         self._handle_ai_response_state(email, thread_id, session_email, project_details, score, conversation_history, from_address)
 
     def _get_seen_keywords(self, thread_id, email_count):
@@ -131,10 +147,7 @@ class EmailProcessor:
         upper_threshold = float(project_details[9])
         authorized_emails = project_details[10]
         project_type = project_details[16]
-        print(project_details)
-        # print(score)
-        print(score,lower_threshold)
-        print(type(score),type(lower_threshold))
+
         if ai_state == 'Manual':
             # Notify all the authorized admins
             for admin_email in authorized_emails:

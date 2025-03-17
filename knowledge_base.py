@@ -4,9 +4,15 @@ import yaml
 import bcrypt
 import json
 import random
+from datetime import datetime, timedelta, timezone
 import string
 import logging
 from flask import session
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.date import DateTrigger
+
+scheduler = BackgroundScheduler()
+scheduler.start()
 
 class KnowledgeBase:
 
@@ -155,8 +161,6 @@ class KnowledgeBase:
             cursor.close()
             conn.close()
 
-
-
     def create_admin(self, password, email_id, phone_number, affiliation):
         """
         Create a new admin in the database.
@@ -277,6 +281,147 @@ class KnowledgeBase:
         finally:
             cursor.close()
             conn.close()
+    
+    def is_admin_email_id_valid(self, email_id):
+        """
+        Check if the provided admin email ID exists in the admin_accounts table.
+        Args: email_id (str): The email ID to check.
+        Returns: tuple: (bool, str): Success status and a message indicating presence or error.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""SELECT 1 FROM ADMIN_ACCOUNTS WHERE email_id = %s""", (email_id,))
+            result = cursor.fetchone()
+
+            if result:
+                return True, "Entered email id is valid!"
+            else:
+                return False, "No admin account found for the entered admin email. Try again!"
+        except Exception as e:
+            logging.error(f"Database error while checking email ID presence: {e}")
+            return False, f"Database error: {e}"
+        finally:
+            cursor.close()
+            conn.close()
+
+    def store_password_reset_code(self, email_id, reset_code):
+        """
+        Store the reset code in the database with a 10-minute expiration.
+        """
+        conn, conn_error = self.get_db_connection()
+        if not conn:
+            return False, conn_error
+        cursor = conn.cursor()
+        hashed_code = bcrypt.hashpw(reset_code.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        delete_time = datetime.now() + timedelta(minutes=10)  # Delete the code after 10 mins
+
+        try:
+            cursor.execute(
+                """
+                INSERT INTO PASSWORD_RESETS (EMAIL_ID, RESET_CODE, last_updated)
+                VALUES (%s, %s, NOW())
+                ON CONFLICT (EMAIL_ID) DO UPDATE 
+                SET RESET_CODE = EXCLUDED.RESET_CODE, LAST_UPDATED = NOW()
+                """,
+                (email_id, hashed_code)
+            )
+            # Delete the code after 10 minutes
+            scheduler.add_job(
+                func=self.delete_reset_code,
+                trigger=DateTrigger(run_date=delete_time),
+                args=[email_id],
+                id=f"delete_reset_code_for_{email_id}",
+                replace_existing=True
+            )
+            logging.info(f"Scheduled the deletion for reset code for email {email_id} at {delete_time}")
+            conn.commit()
+            return True, "Reset code stored successfully."
+        except Exception as e:
+            return False, f"Database error: {str(e)}"
+        finally:
+            cursor.close()
+            conn.close()
+    
+    def delete_reset_code(self, email_id):
+        """
+        Remove the reset code once after 10 minutes.
+        """
+        conn, conn_error = self.get_db_connection()
+        if not conn:
+            return False, conn_error
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                DELETE FROM PASSWORD_RESETS WHERE EMAIL_ID = %s;
+                """,
+                (email_id)
+            )
+            conn.commit()
+            return True, "Reset code deleted."
+        except Exception as e:
+            return False, f"Error deleting reset code: {str(e)}"
+        
+    
+    def get_reset_code(self, email_id):
+        """
+        Fetch the reset code associated with the email id.
+        Args: email_id (str): The Email ID to search for.
+        Returns: tuple: (bool, str): Success status and the reset code or an error message.
+        """
+        conn, conn_error = self.get_db_connection()
+        if conn is None:
+            return False, conn_error
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""SELECT RESET_CODE FROM PASSWORD_RESETS WHERE EMAIL_ID = %s""", (email_id,))
+            result = cursor.fetchone()
+
+            if result:
+                return True, result[0]  # Return the reset code
+            else:
+                return False, f"Reset code not found or expired."
+        except Exception as e:
+            logging.error(f"Database error while retrieving reset code: {e}")
+            return False, f"Database error: {e}"
+        finally:
+            cursor.close()
+            conn.close()
+
+    def update_admin_password(self, email_id, new_password):
+        """
+        Updates the password of an admin in the database.
+        """
+        hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+        conn, conn_error = self.get_db_connection()
+        if not conn:
+            return False, conn_error
+
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute(
+                """
+                UPDATE ADMIN_ACCOUNTS
+                SET PASSWORD = %s, last_updated = NOW()
+                WHERE EMAIL_ID = %s
+                """, 
+                (hashed_password, email_id)
+            )
+            conn.commit()
+            return True, "Account updated successfully!"
+        except Exception as e:
+            return False, f"Error updating account: {e}"
+        finally:
+            cursor.close()
+            conn.close()
+
 
     def create_project(self, email_id, project_name, app_password, ai_prompt_text, response_frequency, keywords_data, owner_admin_id, lower_threshold, upper_threshold, authorized_emails, posed_name, posed_age, posed_sex, posed_location, switch_manual_criterias, project_type, active_start, active_end):
         conn, conn_error = self.get_db_connection()
