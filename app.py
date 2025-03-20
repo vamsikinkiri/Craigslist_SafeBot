@@ -4,6 +4,7 @@ import re
 import pytz
 import logging
 from datetime import date, datetime
+from functools import wraps
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from flask import Flask, flash, session, render_template, request, redirect, url_for, jsonify
@@ -26,6 +27,8 @@ load_dotenv()
 # Initialize the Flask application
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))  # Use environment variable or random key
+app.config['SESSION_PERMANENT'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=60) # Set session timeout to 60 minutes
 
 # Secure session cookies
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to cookies
@@ -141,6 +144,16 @@ def logout():
 def load_user(user_id):
     return User(user_id)
 
+def check_session(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'admin_id' not in session:
+            flash('Your session has expired. Please log in again.', 'warning')
+            return redirect(url_for('login'))
+        logging.info('The session is active')
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 # Route for the Create Account page
 @app.route('/create_account', methods=['GET', 'POST'])
@@ -171,9 +184,9 @@ def create_account():
 
     return render_template('create_account.html')
 
-
 def is_valid_email(email):
     return bool(re.match(r"[^@]+@[^@]+\.[^@]+", email))
+
 @app.route('/send_reset_code', methods=['POST'])
 def send_reset_code():
     data = request.get_json() or {}
@@ -221,6 +234,7 @@ def reset_password():
 
 @app.route('/project_creation', methods=['GET', 'POST'])
 @login_required
+@check_session
 def project_creation():
     # admin_email = 'asuba006@ucr.edu'
     admin_email = session['admin_email']
@@ -459,6 +473,7 @@ def project_creation():
 
 @app.route('/api/update_projects', methods=['GET'])
 @login_required
+@check_session
 def update_projects():
     # Use the function in knowledge base to get all projects
     success, projects = knowledge_base.fetch_all_projects()
@@ -551,6 +566,7 @@ def get_project_data(email):
 
 @app.route('/get_project_data_specific_project_type', methods=['GET'])
 @login_required
+@check_session
 def get_project_data_specific_project_type():
     project_type = request.args.get('project_type')
     if not project_type:
@@ -567,6 +583,7 @@ def get_project_data_specific_project_type():
 
 @app.route('/update_project', methods=['GET', 'POST'])
 @login_required
+@check_session
 def update_project():
     if 'email' not in session or 'project' not in session:
         flash("You need to be logged in to update project details.", "error")
@@ -739,6 +756,7 @@ def update_project():
 
 @app.route('/update_account_profile', methods=['GET', 'POST'])
 @login_required
+@check_session
 def update_account_profile():
     #logging.info(f"Session Data in update_account_profile: {session}")  # Debug session data
 
@@ -779,6 +797,7 @@ def update_account_profile():
 
 @app.route('/all_projects_view', methods=['GET', 'POST'])
 @login_required
+@check_session
 def all_projects_view():
     """
     Display all projects and allow the user to select or create a new project.
@@ -859,6 +878,7 @@ def all_projects_view():
 
 @app.route('/delete_project/<string:project_id>', methods=['POST'])
 @login_required
+@check_session
 def delete_project(project_id):
     """
     Delete a project if the current admin is the owner.
@@ -998,6 +1018,7 @@ def update_actions_remarks_for_user():
 
 @app.route('/update_ai_response_state', methods=['POST'])
 @login_required
+@check_session
 def update_ai_response_state():
     # Extract data from the request
     data = request.get_json()
@@ -1064,6 +1085,7 @@ def update_ai_response_state():
 
 @app.route('/archive_email', methods=['POST'])
 @login_required
+@check_session
 def archive_email():
     data = request.get_json()
     thread_id = data.get('key')
@@ -1087,6 +1109,7 @@ def archive_email():
 
 @app.route('/archived_emails')
 @login_required
+@check_session
 def view_archived_emails():
     # Use process_projects to get the latest project data without relying on session variables
     project_data = project_scheduler.process_projects(session_email=session.get('email'),
@@ -1097,8 +1120,10 @@ def view_archived_emails():
     conversations_score = project_data.get('conversations_score', {})
     current_date = datetime.now().date()
     return render_template('archived_emails.html', archived_emails=archived_emails, conversations_score = conversations_score, latest_timestamp=latest_timestamps, ai_response_state = ai_response_state,current_date=current_date)
+
 @app.route('/unarchiving_emails', methods=['POST'])
 @login_required
+@check_session
 def unarchiving_emails():
     data = request.get_json()
     thread_id = data.get('key')
@@ -1140,6 +1165,8 @@ def unarchiving_emails():
 # Updated backend route
 @app.route('/email_thread_reply/<thread_id>', methods=['GET'])
 @login_required
+@check_session
+
 def email_thread_reply(thread_id):
     # Fetch the email thread by ID
     success, emails = email_handler.fetch_email_by_thread_id(
@@ -1156,6 +1183,7 @@ def email_thread_reply(thread_id):
 
 @app.route('/send_reply/<thread_id>', methods=['POST'])
 @login_required
+@check_session
 def send_reply(thread_id):    
     reply_content = request.form.get('reply_content')
     attachments  = request.files.getlist('attachments')
@@ -1248,6 +1276,7 @@ def parse_email_from_field(email_field):
 
 @app.route('/', methods=['GET'])
 @login_required
+@check_session
 def index():
     filters = {
         'search_initiated': 'search' in request.args,
