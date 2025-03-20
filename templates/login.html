@@ -228,6 +228,12 @@
 </header>
 <div class="login-container" id="login-box">
     <h2>Login</h2>
+    <!-- Display Session Expiration Alert -->
+    {% if session['login_error'] %}
+        <script>
+            alert("{{ session.pop('login_error') }}");  // Show alert
+        </script>
+    {% endif %}
     <!-- Only display flash messages if there are errors -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -240,6 +246,7 @@
             </div>
         {% endif %}
     {% endwith %}
+
 
     <form method="POST" action="{{ url_for('login') }}">
         {{ form.hidden_tag() }}
@@ -359,6 +366,49 @@
     setTimeout(() => {
         document.querySelectorAll('.alert').forEach(alert => alert.remove());
     }, 1000);
+
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+        e.preventDefault();  // Prevent default form submission
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        fetch("/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email, password: password })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    alert(data.message);  // Show alert for login error
+                } else {
+                    alert(data.message);
+                    window.location.href = data.redirect;
+                }
+            })
+            .catch(error => console.error("Login error:", error));
+    });
+
+    setInterval(() => {
+        fetch("/check_session")
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    const message = data.message || "Your session has expired. Please log in again."; // Default message if none is returned
+
+                    alert(message);  // Show session expiration alert
+
+                    // Wait 3 seconds before redirecting
+                    setTimeout(() => {
+                        window.location.href = "/login";
+                    }, 2000);  // 3-second delay
+                }
+            })
+            .catch(error => console.error("Session check error:", error));
+    }, 60000); // Check session status every 60 seconds
+
+</script>
 
 </script>
 </body>

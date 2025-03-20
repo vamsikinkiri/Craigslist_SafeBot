@@ -454,6 +454,26 @@
         return confirm("Are you sure you want to delete this project?");
     }
 
+    setInterval(() => {
+        fetch("/check_session")
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    const message = data.message || "Your session has expired. Please log in again."; // Default message if none is returned
+
+                    alert(message);  // Show session expiration alert
+
+                    // Wait 3 seconds before redirecting
+                    setTimeout(() => {
+                        window.location.href = "/login";
+                    }, 2000);  // 3-second delay
+                }
+            })
+            .catch(error => console.error("Session check error:", error));
+    }, 60000); // Check session status every 60 seconds
+
+
+
 </script>
 </body>
 </html>

@@ -28,7 +28,7 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))  # Use environment variable or random key
 app.config['SESSION_PERMANENT'] = True
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=60) # Set session timeout to 60 minutes
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=2) # Set session timeout to 60 minutes
 
 # Secure session cookies
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to cookies
@@ -110,6 +110,7 @@ TIMEZONE_MAPPING = {
 # Routes for login, logout and load user for login session management
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    session_error = session.pop('login_error', None)
     form = LoginForm()
     if form.validate_on_submit():
         email_id = form.loginId.data
@@ -128,10 +129,8 @@ def login():
         else:
             flash("Invalid credentials. Please try again.", "error")
             return redirect(url_for('login'))
-        #     return redirect(url_for('project_account_login'))
-        # return redirect(url_for('login'))
 
-    return render_template('login.html', form=form)
+    return render_template('login.html', form=form, session_error=session_error)
 
 @app.route('/logout', methods=['POST', 'GET'])
 @login_required
@@ -144,15 +143,26 @@ def logout():
 def load_user(user_id):
     return User(user_id)
 
+
 def check_session(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'admin_id' not in session:
-            flash('Your session has expired. Please log in again.', 'warning')
-            return redirect(url_for('login'))
+            logging.warning('Session expired. Redirecting to login.')
+            if request.is_json:
+                return jsonify({"success": False, "message": "Your session has expired. Please log in again."}), 401
+            else:
+                session['login_error'] = "Your session has expired. Please log in again."
+                return redirect(url_for('login'))
         logging.info('The session is active')
         return f(*args, **kwargs)
     return decorated_function
+
+@app.route('/check_session', methods=['GET'])
+def check_session_api():
+    if 'admin_id' not in session:
+        return jsonify({"success": False, "message": "Your session has expired. Please log in again."}), 401
+    return jsonify({"success": True, "message": "Session is active."})
 
 
 # Route for the Create Account page
