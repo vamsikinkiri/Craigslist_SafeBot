@@ -231,6 +231,7 @@ def project_creation():
         flash("Error fetching project types. Please try again.", "error")
         return redirect(url_for('all_projects_view'))
 
+
     # default_project_type = project_types[0]['type'] if project_types else None
     default_project_type = None
     for project in project_types:
@@ -240,28 +241,30 @@ def project_creation():
     if not default_project_type:
         # default_project_type = project_types[0]['type'] if project_types else None
         default_project_type = next((p['type'] for p in project_types if p['type'].lower() == 'child predator catcher'), None) or (project_types[0]['type'] if project_types else None)
-
+    # print('243')
     logging.info(f"The default is: {default_project_type} and total are: {project_types}")
+
+    switch_manual_criterias = []
     project_data = None
     if default_project_type:
         success, project_data = knowledge_base.get_project_type_prompts(default_project_type)
-        if not success:
-            flash(project_data, "error")
+        if success:
+            switch_manual_criterias = project_data.get("default_switch_manual_criterias", [])
+            if not isinstance(switch_manual_criterias, list):
+                switch_manual_criterias = []
+        else:
+            flash(f"Error fetching criteria for {default_project_type}. Using empty default.", "error")
             return redirect(url_for('all_projects_view'))
 
-        # Explicitly set the default admin prompt **only for Child Predator Catcher**
+
+            # Explicitly set the default admin prompt **only for Child Predator Catcher**
         if default_project_type.lower() == "child predator catcher":
             default_admin_prompt = project_data.get('DEFAULT_ADMIN_PROMPT', "")
-        # logging.info(f"The default project type is: {default_project_type}")
-        # logging.info(f"The default prompt is: {default_admin_prompt}")
 
-    if not success:
-        logging.error(f"Error during project creation: {project_data}")
-        flash(project_data, "error")
-        return redirect(url_for('all_projects_view'))
+    # print('257')
 
     ai_prompt_text = project_data['base_prompt']
-
+    # print('265')
     authorized_emails_list = [admin_email]  # Start with admin email as default
 
     if request.method == 'POST':
@@ -313,20 +316,29 @@ def project_creation():
 
         logging.info(f"Converted Active Start Time (PST): {active_start_time}, End Time (PST): {active_end_time}")
 
-        # Fetch prompts and criteria for the selected project type
-        success, project_data  = knowledge_base.get_project_type_prompts(project_type)
-        if not success:
-            flash(project_data, "error")
+        print('322')
+        # Fetch project-specific criteria, ensuring a valid default
+        success, project_data = knowledge_base.get_project_type_prompts(project_type)
+        if success:
+            switch_manual_criterias = project_data.get("default_switch_manual_criterias", [])
+            if not isinstance(switch_manual_criterias, list):
+                switch_manual_criterias = []
+        else:
+            flash(f"Error fetching criteria for {project_type}. Using default criteria.", "error")
+            switch_manual_criterias = []
             return redirect(url_for('project_creation'))
+              # Fallback to an empty list
 
-            # Validation for required fields
+    # Validation for required fields
         if not email or not project_name or not app_password or not project_type or not keywords_data_fetch :
             flash("Required fields in Project Information, Keyword Prioritization and authorization settings must be filled.", "error")
             return redirect(url_for('project_creation'))
+        # print('326')
 
-        default_switch_manual_criterias = project_data.get("default_switch_manual_criterias", [])
-        if not isinstance(default_switch_manual_criterias, list):
-            default_switch_manual_criterias = []
+        # default_switch_manual_criterias = project_data.get("default_switch_manual_criterias", [])
+        # if not isinstance(default_switch_manual_criterias, list):
+        #     default_switch_manual_criterias = []
+        # logging.info(f"Final criteria stored for {project_type}: {default_switch_manual_criterias}")
 
         # Process additional criteria from form
         try:
@@ -338,18 +350,7 @@ def project_creation():
             flash("Invalid criteria format", "error")
             return redirect(url_for('project_creation'))
 
-        # Combine default and user-added criteria
-        switch_manual_criterias = default_switch_manual_criterias + new_criterias
-
-        # try:
-        #     authorized_emails_list = json.loads(authorized_emails)
-        #     if not all(re.match(r"[^@]+@[^@]+\.[^@]+", email) for email in authorized_emails_list):
-        #         raise ValueError("One or more emails have an invalid format.")
-        # except (ValueError, json.JSONDecodeError) as e:
-        #     authorized_emails = []
-        #     logging.error(f"Error validating email format: {e}")
-        #     flash("Required fields in Project Information, Keyword Prioritization and authorization settings must be filled.", "error")
-        #     return redirect(url_for('project_creation'))
+        switch_manual_criterias = list(set(switch_manual_criterias + new_criterias))
 
         try:
             # Fetch authorized emails from the form
@@ -438,19 +439,11 @@ def project_creation():
             logging.error(f"Error during project creation: {message}")
             flash(message, "error")
 
-    default_project_type = project_types[0]["type"] if project_types else None
-    project_data = None
-    if default_project_type:
-        success, project_data = knowledge_base.get_project_type_prompts(default_project_type)
-        if not success:
-            flash(project_data, "error")
-            return redirect(url_for('all_projects_view'))
-
     return render_template(
         'project_creation.html',
         project_types=project_types,
         project_data = project_data,
-        default_switch_manual_criterias=project_data.get("default_switch_manual_criterias", []),
+        default_switch_manual_criterias=switch_manual_criterias,
         default_admin_email=admin_email,
         default_admin_prompt=default_admin_prompt,
         authorized_emails=json.dumps(authorized_emails_list) )
@@ -650,6 +643,7 @@ def update_project():
             existing_criterias = project_info.get('switch_manual_criterias', '[]')
             if isinstance(existing_criterias, str):
                 existing_criterias = parse_json_field(existing_criterias, [])
+            logging.info(f"existing criterias: {existing_criterias}")
 
             new_switch_manual_criterias = request.form.get('switch_manual_criterias', '[]')
             try:
