@@ -341,25 +341,37 @@ def project_creation():
         # Combine default and user-added criteria
         switch_manual_criterias = default_switch_manual_criterias + new_criterias
 
+        # try:
+        #     authorized_emails_list = json.loads(authorized_emails)
+        #     if not all(re.match(r"[^@]+@[^@]+\.[^@]+", email) for email in authorized_emails_list):
+        #         raise ValueError("One or more emails have an invalid format.")
+        # except (ValueError, json.JSONDecodeError) as e:
+        #     authorized_emails = []
+        #     logging.error(f"Error validating email format: {e}")
+        #     flash("Required fields in Project Information, Keyword Prioritization and authorization settings must be filled.", "error")
+        #     return redirect(url_for('project_creation'))
+
         try:
-            authorized_emails_list = json.loads(authorized_emails)
-            if not all(re.match(r"[^@]+@[^@]+\.[^@]+", email) for email in authorized_emails_list):
-                raise ValueError("One or more emails have an invalid format.")
+            # Fetch authorized emails from the form
+            authorized_emails = request.form.get('authorized_emails', '[]')
+
+            # Parse JSON safely, handling empty values
+            authorized_emails_list = json.loads(authorized_emails) if authorized_emails else []
+
+            # Ensure admin email is included by default, even if the user does not enter any emails
+            if admin_email and admin_email not in authorized_emails_list:
+                authorized_emails_list.append(admin_email)
+
+            # Remove duplicates and empty values
+            authorized_emails_list = list(set(filter(None, authorized_emails_list)))
+
         except (ValueError, json.JSONDecodeError) as e:
-            authorized_emails = []
             logging.error(f"Error validating email format: {e}")
-            flash("Required fields in Project Information, Keyword Prioritization and authorization settings must be filled.", "error")
+            # flash("Invalid email format detected.", "error")
+            flash("Required fields in Project Information and Keyword Prioritization settings must be filled.", "error")
+
             return redirect(url_for('project_creation'))
 
-
-        authorized_emails_list = json.loads(authorized_emails) if authorized_emails else []
-
-        # Ensure admin email is included by default, but allow removal
-        if admin_email and admin_email not in authorized_emails_list:
-            authorized_emails_list.append(admin_email)
-
-        # Remove duplicates and empty values
-        authorized_emails_list = list(set(filter(None, authorized_emails_list)))
 
         project_success, message = knowledge_base.is_email_unique_in_projects(email)
         if not project_success:
