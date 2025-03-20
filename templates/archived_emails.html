@@ -1492,6 +1492,27 @@
                 document.getElementById(`${field}-desc`).style.display === 'none' ? 'inline' : 'none';
         }
 
+        setInterval(() => {
+            fetch("/check_session")
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        const message = data.message || "Your session has expired. Please log in again."; // Default message if none is returned
+                        setTimeout(() => {
+                            alert(message);
+                        }, 100); // Show session expiration alert
+                        setTimeout(() => {
+                            window.location.href = "/login";
+                        }, 3000);  // 3-second delay
+                    }
+                })
+                .catch(error => console.error("Session check error:", error));
+        }, 60000); // Check session status every 60 seconds
+
+
+
+
+
 
     </script>
 </body>
