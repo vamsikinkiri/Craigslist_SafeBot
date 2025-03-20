@@ -231,8 +231,6 @@ def project_creation():
         flash("Error fetching project types. Please try again.", "error")
         return redirect(url_for('all_projects_view'))
 
-
-    # default_project_type = project_types[0]['type'] if project_types else None
     default_project_type = None
     for project in project_types:
         if project.get('type', '').lower() == 'child predator catcher':
@@ -244,26 +242,27 @@ def project_creation():
     # print('243')
     logging.info(f"The default is: {default_project_type} and total are: {project_types}")
 
-    switch_manual_criterias = []
+    default_switch_manual_criterias = []
     project_data = None
     if default_project_type:
         success, project_data = knowledge_base.get_project_type_prompts(default_project_type)
         if success:
-            switch_manual_criterias = project_data.get("default_switch_manual_criterias", [])
-            if not isinstance(switch_manual_criterias, list):
-                switch_manual_criterias = []
+            default_switch_manual_criterias = project_data.get("default_switch_manual_criterias", [])
+            if not isinstance(default_switch_manual_criterias, list):
+                default_switch_manual_criterias = []
         else:
             flash(f"Error fetching criteria for {default_project_type}. Using empty default.", "error")
             return redirect(url_for('all_projects_view'))
 
+        default_admin_prompt = ""  # Ensure it's always defined
 
-            # Explicitly set the default admin prompt **only for Child Predator Catcher**
         if default_project_type.lower() == "child predator catcher":
             default_admin_prompt = project_data.get('DEFAULT_ADMIN_PROMPT', "")
 
-    # print('257')
 
-    ai_prompt_text = project_data['base_prompt']
+    # ai_prompt_text = project_data['base_prompt']
+    ai_prompt_text = project_data.get('base_prompt', '') if project_data else ''
+
     # print('265')
     authorized_emails_list = [admin_email]  # Start with admin email as default
 
@@ -295,7 +294,6 @@ def project_creation():
         active_start_time_raw = int(request.form.get('active_start_time', 8))
         active_end_time_raw = int(request.form.get('active_end_time', 20))
         user_timezone = request.form.get('timezone', 'PST')
-
         # Map user-selected timezone to pytz
         user_tz_name = TIMEZONE_MAPPING.get(user_timezone, "PST")  # Default to UTC if invalid
         user_tz = pytz.timezone(user_tz_name)
@@ -316,41 +314,51 @@ def project_creation():
 
         logging.info(f"Converted Active Start Time (PST): {active_start_time}, End Time (PST): {active_end_time}")
 
-        print('322')
         # Fetch project-specific criteria, ensuring a valid default
         success, project_data = knowledge_base.get_project_type_prompts(project_type)
         if success:
-            switch_manual_criterias = project_data.get("default_switch_manual_criterias", [])
-            if not isinstance(switch_manual_criterias, list):
-                switch_manual_criterias = []
+            default_switch_manual_criterias = project_data.get("default_switch_manual_criterias", [])
+            if not isinstance(default_switch_manual_criterias, list):
+                default_switch_manual_criterias = []
         else:
             flash(f"Error fetching criteria for {project_type}. Using default criteria.", "error")
-            switch_manual_criterias = []
             return redirect(url_for('project_creation'))
-              # Fallback to an empty list
 
     # Validation for required fields
         if not email or not project_name or not app_password or not project_type or not keywords_data_fetch :
             flash("Required fields in Project Information, Keyword Prioritization and authorization settings must be filled.", "error")
             return redirect(url_for('project_creation'))
-        # print('326')
 
-        # default_switch_manual_criterias = project_data.get("default_switch_manual_criterias", [])
-        # if not isinstance(default_switch_manual_criterias, list):
-        #     default_switch_manual_criterias = []
-        # logging.info(f"Final criteria stored for {project_type}: {default_switch_manual_criterias}")
-
-        # Process additional criteria from form
+        print(request.form)
         try:
-            new_criterias_raw = request.form.get('criteria_data', '[]')  # Hidden input field
-            new_criterias = parse_json_field(new_criterias_raw, [])
-            if not isinstance(new_criterias, list):
+            new_criterias_raw = request.form.get('switch_manual_criterias', '[]')  # Hidden input field
+            logging.info(f"Received criteria data: {new_criterias_raw}")
+            user_modified_criterias = parse_json_field(new_criterias_raw, [])
+
+            if not isinstance(user_modified_criterias, list):
                 raise ValueError("Criteria must be a list.")
+
+            switch_manual_criterias = [
+                criteria for criteria in default_switch_manual_criterias if criteria in user_modified_criterias
+            ]
+
+            for criteria in user_modified_criterias:
+                if criteria not in switch_manual_criterias:
+                    switch_manual_criterias.append(criteria)
+
+            switch_manual_criterias = list(set(switch_manual_criterias))
+
+            logging.info(f"Final Criteria for {project_type}: {switch_manual_criterias}")
+
         except json.JSONDecodeError:
             flash("Invalid criteria format", "error")
             return redirect(url_for('project_creation'))
+        # Combine default and user-added criteria
+        # switch_manual_criterias = default_switch_manual_criterias + user_modified_criterias
+        # switch_manual_criterias = user_modified_criterias
+        # switch_manual_criterias = list(set(default_switch_manual_criterias + user_modified_criterias))
+        logging.info(f"Final Criteria for {project_type}: {switch_manual_criterias}")
 
-        switch_manual_criterias = list(set(switch_manual_criterias + new_criterias))
 
         try:
             # Fetch authorized emails from the form
@@ -372,7 +380,6 @@ def project_creation():
             flash("Required fields in Project Information and Keyword Prioritization settings must be filled.", "error")
 
             return redirect(url_for('project_creation'))
-
 
         project_success, message = knowledge_base.is_email_unique_in_projects(email)
         if not project_success:
@@ -443,10 +450,12 @@ def project_creation():
         'project_creation.html',
         project_types=project_types,
         project_data = project_data,
-        default_switch_manual_criterias=switch_manual_criterias,
+        default_switch_manual_criterias=default_switch_manual_criterias,
         default_admin_email=admin_email,
         default_admin_prompt=default_admin_prompt,
-        authorized_emails=json.dumps(authorized_emails_list) )
+        authorized_emails=json.dumps(authorized_emails_list)
+    )
+
 
 @app.route('/api/update_projects', methods=['GET'])
 @login_required
@@ -630,9 +639,6 @@ def update_project():
             final_keywords = {
                 key: updated_keywords_raw[key]  # Use updated value if it exists in the frontend
                 for key in updated_keywords_raw }
-            for key in existing_keywords:
-                if key not in updated_keywords_raw:  # If the key is not in the updated list, retain it
-                    final_keywords[key] = existing_keywords[key]
             updated_keywords = final_keywords  # Final result for backend storage
 
             # Parse updated emails from the form
@@ -656,7 +662,7 @@ def update_project():
                     raise ValueError(f"Parsed criterias must be a list, got {type(parsed_criterias)} instead.")
 
                 # Merge existing and new criteria while ensuring no duplicates
-                updated_criterias = list(set(existing_criterias + parsed_criterias))
+                updated_criterias = list(set(parsed_criterias))
 
                 # Log the final criteria list for debugging
                 logging.info(f"Final updated switch_manual_criterias: {updated_criterias}")

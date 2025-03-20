@@ -1615,7 +1615,6 @@
         return true;
     }
 
-
     async function updateProjectData() {
         const projectType = document.getElementById('project_type').value;
 
@@ -1661,55 +1660,86 @@
     {#const customCriteria = JSON.parse(document.getElementById('criteria-data').value || '[]');#}
     criteriaData = [...new Set([...defaultCriteria, ...customCriteria])];
 
-    function addManualCriteria() {
-        const criteriaInput = document.getElementById('new_criteria');
-        const criteriaList = document.getElementById('criteria-list');
-        const hiddenInput = document.getElementById('criteria-data');
+    {#function addManualCriteria() {#}
+    {#    const criteriaInput = document.getElementById('new_criteria');#}
+    {#    const hiddenInput = document.getElementById('criteria-data');#}
+    {##}
+    {#    let newCriterion = criteriaInput.value.trim();#}
+    {#    if (!newCriterion) {#}
+    {#        alert('Please enter a valid criterion.');#}
+    {#        return;#}
+    {#    }#}
+    {##}
+    {#    // Get existing criteria#}
+    {#    let existingCriteria = JSON.parse(hiddenInput.value || '[]');#}
+    {##}
+    {#    // Check if it already exists#}
+    {#    if (existingCriteria.includes(newCriterion)) {#}
+    {#        alert('This criterion already exists.');#}
+    {#        return;#}
+    {#    }#}
+    {##}
+    {#    // Add new criterion to the list#}
+    {#    existingCriteria.push(newCriterion);#}
+    {#    hiddenInput.value = JSON.stringify(existingCriteria);#}
+    {##}
+    {#    // Re-render the list#}
+    {#    renderCriteriaList();#}
+    {##}
+    {#    // Clear input field#}
+    {#    criteriaInput.value = '';#}
+    {#}#}
 
-        let newCriterion = criteriaInput.value.trim();
-        if (!newCriterion) {
-            alert('Please enter a valid criterion.');
-            return;
-        }
 
-        // Retrieve existing criteria from the hidden input field
-        let existingCriteria = JSON.parse(hiddenInput.value || '[]');
-
-        // Check if criterion already exists
-        if (existingCriteria.includes(newCriterion)) {
-            alert('This criterion already exists.');
-            return;
-        }
-        // Add new criterion visually in the same format as the existing ones
-        const criterionDiv = document.createElement('div');
-        criterionDiv.classList.add('list-entry');
-
-        // Text span for the criterion
-        const span = document.createElement('span');
-        span.textContent = newCriterion;
-
-        // Remove button
-        const removeButton = document.createElement('button');
-        removeButton.classList.add('remove-criteria-btn');
-        removeButton.innerHTML = '<i class="fas fa-minus"></i>';
-        removeButton.onclick = function () {
-            criteriaList.removeChild(criterionDiv);
-            existingCriteria = existingCriteria.filter(c => c !== newCriterion);
-            hiddenInput.value = JSON.stringify(existingCriteria);
-        };
-
-        // Append text & remove button to the entry div
-        criterionDiv.appendChild(span);
-        criterionDiv.appendChild(removeButton);
-        criteriaList.appendChild(criterionDiv);
-
-        // Update hidden input field with new criteria list
-        existingCriteria.push(newCriterion);
-        hiddenInput.value = JSON.stringify(existingCriteria);
-
-        // Clear input field
-        criteriaInput.value = '';
-        }
+    {#function addManualCriteria() {#}
+    {#    const criteriaInput = document.getElementById('new_criteria');#}
+    {#    const criteriaList = document.getElementById('criteria-list');#}
+    {#    const hiddenInput = document.getElementById('criteria-data');#}
+    {##}
+    {#    let newCriterion = criteriaInput.value.trim();#}
+    {#    if (!newCriterion) {#}
+    {#        alert('Please enter a valid criterion.');#}
+    {#        return;#}
+    {#    }#}
+    {##}
+    {#    // Retrieve existing criteria from the hidden input field#}
+    {#    let existingCriteria = JSON.parse(hiddenInput.value || '[]');#}
+    {##}
+    {#    // Check if criterion already exists#}
+    {#    if (existingCriteria.includes(newCriterion)) {#}
+    {#        alert('This criterion already exists.');#}
+    {#        return;#}
+    {#    }#}
+    {#    // Add new criterion visually in the same format as the existing ones#}
+    {#    const criterionDiv = document.createElement('div');#}
+    {#    criterionDiv.classList.add('list-entry');#}
+    {##}
+    {#    // Text span for the criterion#}
+    {#    const span = document.createElement('span');#}
+    {#    span.textContent = newCriterion;#}
+    {##}
+    {#    // Remove button#}
+    {#    const removeButton = document.createElement('button');#}
+    {#    removeButton.classList.add('remove-criteria-btn');#}
+    {#    removeButton.innerHTML = '<i class="fas fa-minus"></i>';#}
+    {#    removeButton.onclick = function () {#}
+    {#        criteriaList.removeChild(criterionDiv);#}
+    {#        existingCriteria = existingCriteria.filter(c => c !== newCriterion);#}
+    {#        hiddenInput.value = JSON.stringify(existingCriteria);#}
+    {#    };#}
+    {##}
+    {#    // Append text & remove button to the entry div#}
+    {#    criterionDiv.appendChild(span);#}
+    {#    criterionDiv.appendChild(removeButton);#}
+    {#    criteriaList.appendChild(criterionDiv);#}
+    {##}
+    {#    // Update hidden input field with new criteria list#}
+    {#    existingCriteria.push(newCriterion);#}
+    {#    hiddenInput.value = JSON.stringify(existingCriteria);#}
+    {##}
+    {#    // Clear input field#}
+    {#    criteriaInput.value = '';#}
+    {#    }#}
 
     function goToNextTab() {
         const tabs = document.querySelectorAll('.tab');
@@ -1747,8 +1777,6 @@
             createButton.style.display = 'none';
         }
     }
-
-
 
     function updateTabContent(tabId, fields) {
         const tabContent = document.getElementById(tabId);
@@ -1806,21 +1834,36 @@
             tabContent.appendChild(fieldWrapper);
         });
     }
-    function removeManualCriteria(index) {
-        if (index < 0 || index >= customCriteria.length) {
-            console.error("Invalid index for manual criteria:", index);
-            return;
-        }
-
-        customCriteria.splice(index, 1); // Remove the selected criterion
-        renderCriteriaList(); // Re-render the list
-    }
+    {#function removeManualCriteria(index) {#}
+    {#    const hiddenInput = document.getElementById("criteria-data");#}
+    {#    let existingCriteria = JSON.parse(hiddenInput.value || '[]');#}
+    {##}
+    {#    if (index < 0 || index >= existingCriteria.length) {#}
+    {#        console.error("Invalid index for manual criteria:", index);#}
+    {#        return;#}
+    {#    }#}
+    {##}
+    {#    // Remove the selected criterion#}
+    {#    existingCriteria.splice(index, 1);#}
+    {##}
+    {#    // Update the hidden input field#}
+    {#    hiddenInput.value = JSON.stringify(existingCriteria);#}
+    {##}
+    {#    // Re-render the updated list#}
+    {#    renderCriteriaList();}#}
 
     function renderCriteriaList() {
-        const manualCriteriaList = document.getElementById("criteria-list");
-        manualCriteriaList.innerHTML = ""; // Clear the list before rendering
+        const criteriaListContainer = document.getElementById("criteria-list");
+        console.log(criteriaListContainer)
+        const hiddenInput = document.getElementById("criteria-data");
+        console.log(hiddenInput)
 
-        customCriteria.forEach((criteria, index) => {
+        let existingCriteria = JSON.parse(hiddenInput.value || '[]');
+        console.log(existingCriteria)
+
+        criteriaListContainer.innerHTML = "";  // Clear existing list
+
+        existingCriteria.forEach((criteria, index) => {
             const entry = document.createElement("div");
             entry.className = "list-entry";
             entry.innerHTML = `
@@ -1829,12 +1872,99 @@
                 <i class="fas fa-minus"></i>
             </button>
         `;
-            manualCriteriaList.appendChild(entry);
+            criteriaListContainer.appendChild(entry);
         });
 
-        // Update hidden input with criteria list
-        document.getElementById("criteria-data").value = JSON.stringify(customCriteria);
+        hiddenInput.value = JSON.stringify(existingCriteria);
+        console.log(existingCriteria)
     }
+
+    function addManualCriteria() {
+        const criteriaInput = document.getElementById('new_criteria');
+        const hiddenInput = document.getElementById('criteria-data');
+
+        let newCriterion = criteriaInput.value.trim();
+        if (!newCriterion) {
+            alert('Please enter a valid criterion.');
+            return;
+        }
+
+        let existingCriteria = JSON.parse(hiddenInput.value || '[]');
+
+        if (existingCriteria.includes(newCriterion)) {
+            alert('This criterion already exists.');
+            return;
+        }
+
+        existingCriteria.push(newCriterion);
+        hiddenInput.value = JSON.stringify(existingCriteria);
+
+        renderCriteriaList();
+        criteriaInput.value = '';
+    }
+
+    function removeManualCriteria(index) {
+        const hiddenInput = document.getElementById("criteria-data");
+        console.log(hiddenInput);
+        let existingCriteria = JSON.parse(hiddenInput.value || '[]');
+        console.log(existingCriteria);
+        if (index < 0 || index >= existingCriteria.length) {
+            console.error("Invalid index for manual criteria:", index);
+            return;
+        }
+        existingCriteria.splice(index, 1);  // Remove selected criterion
+        console.log(existingCriteria);
+        document.getElementById("criteria-data").value = JSON.stringify(existingCriteria);
+        console.log( document.getElementById("criteria-data"));
+        {#hiddenInput.value = JSON.stringify(existingCriteria);#}
+        renderCriteriaList();
+    }
+
+    {#function renderCriteriaList() {#}
+    {#    const manualCriteriaList = document.getElementById("criteria-list");#}
+    {#    const hiddenInput = document.getElementById("criteria-data");#}
+    {##}
+    {#    // Get the existing criteria (both default & user-modified)#}
+    {#    let existingCriteria = JSON.parse(hiddenInput.value || '[]');#}
+    {##}
+    {#    // Clear the current list#}
+    {#    manualCriteriaList.innerHTML = "";#}
+    {##}
+    {#    // Display each criterion in the UI#}
+    {#    existingCriteria.forEach((criteria, index) => {#}
+    {#        const entry = document.createElement("div");#}
+    {#        entry.className = "list-entry";#}
+    {#        entry.innerHTML = `#}
+    {#        <span>${criteria}</span>#}
+    {#        <button type="button" class="remove-criteria-btn" onclick="removeManualCriteria(${index})">#}
+    {#            <i class="fas fa-minus"></i>#}
+    {#        </button>#}
+    {#    `;#}
+    {#        manualCriteriaList.appendChild(entry);#}
+    {#    });#}
+    {##}
+    {#    // Update the hidden input field with the new list#}
+    {#    hiddenInput.value = JSON.stringify(existingCriteria);}#}
+
+
+    {#function renderCriteriaList() {#}
+    {#    const manualCriteriaList = document.getElementById("criteria-list");#}
+    {#    manualCriteriaList.innerHTML = ""; // Clear the list before rendering#}
+    {##}
+    {#    customCriteria.forEach((criteria, index) => {#}
+    {#        const entry = document.createElement("div");#}
+    {#        entry.className = "list-entry";#}
+    {#        entry.innerHTML = `#}
+    {#        <span>${criteria}</span>#}
+    {#        <button type="button" class="remove-criteria-btn" onclick="removeManualCriteria(${index})">#}
+    {#            <i class="fas fa-minus"></i>#}
+    {#        </button>#}
+    {#    `;#}
+    {#        manualCriteriaList.appendChild(entry);#}
+    {#    });#}
+    {##}
+    {#    // Update hidden input with criteria list#}
+    {#    document.getElementById("criteria-data").value = JSON.stringify(customCriteria);}#}
 
     document.addEventListener("DOMContentLoaded", renderCriteriaList);
 
