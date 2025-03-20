@@ -716,44 +716,6 @@ class KnowledgeBase:
             if conn:
                 conn.close()
 
-    # def update_project(self, email, project_name, ai_prompt_text, response_frequency):
-    #     # Get database connection
-    #     conn, conn_error = self.get_db_connection()
-    #     if conn is None:
-    #         return False, conn_error
-    #
-    #     cursor = None
-    #     try:
-    #         cursor = conn.cursor()
-    #
-    #         logging.info(f"Executing update query with email={email}, project_name={project_name}, "
-    #                      f"ai_prompt_text={ai_prompt_text}, response_frequency={response_frequency}")
-    #
-    #         # Update the project details in the database
-    #         cursor.execute("""
-    #             UPDATE projects SET ai_prompt_text = %s, response_frequency = %s
-    #             WHERE email_id = %s AND project_name = %s
-    #         """, (ai_prompt_text, response_frequency, email, project_name))
-    #
-    #         if cursor.rowcount == 0:
-    #             logging.warning(f"No matching project found for email={email} and project_name={project_name}.")
-    #             return False, "No matching project found for the provided email and project name."
-    #
-    #         # Commit changes to the database
-    #         conn.commit()
-    #         logging.info(f"Project details updated successfully for email={email}, project_name={project_name}.")
-    #         return True, "Project details updated successfully."
-    #
-    #     except Exception as error:
-    #         logging.error(f"Database error while updating project: {error}")
-    #         return False, f"Database error: {error}"
-    #
-    #     finally:
-    #         # Close cursor and connection if they were successfully created
-    #         if cursor:
-    #             cursor.close()
-    #         if conn:
-    #             conn.close()
     
     def delete_project(self, project_id):
         try:

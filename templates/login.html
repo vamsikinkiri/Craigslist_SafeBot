@@ -75,6 +75,7 @@
         }
         input {
             padding: 12px;
+            margin-top: 14px;
             border: 1px solid #ced4da;
             border-radius: 5px;
             width: 100%;
@@ -97,7 +98,7 @@
             border: 1px solid #f5c6cb;
             text-align: center;
         }
-        
+
         .alert {
             padding: 10px;
             margin-bottom: 10px;
@@ -107,26 +108,27 @@
         }
 
         .alert-success {
-        background-color: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
 
         .alert-error {
-        background-color: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
 
         .alert-info {
-        background-color: #d1ecf1;
-        color: #0c5460;
-        border: 1px solid #bee5eb;
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
         }
 
         .btn-primary {
             padding: 12px;
             background-color: #007195;
+            margin-top: 14px;
             color: white;
             border: none;
             border-radius: 5px;
@@ -162,9 +164,6 @@
                 font-size: 14px;
             }
         }
-
-
-
         .help-icon {
             background: none;
             border: none;
@@ -202,6 +201,11 @@
             font-size: 20px;
         }
 
+        .link-text { text-align: center; margin-top: 10px; font-size: 14px; }
+        .link-text a { color: #007bff; text-decoration: none; }
+        .link-text a:hover { text-decoration: underline; }
+        .hidden { display: none; }
+
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 </head>
@@ -222,36 +226,140 @@
 
     </div>
 </header>
-    <div class="login-container">
-        <h2>Login</h2>
-
-        <!-- Only display flash messages if there are errors -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
+<div class="login-container" id="login-box">
+    <h2>Login</h2>
+    <!-- Only display flash messages if there are errors -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div>
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }}" role="alert">
-                {{ message }}
-                </div>
-            {% endfor %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
             </div>
         {% endif %}
-        {% endwith %}
+    {% endwith %}
 
-        <form method="POST" action="{{ url_for('login') }}">
-            {{ form.hidden_tag() }}
-            <input type="text" name="loginId" placeholder="Email ID" required>
-            <input type="password" name="password" placeholder="Password" required style="margin-bottom: 10px;">
-            <div>
-                {{ form.submit(class_="btn btn-primary") }}
-            </div>
-        </form>
+    <form method="POST" action="{{ url_for('login') }}">
+        {{ form.hidden_tag() }}
+        <input type="text" name="loginId" placeholder="Email ID" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <div><button type="submit" class="btn-primary">Login</button></div>
+    </form>
 
-        <!-- Link to Create Account page -->
-        <div class="create-account-link">
-            <p>Don't have an account? <a href="{{ url_for('create_account') }}">Create one</a></p>
-        </div>
+    <div class="link-text">
+        <p>Don't have an account? <a href="{{ url_for('create_account') }}">Create one</a></p>
+        <p><a href="#" onclick="showForgotPassword()">Forgot Password?</a></p>
     </div>
+</div>
+
+<div class="login-container hidden" id="forgot-password-box">
+    <h2>Forgot Password</h2>
+
+    <!-- Display flash messages here -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div>
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <input type="text" id="reset-email" placeholder="Enter registered email" required>
+    <button class="btn-primary" onclick="sendResetCode()">Send Code</button>
+
+    <div id="reset-code-section" >
+        <input type="text" id="reset-code" placeholder="Enter reset code">
+        <button class="btn-primary" onclick="verifyResetCode()">Verify Code</button>
+        <p class="link-text"><a href="#" onclick="showLogin()">Back to Login</a></p>
+    </div>
+
+    <div id="reset-password-section" class="hidden">
+    <h2>Reset Password</h2>
+        <input type="password" id="new-password" placeholder="New Password">
+        <input type="password" id="confirm-password" placeholder="Confirm Password">
+        <button class="btn-primary" onclick="resetPassword()">Reset Password</button>
+    <p class="link-text"><a href="#" onclick="showLogin()">Back to Login</a></p>
+    </div>
+</div>
+
+<script>
+    function showForgotPassword() {
+        document.getElementById("login-box").classList.add("hidden");
+        document.getElementById("forgot-password-box").classList.remove("hidden");
+    }
+
+    function showLogin() {
+        document.getElementById("forgot-password-box").classList.add("hidden");
+        document.getElementById("login-box").classList.remove("hidden");
+        document.getElementById("reset-code-section").classList.add("hidden");
+        document.getElementById("reset-password-section").classList.add("hidden");
+    }
+    function sendResetCode() {
+        let email = document.getElementById("reset-email").value;
+        fetch("{{ url_for('send_reset_code') }}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email })
+        }).then(response => response.json()).then(data => {
+            if (data.success) {
+                alert("Reset code sent successfully! Please check your email.");
+                document.getElementById("reset-code-section").classList.remove("hidden");
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+
+    function verifyResetCode() {
+        let email = document.getElementById("reset-email").value;
+        let code = document.getElementById("reset-code").value;
+        fetch("{{ url_for('verify_reset_code') }}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email, code: code })
+        }).then(response => response.json()).then(data => {
+            if (data.success) {
+                alert("Code Verification successful! Please reset the password.");
+                document.getElementById("reset-password-section").classList.remove("hidden");
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+
+    function resetPassword() {
+        let email = document.getElementById("reset-email").value;
+        let newPassword = document.getElementById("new-password").value;
+        let confirmPassword = document.getElementById("confirm-password").value;
+
+        if (newPassword !== confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
+        fetch("{{ url_for('reset_password') }}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email, new_password: newPassword })
+        }).then(response => response.json()).then(data => {
+            if (data.success) {
+                alert("Password reset successful! Please log in.");
+                window.location.href = "{{ url_for('login') }}";
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(alert => alert.remove());
+    }, 1000);
+
+</script>
 </body>
 </html>
-

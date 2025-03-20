@@ -115,7 +115,6 @@ def login():
         success, result = auth_handler.authenticate_user(email_id, password)
         if success:
             session['admin_id'] = result.get("admin_id")
-            #session['admin_email'] = email_id
             session['admin_email'] = result.get('email_id')  # Store admin email in session
             session['admin_affiliation'] = result.get('affiliation')
             session['admin_contact_number'] = result.get('contact_number')
@@ -172,9 +171,61 @@ def create_account():
 
     return render_template('create_account.html')
 
+
+def is_valid_email(email):
+    return bool(re.match(r"[^@]+@[^@]+\.[^@]+", email))
+@app.route('/send_reset_code', methods=['POST'])
+def send_reset_code():
+    data = request.get_json() or {}
+    email_id = data.get('email')
+
+    if not email_id or not is_valid_email(email_id):
+        return jsonify({"success": False, "message": "Invalid email format. Please enter a valid email ID."})
+
+    is_valid, message = knowledge_base.is_admin_email_id_valid(email_id)
+    if not is_valid:
+        return jsonify({"success": False, "message": message})
+
+    success, message = auth_handler.generate_and_send_reset_code(email_id)
+    if success:
+        return jsonify({"success": True, "message": "Reset code sent successfully! Check your email."})
+    else:
+        return jsonify({"success": False, "message": message or "Failed to send reset code. Try again later."})
+
+
+@app.route('/verify_reset_code', methods=['POST'])
+def verify_reset_code():
+    data = request.get_json() or {}
+    email_id = data.get('email')
+    reset_code = data.get('code')
+
+    success, message = auth_handler.verify_reset_code(email_id, reset_code)
+    if success:
+        return jsonify({"success": True, "message": "Reset code verified successfully!"})
+    else:
+        return jsonify({"success": False, "message": message or "Invalid reset code. Please try again."})
+
+
+@app.route('/reset_password', methods=['POST'])
+def reset_password():
+    data = request.get_json() or {}
+    email_id = data.get('email')
+    new_password = data.get('new_password')
+
+    success, message = knowledge_base.update_admin_password(email_id, new_password)
+    if success:
+        return jsonify({"success": True, "message": "Password reset successfully! Please log in.", "redirect": url_for('login')})
+    else:
+        return jsonify({"success": False, "message": message or "Failed to reset password. Try again."})
+
+
 @app.route('/project_creation', methods=['GET', 'POST'])
 @login_required
 def project_creation():
+    # admin_email = 'asuba006@ucr.edu'
+    admin_email = session['admin_email']
+    logging.info(f"Admin email in session: {admin_email}")
+
     success, project_types = knowledge_base.get_all_project_types()
     if not success:
         flash("Error fetching project types. Please try again.", "error")
@@ -198,12 +249,20 @@ def project_creation():
             flash(project_data, "error")
             return redirect(url_for('all_projects_view'))
 
+        # Explicitly set the default admin prompt **only for Child Predator Catcher**
+        if default_project_type.lower() == "child predator catcher":
+            default_admin_prompt = project_data.get('DEFAULT_ADMIN_PROMPT', "")
+        # logging.info(f"The default project type is: {default_project_type}")
+        # logging.info(f"The default prompt is: {default_admin_prompt}")
+
     if not success:
         logging.error(f"Error during project creation: {project_data}")
         flash(project_data, "error")
         return redirect(url_for('all_projects_view'))
 
     ai_prompt_text = project_data['base_prompt']
+
+    authorized_emails_list = [admin_email]  # Start with admin email as default
 
     if request.method == 'POST':
         email = request.form['email']
@@ -291,7 +350,16 @@ def project_creation():
             logging.error(f"Error validating email format: {e}")
             flash("Required fields in Project Information, Keyword Prioritization and authorization settings must be filled.", "error")
             return redirect(url_for('project_creation'))
-            # return jsonify({"error": "Invalid email format. Ensure all emails are properly formatted."}), 400
+
+
+        authorized_emails_list = json.loads(authorized_emails) if authorized_emails else []
+
+        # Ensure admin email is included by default, but allow removal
+        if admin_email and admin_email not in authorized_emails_list:
+            authorized_emails_list.append(admin_email)
+
+        # Remove duplicates and empty values
+        authorized_emails_list = list(set(filter(None, authorized_emails_list)))
 
         project_success, message = knowledge_base.is_email_unique_in_projects(email)
         if not project_success:
@@ -367,8 +435,13 @@ def project_creation():
             return redirect(url_for('all_projects_view'))
 
     return render_template(
-        'project_creation.html',project_types=project_types, project_data = project_data,
-        default_switch_manual_criterias=project_data.get("default_switch_manual_criterias", []))
+        'project_creation.html',
+        project_types=project_types,
+        project_data = project_data,
+        default_switch_manual_criterias=project_data.get("default_switch_manual_criterias", []),
+        default_admin_email=admin_email,
+        default_admin_prompt=default_admin_prompt,
+        authorized_emails=json.dumps(authorized_emails_list) )
 
 @app.route('/api/update_projects', methods=['GET'])
 @login_required
@@ -393,6 +466,14 @@ def parse_json_field(field, default):
         return json.loads(field) if field else default
     except json.JSONDecodeError:
         return default
+
+# Register a custom Jinja filter for parsing JSON
+@app.template_filter('from_json')
+def from_json_filter(value):
+    try:
+        return json.loads(value)
+    except (ValueError, TypeError):
+        return []
     
 def get_project_data(email):
     try:

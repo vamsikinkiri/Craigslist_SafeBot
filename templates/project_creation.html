@@ -272,26 +272,30 @@
             cursor: pointer;
             color: #6b7280;
             font-size: 18px;
+            margin-left: 6px;
         }
 
         /* Tooltip styling */
         .tooltip {
-            visibility: hidden;
-            width: 200px;
+            display: none;
+            position: absolute;
             background-color: #555;
             color: #fff;
             text-align: left;
             border-radius: 6px;
             padding: 10px;
+            width: 250px; /* Set a fixed width */
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            white-space: normal; /* Allows wrapping inside tooltip */
+            border: 1px solid #ccc;
             bottom: 125%; /* Position above the icon */
-            position: absolute;
-            left: 50%;
+            left: -350%;
             transform: translateX(-50%);
             z-index: 1;
             opacity: 0;
             transition: opacity 0.3s ease;
-            font-size: 14px;
-            line-height: 1.5;
         }
 
         /* Show tooltip when visible class is added */
@@ -387,9 +391,11 @@
 
 
         .input-wrapper {
-            display: flex; /* Aligns the input and info-icon side by side */
+            {#display: flex; /* Aligns the input and info-icon side by side */#}
             align-items: center; /* Centers elements vertically */
             margin: 10px 0; /* Ensures consistent spacing for input fields */
+            position: relative;
+            width: 100%;
         }
 
         .input-wrapper label {
@@ -401,6 +407,7 @@
 
         .input-wrapper input {
             width: 100%;
+            padding-right: 35px; /* Extra space for the icon */
             padding: 12px;
             border: none;
             border-radius: 15px;
@@ -411,6 +418,11 @@
             transition: background-color 0.3s;
         }
 
+        .input-wrapper select {
+            flex-grow: 1;
+            padding-right: 40px; /* Leave space for the icon */
+        }
+
         .input-wrapper input::placeholder {
             color: #9ca3af;
         }
@@ -419,7 +431,14 @@
             background-color: #d7e3fc;
         }
 
-
+        .input-wrapper .info-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666;
+        }
 
         .error-message {
             color: #e63946;
@@ -550,6 +569,20 @@
             justify-content: center;
             transition: background-color 0.3s;
         }
+        .add-criteria-btn, .remove-criteria-btn{
+            background-color: #003a8d;
+            color: white;
+            border: none;
+            border-radius: 50%; /* Makes the button round */
+            cursor: pointer;
+            font-size: 15px; /* Increases icon size */
+            width: 22px; /* Adjust size as needed */
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
         .remove-keyword-btn {
             background-color: #003a8d;
             color: white;
@@ -564,6 +597,8 @@
             justify-content: center;
             transition: background-color 0.3s;
         }
+
+        .add-criteria-btn:hover, .remove-criteria-btn:hover,
         .add-keyword-btn:hover , .remove-keyword-btn:hover{
             background-color: #4C6A9C;
         }
@@ -574,7 +609,7 @@
 
         /* Subtle styling for Save Project button */
         .button-container-next-create #next-btn {
-            margin-top: 20px;
+            margin-top: 5px;
             padding: 12px 20px;
             width: 90%;
             border: none;
@@ -642,6 +677,12 @@
             gap: 10px;
             align-items: center;
             margin: 10px 0;
+            flex: 1; /* Make both input fields take equal width */
+            padding: 12px;
+            border: none;
+            border-radius: 15px;
+            color: #3b3b3b;
+            outline: none;
         }
 
         .keyword-box {
@@ -683,16 +724,30 @@
             color: #3b3b3b;
             outline: none;
         }
-
         /* General wrapper for input sections */
-        .field-wrapper {
-            display: flex;
+        .field-wrapper  {
+            display:flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        /* General wrapper for input sections */
+        .email-wrapper {
+            display:flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
             margin: 10px 0;
         }
 
+        /* General wrapper for input sections */
+        .criteria-wrapper{
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
         /* Threshold input boxes */
         .threshold-box {
             flex: 1;
@@ -873,6 +928,29 @@
             flex: 1;  /* Ensures equal width for all dropdowns */
         }
 
+        .remove-email-btn {
+            position: sticky;
+            left: 89%; /* Push to rightmost */
+            background-color: #003a8d;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 15px;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+
+
+        .remove-email-btn:hover {
+            background-color: #4C6A9C;
+        }
+
+
         .custom-select {
             width: 100%;
             padding: 10px;
@@ -881,6 +959,89 @@
             background-color: #e7eef0;
             font-size: 16px;
         }
+
+        .email-entry {
+            display: flex;
+            align-items: center;
+            background-color: #f9fafb;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 16px;
+            color: #3b3b3b;
+            width: 92%
+        }
+
+        .list-container {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px; /* Consistent spacing between criteria */
+        }
+
+        .list-entry {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .criteria-text {
+            flex-grow: 1;
+        }
+
+
+        .field-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .custom-input-others {
+            flex-grow: 1;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        /* Project Information */
+        #project-info .input-wrapper .info-icon {
+            right: 12px;
+        }
+
+        /* Bot Settings */
+        #bot-settings .input-wrapper .info-icon {
+            right: 14px;
+        }
+
+        /* Engagement Thresholds */
+        #thresholds .input-wrapper .info-icon {
+            right: 12px;
+        }
+
+        /* Admin Authorization */
+        #admin-settings .input-wrapper .info-icon {
+            right: 16px;
+        }
+
+        /* Manual Intervention */
+        #manual-intervention-settings .input-wrapper .info-icon {
+            right: 14px;
+        }
+
+        /* Interaction Settings */
+        #interaction-settings .input-wrapper .info-icon {
+            right: 12px;
+        }
+
+        /* Keyword Prioritization */
+        #keyword-prioritization .input-wrapper .info-icon {
+            right: 14px;
+        }
+
     </style>
 
 </head>
@@ -936,7 +1097,6 @@
             <fieldset>
                 <legend>Project Information</legend>
                 <select id="project_type" name="project_type" title = "Select a Project Type from the dropdown" class="custom-input custom-select" onchange="updateProjectData()" required>
-
                     {% for project_type in project_types %}
                         <option value="{{ project_type.type }}" {% if project_type.type.lower() == 'child predator catcher' %}selected{% endif %}>
                             {{ project_type.type }}
@@ -944,16 +1104,26 @@
                     {% endfor %}
 
                 </select>
+                <div class="input-wrapper">
                 <input type="text" name="project_name" placeholder="Project Name" id="project-name"
                        title="Provide a unique name relating to the crime for this project." required>
-                <input type="text" name="email" placeholder="Email ID" id="email"
-                       title="Enter the email address associated with the Craigslist advertisement. This email will be used to send and receive communications." required>
+                <input type="text" name="email" placeholder="Project Email ID" id="email"
+                       title="Enter the Project email address associated with the Craigslist advertisement. This email will be used to send and receive communications. (This is not the admin email id)" required>
+                <span class="info-icon" onclick="toggleTooltip('email-tooltip')">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="tooltip" id="email-tooltip">
+                        <p>The <b>Project Email ID</b> is used for sending and receiving Craigslist-related communications, including messages with potential suspects.</p>
+                        <p>This is not your Admin Email. Ensure you enter a separate email dedicated to Craigslist operations.</p>
+                    </span>
+                </span>
+                </div>
+
                 <div class="input-wrapper">
                     <input type="password" name="password" placeholder="Password (App Password)" id="password"
                            title="Enter the app-specific password for the email ID. Click on i to understand how to generate the password" required>
-                    <span class="info-icon" onclick="toggleTooltip()">
+                    <span class="info-icon" onclick="toggleTooltip('app-password-tooltip')">
                             <i class="fas fa-info-circle"></i>
-                            <span class="tooltip" id="tooltip">
+                            <span class="tooltip" id="app-password-tooltip">
                                 <p>Please use this link to access the app password:</p>
                                 <p><a href="https://support.google.com/accounts/answer/185833?hl=en" target="_blank">Generate App Password</a></p>
                             </span>
@@ -965,9 +1135,29 @@
         <div class="tab-content" id="bot-settings" >
             <fieldset>
                 <legend>Safe Bot Settings</legend>
-                <textarea id="prompt_text" name="ai_prompt_text" rows="3" placeholder="Instructions to Safe Bot" title="Provide specific instructions or preferences for the SafeBot’s behavior and responses.">{{ project_data['DEFAULT_ADMIN_PROMPT'] }}</textarea>
+                <div class="input-wrapper">
+                <textarea id="prompt_text" name="ai_prompt_text" rows="3" placeholder="Instructions to Safe Bot"
+                          title="Provide specific instructions or preferences for the SafeBot’s behavior and responses.">{{ default_admin_prompt }}</textarea>
+                <!-- Info Icon with Tooltip -->
+
+                <span class="info-icon" onclick="toggleTooltip('prompt-tooltip')">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="tooltip" id="prompt-tooltip">
+                        <p>Define how the SafeBot should respond to emails and messages.</p>
+                        <p>These instructions help the bot generate responses that match your requirements.</p>
+                    </span>
+                </span>
+                </div>
+
                 <div class="input-wrapper">
                     <input type="number" id="response_frequency" name="response_frequency" placeholder="Response Frequency in Minutes (Default: 10)" min="1" title="Specify roughly how often (in minutes) the bot should check for new emails and respond automatically." style="margin-top: 10px;">
+
+                    <span class="info-icon" onclick="toggleTooltip('response-tooltip')">
+                        <i class="fas fa-info-circle"></i>
+                        <span class="tooltip" id="response-tooltip">
+                            <p>Specify roughly how often (in minutes) the bot should check for new emails and respond automatically</p>
+                        </span>
+                    </span>
                 </div>
                 <fieldset class="time-zone-container" title="Define the bot's active working hours and your timezone.">
                     <!-- Active Start Time -->
@@ -1003,7 +1193,7 @@
                             {% endfor %}
                         </select>
                     </div>
-                </fieldset>
+                    </fieldset>
             </fieldset>
         </div>
 
@@ -1021,51 +1211,70 @@
                            class="threshold-box" placeholder="Manual Engagement Threshold (Default: 75)"
                            min="1" title="The score above which the system switches to manual intervention mode and intimate the admins to send responses.">
                 </div>
-            </fieldset>
-        </div>
-
+                </fieldset>
+            </div>
 
         <div class="tab-content" id="admin-settings" >
             <fieldset>
                 <legend>Admin Authorization Settings</legend>
-                <div>
-                    <label for="authorized_emails"></label>
-                    <div class="field-wrapper">
-                        <input type="email" id="email_input" class="authorized-emails-box" placeholder="Authorized emails"
-                               title="List the email addresses that have permission to view, modify, or delete this project. Add multiple emails if needed.">
-                        <button type="button" class="add-keyword-btn" onclick="addEmail()">
+                <div class="field-wrapper email-wrapper">
+                    <input type="email" id="email_input" class="authorized-emails-box" placeholder="Enter email to authorize">
+                    <button type="button" class="add-keyword-btn" onclick="addEmail()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div id="email-list-container" class="email-list-container">
+                    {% for email in authorized_emails | from_json %}
+                        {% if email.strip() %}
+                            <div class="email-entry" id="email-{{ loop.index }}">
+                                <span class="authorized-email">{{ email }}</span>
+                                <button type="button" class="remove-email-btn" onclick="removeEmail('{{ email }}', '{{ loop.index }}')">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+
+            </fieldset>
+                <!-- Hidden input field to store email list -->
+                <input type="hidden" name="authorized_emails" id="authorized-emails-input" value="{{ authorized_emails | tojson | safe }}">
+        </div>
+
+        <div class="tab-content" id="manual-intervention-settings">
+            <fieldset>
+                <legend>Manual Intervention Criteria</legend>
+                <!-- Input for New Criterion -->
+                <div class="criteria-wrapper">
+                    <div class="field-group">
+                        <input
+                                type="text"
+                                id="new_criteria"
+                                class="custom-input-others"
+                                placeholder="Add new criteria"
+                                title="Enter additional scenarios where you would like to switch the response state from automated to manual."
+                        >
+                        <button type="button" class="add-criteria-btn" onclick="addManualCriteria()">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
                 </div>
-                <div id="email-list-container" class="email-list-container">
-                    <!-- Dynamically added emails with Remove button -->
-                </div>
-            </fieldset>
-            <input type="hidden" name="authorized_emails" id="authorized-emails-input" value="[]">
-        </div>
 
-
-        <div class="tab-content" id="manual-intervention-settings" >
-            <fieldset>
-                <legend>Criteria for Manual Switch</legend>
-                <!-- Add Custom Condition -->
-                <div class="keyword-frequency-wrapper" style="margin-top: 10px;">
-                    <!-- Text Input for New Criteria -->
-                    <input type="text" id="new_criteria" placeholder="Add a new condition" class="keyword-box"
-                           title="Enter additional scenarios where you would like to switch the response state from automated to manual.">
-                    <!-- Add Button -->
-                    <button type="button" class="add-keyword-btn" onclick="addManualCriteria()">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-                <ul id="criteria-list">
-                    {% for criteria in project_data.default_switch_manual_criterias %}
-                        <li>{{ criteria }}</li>
+                <!-- Existing Criteria List -->
+                <div id="criteria-list" class="list-container">
+                    {% for criteria in project_data.default_switch_manual_criterias or [] %}
+                        <div class="list-entry">
+                            <span class="criteria-text">{{ criteria }}</span>
+                            <button type="button" class="remove-criteria-btn" onclick="removeManualCriteria({{ loop.index0 }})">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
                     {% endfor %}
-                </ul>
-                <!-- Hidden Input to Store All Criteria -->
-                <input type="hidden" id="criteria-data" name="criteria_data" value="[]">
+                </div>
+
+                <!-- Hidden Input to Store Criteria -->
+                <input type="hidden" id="criteria-data" name="switch_manual_criterias" value='{{ project_data.default_switch_manual_criterias | tojson | safe }}'>
             </fieldset>
         </div>
 
@@ -1073,8 +1282,20 @@
         <div class="tab-content" id="interaction-settings" >
             <fieldset>
                 <legend>Interaction Settings</legend>
+                <div class="input-wrapper">
                 <input type="text" id="posed_name" name="posed_name" placeholder="Enter posed name. For example: Karen, Jason"
                        title="Enter the alias or name being used for interaction.">
+
+                    <!-- Info Icon with Tooltip -->
+                    <span class="info-icon" onclick="toggleTooltip('posed-name-tooltip')">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="tooltip" id="posed-name-tooltip">
+                        <p>Enter the alias or name being used for interaction. For example,you may use names like <i>Karen, Jason, Alex</i>.</p>
+                    </span>
+                </span>
+                </div>
+
+                <div class="input-wrapper">
                 <!-- Posed Age -->
                 <div class="inline-fields">
                     <div class="input-group">
@@ -1087,11 +1308,29 @@
                             <option value="Female">Female</option>
                             <option value="Other">Other</option>
                         </select>
+
+                        <!-- Info Icon with Tooltip -->
+                            <span class="info-icon" onclick="toggleTooltip('posed-age-tooltip')">
+                        <i class="fas fa-info-circle"></i>
+                        <span class="tooltip" id="posed-age-tooltip">
+                            <p>This defines the age and gender you will portray in interactions.</p>
+                        </span>
+                    </span>
+                    </div>
                     </div>
                 </div>
                 <!-- Posed Location -->
+                <div class="input-wrapper">
                 <input type="text" id="posed_location" name="posed_location" placeholder="Enter posed location"
                        title="Enter the location being used in the interaction.">
+
+                    <span class="info-icon" onclick="toggleTooltip('posed-location-tooltip')">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="tooltip" id="posed-location-tooltip">
+                        <p>This is the fake location you will claim to be from.</p>
+                    </span>
+                </span>
+                </div>
             </fieldset>
         </div>
 
@@ -1100,15 +1339,23 @@
             <fieldset>
                 <legend>Keyword Prioritization</legend>
                 <div class="keyword-frequency-wrapper">
-                    <input type="text" id="keyword-input" placeholder="Keyword" class="keyword-box"
+                        <input type="text" id="keyword-input" placeholder="Keyword" class="keyword-box"
                            title="Enter keywords that the bot will look for in emails to prioritize responses." >
-                    <div class="frequency-box-wrapper">
+
+                        <div class="frequency-box-wrapper">
                         <input type="number" id="keyword-frequency" name="keyword-frequency" placeholder="Frequency" min="1"
                                title="Define the maximum number of times the keyword needs to appear in email threads." class="frequency-box">
+                        <!-- Info Icon with Tooltip -->
+                        <span class="info-icon" onclick="toggleTooltip('frequency-tooltip')">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tooltip" id="frequency-tooltip">
+                                <p>The keyword frequency value is the maximum number of times the keyword needs to appear in email threads. Set this based on how relevant a keyword needs to be before action is taken.</p>
+                            </span>
+                        </span>
+                    </div>
                         <button type="button" class="add-keyword-btn" onclick="addKeyword()">
                             <i class="fas fa-plus"></i>
                         </button>
-                    </div>
                 </div>
                 <div class="error-message" id="keyword-error-message" style="color: red; display: none;">
                     Please add minimum one relevant keyword w.r.t project.
@@ -1135,12 +1382,48 @@
 </div>
 
 
-
 <script>
-    function toggleTooltip() {
-        const tooltip = document.getElementById('tooltip');
-        tooltip.classList.toggle('visible');
+    function toggleTooltip(tooltipId) {
+        // Ensure tooltipId is valid
+        if (!tooltipId) {
+            console.error("toggleTooltip was called without a valid tooltipId.");
+            return;
+        }
+
+        // Find the tooltip element
+        let tooltip = document.getElementById(tooltipId);
+
+        if (!tooltip) {
+            console.error(`Tooltip with ID '${tooltipId}' not found.`);
+            return;
+        }
+
+        // Hide all other tooltips before opening the clicked one
+        document.querySelectorAll('.tooltip').forEach(tip => {
+            if (tip !== tooltip) {
+                tip.classList.remove('visible');
+                tip.style.display = 'none';
+            }
+        });
+
+        // Toggle visibility: If currently hidden, show it; otherwise, hide it
+        if (tooltip.style.display === 'block') {
+            tooltip.style.display = 'none';
+            tooltip.classList.remove('visible');
+        } else {
+            tooltip.style.display = 'block';
+            tooltip.classList.add('visible');
+        }
+
+        // Adjust position if tooltip is going off-screen
+        let rect = tooltip.getBoundingClientRect();
+        if (rect.right > window.innerWidth) {
+            tooltip.style.left = "auto";
+            tooltip.style.right = "0px";  // Push left if overflowing
+        }
     }
+
+
     document.querySelectorAll(".tab").forEach(tab => {
         tab.addEventListener("click", () => {
             const target = tab.dataset.tab;
@@ -1252,12 +1535,14 @@
             return;
         }
 
-        let currentEmails = JSON.parse(authorizedEmailsInput.value || "[]");
+        let currentEmails;
         try {
             currentEmails = JSON.parse(authorizedEmailsInput.value || "[]");
         } catch (e) {
             console.error("Error parsing authorized emails:", e);
+            currentEmails = [];
         }
+
 
         // Prevent duplicate emails
         if (currentEmails.includes(emailValue)) {
@@ -1269,14 +1554,15 @@
         currentEmails.push(emailValue);
         authorizedEmailsInput.value = JSON.stringify(currentEmails);
 
-        // Update the UI to reflect the added email
         const emailItem = document.createElement('div');
-        emailItem.className = 'list-item';
+        emailItem.className = 'email-entry'; // Ensure it matches the correct CSS styling
         emailItem.innerHTML = `
-        <span>${emailValue}</span>
-        <button type="button" class="remove-keyword-btn" onclick="removeEmail('${emailValue}')">-</button>
-    `;
+        <span class="authorized-email">${emailValue}</span>
+        <button type="button" class="remove-email-btn" onclick="removeEmail('${emailValue}')">
+            <i class="fas fa-minus"></i>
+        </button>`;
         emailListContainer.appendChild(emailItem);
+
 
         // Clear the input field
         emailInput.value = '';
@@ -1291,12 +1577,12 @@
         currentEmails = currentEmails.filter(email => email !== emailValue);
         authorizedEmailsInput.value = JSON.stringify(currentEmails);
 
-        // Update the UI to reflect the removed email
-        Array.from(emailListContainer.children).forEach(item => {
-            if (item.textContent.includes(emailValue)) {
-                emailListContainer.removeChild(item);
-            }
-        });
+        const emailEntries = emailListContainer.getElementsByClassName("email-entry");
+        for (let i = 0; i < emailEntries.length; i++) {
+            if (emailEntries[i].querySelector(".authorized-email").textContent === emailValue) {
+                emailListContainer.removeChild(emailEntries[i]);
+                break;
+            }}
     }
 
     document.querySelector('form').addEventListener('submit', function (event) {
@@ -1331,6 +1617,7 @@
 
     async function updateProjectData() {
         const projectType = document.getElementById('project_type').value;
+
         try {
             // Fetch project data for the selected project type
             const response = await fetch(`/get_project_data_specific_project_type?project_type=${encodeURIComponent(projectType)}`);
@@ -1342,13 +1629,22 @@
 
             // Update the UI with the fetched data
             document.getElementById('prompt_text').value = data.DEFAULT_ADMIN_PROMPT || ''; // Update prompt text
+
+
             const scenariosList = document.getElementById('criteria-list');
             scenariosList.innerHTML = ''; // Clear existing scenarios
+
             data.default_switch_manual_criterias.forEach((criteria) => {
-                const li = document.createElement('li');
-                li.textContent = criteria;
-                scenariosList.appendChild(li);
-            });
+                const div = document.createElement('div');
+                div.classList.add('list-entry');
+                div.innerHTML = `
+                <span>- ${criteria}</span>
+                <button type="button" class="remove-criteria-btn" onclick="removeManualCriteria('${criteria}')">
+                    <i class="fas fa-minus"></i>
+                </button>
+            `;
+                scenariosList.appendChild(div);
+                });
         } catch (error) {
             console.error('Error fetching project data:', error);
             alert('Failed to update project data. Please try again.');
@@ -1357,48 +1653,62 @@
 
 
     let criteriaData = [];
-    const defaultCriteria = {{ default_switch_manual_criterias | tojson | default('[]') }};
+    {#const defaultCriteria = {{ default_switch_manual_criterias | tojson | default('[]') }};#}
+    const defaultCriteria = JSON.parse('{{ default_switch_manual_criterias | tojson | safe }}');
     const customCriteria = JSON.parse(document.getElementById('criteria-data').value || '[]');
     {#const defaultCriteria = JSON.parse('{{ default_switch_manual_criterias | tojson | safe }}');#}
     {#const customCriteria = JSON.parse(document.getElementById('criteria-data').value || '[]');#}
+    criteriaData = [...new Set([...defaultCriteria, ...customCriteria])];
 
     function addManualCriteria() {
         const criteriaInput = document.getElementById('new_criteria');
         const criteriaList = document.getElementById('criteria-list');
         const hiddenInput = document.getElementById('criteria-data');
 
-        const newCriterion = criteriaInput.value.trim();
+        let newCriterion = criteriaInput.value.trim();
         if (!newCriterion) {
-            alert('Please enter a valid criteria.');
+            alert('Please enter a valid criterion.');
             return;
         }
 
-        // Check if the criterion already exists
-        const existingCriteria = JSON.parse(hiddenInput.value || '[]');
+        // Retrieve existing criteria from the hidden input field
+        let existingCriteria = JSON.parse(hiddenInput.value || '[]');
+
+        // Check if criterion already exists
         if (existingCriteria.includes(newCriterion)) {
-            alert('This criteria already exists.');
+            alert('This criterion already exists.');
             return;
         }
-
-        // Add the new criterion visually
+        // Add new criterion visually in the same format as the existing ones
         const criterionDiv = document.createElement('div');
-    {#    criterionDiv.innerHTML = `#}
-    {#    <span class="bullet">•</span>#}
-    {#    <span>${newCriterion}</span>#}
-    {#`;#}
-        criterionDiv.innerHTML = `
-        <li>${newCriterion}</li>
-    `;
+        criterionDiv.classList.add('list-entry');
+
+        // Text span for the criterion
+        const span = document.createElement('span');
+        span.textContent = newCriterion;
+
+        // Remove button
+        const removeButton = document.createElement('button');
+        removeButton.classList.add('remove-criteria-btn');
+        removeButton.innerHTML = '<i class="fas fa-minus"></i>';
+        removeButton.onclick = function () {
+            criteriaList.removeChild(criterionDiv);
+            existingCriteria = existingCriteria.filter(c => c !== newCriterion);
+            hiddenInput.value = JSON.stringify(existingCriteria);
+        };
+
+        // Append text & remove button to the entry div
+        criterionDiv.appendChild(span);
+        criterionDiv.appendChild(removeButton);
         criteriaList.appendChild(criterionDiv);
 
-        // Update hidden input field with combined criteria
+        // Update hidden input field with new criteria list
         existingCriteria.push(newCriterion);
         hiddenInput.value = JSON.stringify(existingCriteria);
 
-        // Clear the input field
+        // Clear input field
         criteriaInput.value = '';
-    }
-
+        }
 
     function goToNextTab() {
         const tabs = document.querySelectorAll('.tab');
@@ -1439,6 +1749,7 @@
 
     async function updateProjectData() {
         const projectType = document.getElementById('project_type').value;
+
         try {
             // Fetch project data for the selected project type
             const response = await fetch(`/get_project_data_specific_project_type?project_type=${encodeURIComponent(projectType)}`);
@@ -1450,12 +1761,21 @@
 
             // Update the UI with the fetched data
             document.getElementById('prompt_text').value = data.DEFAULT_ADMIN_PROMPT || ''; // Update prompt text
+
+
             const scenariosList = document.getElementById('criteria-list');
             scenariosList.innerHTML = ''; // Clear existing scenarios
+
             data.default_switch_manual_criterias.forEach((criteria) => {
-                const li = document.createElement('li');
-                li.textContent = criteria;
-                scenariosList.appendChild(li);
+                const div = document.createElement('div');
+                div.classList.add('list-entry');
+                div.innerHTML = `
+                <span>- ${criteria}</span>
+                <button type="button" class="remove-criteria-btn" onclick="removeManualCriteria('${criteria}')">
+                    <i class="fas fa-minus"></i>
+                </button>
+            `;
+                scenariosList.appendChild(div);
             });
         } catch (error) {
             console.error('Error fetching project data:', error);
@@ -1519,7 +1839,37 @@
             tabContent.appendChild(fieldWrapper);
         });
     }
+    function removeManualCriteria(index) {
+        if (index < 0 || index >= customCriteria.length) {
+            console.error("Invalid index for manual criteria:", index);
+            return;
+        }
 
+        customCriteria.splice(index, 1); // Remove the selected criterion
+        renderCriteriaList(); // Re-render the list
+    }
+
+    function renderCriteriaList() {
+        const manualCriteriaList = document.getElementById("criteria-list");
+        manualCriteriaList.innerHTML = ""; // Clear the list before rendering
+
+        customCriteria.forEach((criteria, index) => {
+            const entry = document.createElement("div");
+            entry.className = "list-entry";
+            entry.innerHTML = `
+            <span>${criteria}</span>
+            <button type="button" class="remove-criteria-btn" onclick="removeManualCriteria(${index})">
+                <i class="fas fa-minus"></i>
+            </button>
+        `;
+            manualCriteriaList.appendChild(entry);
+        });
+
+        // Update hidden input with criteria list
+        document.getElementById("criteria-data").value = JSON.stringify(customCriteria);
+    }
+
+    document.addEventListener("DOMContentLoaded", renderCriteriaList);
 
     document.addEventListener('DOMContentLoaded', function() {
 
