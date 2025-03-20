@@ -28,7 +28,7 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))  # Use environment variable or random key
 app.config['SESSION_PERMANENT'] = True
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=2) # Set session timeout to 60 minutes
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=60) # Set session timeout to 60 minutes
 
 # Secure session cookies
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to cookies
